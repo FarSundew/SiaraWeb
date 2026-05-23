@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data; // Aseg�rate de que este namespace coincida con el tuyo
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +17,7 @@ builder.Services.AddDataProtection()
     .PersistKeysToDbContext<ApplicationDbContext>();
 
 // 3. Configurar Identity con reglas espec�ficas de SIARA
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // Cambiar a true si usar�n confirmaci�n por correo
 
