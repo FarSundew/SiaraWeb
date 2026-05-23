@@ -1,64 +1,63 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Registro";
+    ViewData["OcultarMenu"] = true;
 }
 
-<h1>@ViewData["Title"]</h1>
-
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
+<!-- ENCABEZADO PRINCIPAL -->
+<header class="siara-header">
+    <img src="~/img/tecnm_logo.png" alt="TecNM" class="logo-header" />
+    <div class="siara-header-text">
+        <h1>TECNOLOGICO NACIONAL DE MEXICO</h1>
+        <h2>Sistema Integral de Análisis y Reportes Académicos</h2>
     </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+    <img src="~/img/instituto_logo.png" alt="ITC" class="logo-header" />
+</header>
+
+<div class="login-wrapper">
+    <div class="tarjeta-siara">
+        <!-- LOGO DEL SISTEMA -->
+        <img src="~/img/siara_logo.png" alt="S.I.A.R.A" class="logo-siara-centro" />
+        
+        <!-- TEXTO DE NUEVO USUARIO -->
+        <h3 class="titulo-pantalla">NUEVO USUARIO</h3>
+
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="texto-error"></div>
+
+            <!-- CASILLA CORREO -->
+            <div class="grupo-input">
+                <svg class="icono-input" viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
+                <input asp-for="Input.Email" class="input-siara" autocomplete="username" placeholder="CORREO INSTITUCIONAL" />
+                <span asp-validation-for="Input.Email" class="texto-error"></span>
+            </div>
+
+            <!-- CASILLA CONTRASEÑA -->
+            <div class="grupo-input">
+                <svg class="icono-input" viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                </svg>
+                <input asp-for="Input.Password" class="input-siara" autocomplete="new-password" placeholder="CONTRASEÑA" />
+                <span asp-validation-for="Input.Password" class="texto-error"></span>
+            </div>
+
+            <!-- CASILLA CONFIRMAR CONTRASEÑA -->
+            <div class="grupo-input">
+                <svg class="icono-input" viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                </svg>
+                <input asp-for="Input.ConfirmPassword" class="input-siara" autocomplete="new-password" placeholder="CONFIRMAR CONTRASEÑA" />
+                <span asp-validation-for="Input.ConfirmPassword" class="texto-error"></span>
+            </div>
+
+            <div class="contenedor-botones-columna">
+                <button id="registerSubmit" type="submit" class="btn-siara" style="width: 70%;">REGISTRAR</button>
+                <a asp-page="./Login" class="btn-siara" style="width: 70%;">REGRESAR</a>
+            </div>
+        </form>
     </div>
 </div>
 
