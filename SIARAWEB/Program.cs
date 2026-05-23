@@ -1,32 +1,32 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.DataProtection;
-using SIARAWEB.Data; // Asegúrate de que este namespace coincida con el tuyo
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using SIARAWEB.Data; // Asegï¿½rate de que este namespace coincida con el tuyo
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configurar la Cadena de Conexión a SQL Server
+// 1. Configurar la Cadena de Conexiï¿½n a SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'DefaultConnection'.");
+    ?? throw new InvalidOperationException("No se encontrï¿½ la cadena de conexiï¿½n 'DefaultConnection'.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. Configurar Data Protection (Guarda llaves criptográficas en SQL Server)
+// 2. Configurar Data Protection (Guarda llaves criptogrï¿½ficas en SQL Server)
 builder.Services.AddDataProtection()
     .PersistKeysToDbContext<ApplicationDbContext>();
 
-// 3. Configurar Identity con reglas específicas de SIARA
-builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+// 3. Configurar Identity con reglas especï¿½ficas de SIARA
+builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; // Cambiar a true si usarán confirmación por correo
+    options.SignIn.RequireConfirmedAccount = false; // Cambiar a true si usarï¿½n confirmaciï¿½n por correo
 
     // REQUISITO SIARA: Bloqueo de cuenta a los 3 intentos fallidos
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     options.Lockout.MaxFailedAccessAttempts = 3;
     options.Lockout.AllowedForNewUsers = true;
 
-    // Reglas de contraseña
+    // Reglas de contraseï¿½a
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 8;
     options.Password.RequireNonAlphanumeric = true;
@@ -38,7 +38,7 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configuración del Pipeline HTTP
+// Configuraciï¿½n del Pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -50,7 +50,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 4. Agregar Autenticación al Pipeline (Debe ir antes de Authorization)
+// 4. Agregar Autenticaciï¿½n al Pipeline (Debe ir antes de Authorization)
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -58,7 +58,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Mapear páginas de Identity (Login, Register, etc.)
+// Mapear pï¿½ginas de Identity (Login, Register, etc.)
 app.MapRazorPages();
 
 app.Run();
