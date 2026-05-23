@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    //[Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin")]
     public class DocentesController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -124,5 +124,12 @@ namespace SIARAWEB.Controllers
             return View(model);
         }
 
+        public static async Task SeedRoles(RoleManager<IdentityRole> roleManager)
+        {
+            if (!await roleManager.RoleExistsAsync("docente"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("docente"));
+            }
+        }
     }
 }
