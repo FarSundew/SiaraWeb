@@ -1,0 +1,50 @@
+﻿@model SIARAWEB.ViewModels.DocenteViewModel 
+
+<div class="container mt-4">
+    <h2>Registrar Nuevo Docente</h2>
+    <hr />
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Name" class="control-label">Nombre Completo</label>
+            <input asp-for="Name" class="form-control" placeholder="Ej. Juan Pérez García" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Curp" class="control-label">CURP</label>
+            <input asp-for="Curp" class="form-control" />
+            <span asp-validation-for="Curp" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Rfc" class="control-label">RFC</label>
+            <input asp-for="Rfc" class="form-control" />
+            <span asp-validation-for="Rfc" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Email" class="control-label">Correo Institucional</label>
+            <input asp-for="Email" class="form-control" placeholder="docente@siara.edu.mx" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Password" class="control-label">Contraseña Temporal</label>
+            <input asp-for="Password" class="form-control" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+            <small class="form-text text-muted">Asegúrate de incluir una mayúscula, un número y un carácter especial.</small>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Registrar Docente</button>
+            <a asp-action="Index" class="btn btn-secondary">Cancelar y volver a la lista</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
