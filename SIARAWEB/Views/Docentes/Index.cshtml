@@ -41,6 +41,7 @@
                         <td class="align-middle text-center">
                             <!-- Botón para Editar (Cumpliendo el RF05) -->
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
                         </td>
                     </tr>
                 }

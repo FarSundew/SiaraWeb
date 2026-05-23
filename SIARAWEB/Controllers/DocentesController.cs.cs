@@ -124,6 +124,46 @@ namespace SIARAWEB.Controllers
             return View(model);
         }
 
+        // GET: Docentes/Delete/5
+        public async Task<IActionResult> Delete(string id)
+        {
+            if (id == null) return NotFound();
+
+            // Buscamos al usuario por su ID
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Le pasamos el usuario a la vista para preguntar "¿Estás seguro de eliminar a X?"
+            return View(user);
+        }
+
+        // POST: Docentes/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                // Ejecutamos el borrado utilizando Identity
+                var result = await _userManager.DeleteAsync(user);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction(nameof(Index)); // Si se borró, regresamos a la tabla
+                }
+
+                // Si ocurre un error, lo mostramos
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            return View(user);
+        }
+
+
         public static async Task SeedRoles(RoleManager<IdentityRole> roleManager)
         {
             if (!await roleManager.RoleExistsAsync("docente"))
@@ -131,5 +171,10 @@ namespace SIARAWEB.Controllers
                 await roleManager.CreateAsync(new IdentityRole("docente"));
             }
         }
+
+
+
+
+
     }
 }

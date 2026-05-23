@@ -1,0 +1,36 @@
+﻿@model SIARAWEB.Models.ApplicationUser
+
+<div class="container mt-4">
+    <h2 class="text-danger">Eliminar Docente</h2>
+    <hr />
+
+    <div class="alert alert-warning">
+        <h4>¿ESTÁS SEGURO?</h4>
+        <p>¿Realmente deseas eliminar los datos del docente <strong>@Model.Name</strong>? Esta acción no se puede deshacer.</p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Nombre Completo</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3">Correo Institucional</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">CURP</dt>
+                <dd class="col-sm-9">@Model.Curp</dd>
+
+                <dt class="col-sm-3">RFC</dt>
+                <dd class="col-sm-9">@Model.Rfc</dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <!-- Campo oculto con el Id para saber a quién vamos a borrar -->
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
