@@ -1,162 +1,150 @@
-﻿/* --- NUEVO DISEÑO  DOCENTES --- */
-.modal-docente-wrapper {
+﻿/* ==========================================================================
+   DISEÑO S.I.A.R.A 
+   ========================================================================== */
+body {
+    background-color: #f0f0f0; /* Fondo gris claro */
+    font-family: 'Arial', sans-serif;
+}
+
+/* Encabezado Azul Superior */
+.siara-header {
+    background-color: #0b2353; /* Azul oscuro institucional */
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    height: 90px;
+}
+
+.siara-header-text {
+    text-align: center;
+}
+
+    .siara-header-text h1 {
+        font-size: 14px;
+        margin: 0;
+        font-weight: bold;
+    }
+
+    .siara-header-text h2 {
+        font-size: 16px;
+        margin: 5px 0 0 0;
+    }
+
+.logo-header {
+    height: 70px;
+    object-fit: contain;
+}
+
+/* Tarjeta Principal */
+.login-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 110px);
-    padding: 20px;
 }
 
-.tarjeta-modal {
-    background-color: #f2f3f5;
-    border-radius: 15px;
-    width: 100%;
-    max-width: 400px;
-    position: relative;
-    padding-bottom: 25px;
-    box-shadow: 0px 10px 25px rgba(0,0,0,0.2);
-}
-
-/* Header Azul Oscuro */
-.modal-header-azul {
-    background-color: #112d60;
-    color: white;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    padding: 15px;
-    text-align: center;
-    font-weight: 900;
-    font-size: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Botón Rojo Cerrar (X) */
-.btn-cerrar-rojo {
-    position: absolute;
-    top: -15px;
-    right: -15px;
+.tarjeta-siara {
     background-color: white;
-    color: #d90000;
-    border: 2px solid #d90000;
-    border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    font-size: 22px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    text-decoration: none;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.2);
-    transition: 0.2s;
-}
-
-    .btn-cerrar-rojo:hover {
-        color: white;
-        background-color: #d90000;
-    }
-
-/* Cuerpo y Títulos */
-.modal-body {
-    padding: 20px 30px;
-}
-
-.titulo-datos {
-    font-weight: 900;
-    font-size: 14px;
-    text-align: center;
-    color: #000;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-}
-
-/* Inputs Gruesos Centrados */
-.input-wrapper {
-    position: relative;
-    margin-bottom: 15px;
-}
-
-.input-grueso {
+    border-radius: 40px; /* Bordes muy redondeados */
+    padding: 30px 40px 40px 40px;
     width: 100%;
-    border: 3px solid #000;
-    border-radius: 5px;
-    padding: 10px;
-    font-weight: 900;
-    color: #333;
+    max-width: 450px;
+    /* Efecto de sombra gruesa sólida gris y borde claro */
+    box-shadow: 15px 15px 0px #b5b5b5;
+    border: 3px solid #e0e0e0;
     text-align: center;
-    font-size: 15px;
-    outline: none;
 }
 
+/* Logo S.I.A.R.A central */
+.logo-siara-centro {
+    width: 110px;
+    margin-bottom: 10px;
+}
 
-    .input-grueso::placeholder {
-        color: #a5a9b0;
-    }
+.titulo-pantalla {
+    font-weight: 900;
+    font-size: 22px;
+    color: #000;
+    margin-bottom: 30px;
+}
 
-.icono-lapiz {
+/* Inputs con borde grueso negro */
+.grupo-input {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.icono-input {
     position: absolute;
-    right: 12px;
+    left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 16px;
-    fill: #000;
-    pointer-events: none;
+    width: 24px;
+    height: 24px;
+    fill: #c0c0c0; /* Color gris de los iconos */
 }
 
-/* Botones 3D */
-.btn-azul-3d {
-    background: linear-gradient(to bottom, #7da1d6, #5c81bb);
-    border: 2px solid #3c5d96;
-    color: white;
-    border-radius: 25px;
-    padding: 12px 20px;
-    font-weight: 900;
-    font-size: 16px;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    box-shadow: inset 0px 4px 5px rgba(255,255,255,0.5), 0px 5px 5px rgba(0,0,0,0.3);
-    text-transform: uppercase;
+.input-siara {
     width: 100%;
-    display: block;
+    padding: 15px 20px 15px 55px; /* Espacio para el icono */
+    border: 3px solid #000000; /* Borde negro grueso */
+    border-radius: 40px; /* Input en forma de píldora */
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    box-sizing: border-box;
+    outline: none;
+    text-transform: uppercase;
 }
 
-    .btn-azul-3d:active {
-        transform: translateY(2px);
-        box-shadow: inset 0px 2px 3px rgba(255,255,255,0.5), 0px 2px 2px rgba(0,0,0,0.3);
+    .input-siara::placeholder {
+        color: #c0c0c0;
+        font-weight: bold;
     }
 
-/* Switch Toggle (Editar) */
-.switch-container {
+/* Botones 3D (Efecto píldora con relieve) */
+.contenedor-botones {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    gap: 15px;
+    margin-top: 30px;
 }
 
-.toggle-switch {
-    width: 50px;
-    height: 26px;
-    background-color: #5c81bb;
-    border-radius: 15px;
-    position: relative;
+.contenedor-botones-columna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn-siara {
+    background: linear-gradient(to bottom, #7ba0d4, #4a6fae); /* Degradado azul */
+    border: 3px solid #2b4570; /* Borde azul oscuro */
+    color: white;
+    border-radius: 40px;
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
-    border: 2px solid #3c5d96;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: inset 0px 3px 5px rgba(255,255,255,0.4), 0px 4px 6px rgba(0,0,0,0.3); /* Relieve 3D */
+    text-transform: uppercase;
 }
 
-.toggle-circle {
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border-radius: 50%;
-    position: absolute;
-    top: 1px;
-    right: 2px;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+    .btn-siara:hover {
+        background: linear-gradient(to bottom, #8bb0e4, #5a7fbe);
+        color: white;
+    }
+
+.texto-error {
+    color: #d9534f;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 5px;
+    display: block;
 }
-
-

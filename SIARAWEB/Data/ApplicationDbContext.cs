@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using SIARAWEB.Models;
 
+
 namespace SIARAWEB.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IDataProtectionKeyContext
