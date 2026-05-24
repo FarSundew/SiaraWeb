@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SIARAWEB.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
 </head>
 <body>
     
@@ -35,8 +36,21 @@
                         <partial name="_LoginPartial" />
                     </div>
                 </div>
-            </nav>
-        </header>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            <div class="container">
+               
+        
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+            @RenderBody()
+        </main>
+    </div>
     }
 
     <!-- CONDICIÓN PARA EL CONTENEDOR (Bordes blancos) -->

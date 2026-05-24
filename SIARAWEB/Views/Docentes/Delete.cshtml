@@ -1,0 +1,47 @@
+﻿@model SIARAWEB.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Eliminar Docente";
+}
+
+<div style="margin-top: 30px; margin-bottom: 20px; text-align: center;">
+    <h2 class="titulo-pantalla" style="color: #d9534f;">ELIMINAR DOCENTE</h2>
+</div>
+
+<div class="login-wrapper" style="min-height: auto; align-items: flex-start;">
+    <div class="tarjeta-siara" style="max-width: 600px; width: 100%; border-color: #d9534f; border-width: 4px;">
+
+        <h3 style="color: #d9534f; font-weight: 900; margin-bottom: 10px;">¿ESTÁS SEGURO?</h3>
+        <p style="font-weight: bold; color: #555; margin-bottom: 25px;">
+            ¿Realmente deseas eliminar los datos del docente <strong>@Model.Name</strong>? Esta acción no se puede deshacer.
+        </p>
+
+        <!-- Contenedor con los datos del docente a eliminar -->
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 20px; text-align: left; margin-bottom: 30px; border: 2px solid #eee;">
+            <p style="margin-bottom: 10px;"><strong>Nombre Completo:</strong> @Model.Name</p>
+            <p style="margin-bottom: 10px;"><strong>Correo Institucional:</strong> @Model.Email</p>
+            <p style="margin-bottom: 10px;"><strong>CURP:</strong> @Model.Curp</p>
+            <p style="margin-bottom: 0;"><strong>RFC:</strong> @Model.Rfc</p>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <!-- Campo oculto con el Id para saber a quién vamos a borrar -->
+            <input type="hidden" asp-for="Id" />
+
+            <!-- Contenedor flex para que queden alineados a la perfección -->
+            <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: space-between; width: 100%;">
+                
+                <!-- BOTÓN ELIMINAR (Píldora Roja) -->
+                <button type="submit" style="background-color: #d9534f; color: white; border: none; border-radius: 25px; padding: 12px 20px; font-weight: 900; font-size: 15px; cursor: pointer; width: 50%; text-transform: uppercase;">
+                    ELIMINAR
+                </button>
+                
+                <!-- BOTÓN CANCELAR (Píldora Gris, sin subrayado azul) -->
+                <a asp-action="Index" style="background-color: #a5a9b0; color: white; border: none; border-radius: 25px; padding: 12px 20px; font-weight: 900; font-size: 15px; text-decoration: none; text-align: center; width: 50%; display: inline-block; box-sizing: border-box; text-transform: uppercase;">
+                    CANCELAR
+                </a>
+                
+            </div>
+        </form>
+
+    </div>
+</div>

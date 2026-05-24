@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-public class ApplicationUser : IdentityUser
+namespace SIARAWEB.Models
 {
-    public string? Name { get; set; }
-    public string? Curp { get; set; }
-    public string? Rfc { get; set; }
-
-
+    public class ApplicationUser : IdentityUser
+    {
+        // Campos extra requeridos por el RF04
+        public string? Name { get; set; }
+        public string? Curp { get; set; }
+        public string? Rfc { get; set; }
+    }
 }

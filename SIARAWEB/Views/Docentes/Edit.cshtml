@@ -1,0 +1,59 @@
+﻿@model SIARAWEB.ViewModel.DocenteEditViewModel
+@{
+    ViewData["Title"] = "Editar Docente";
+}
+
+<div class="modal-docente-wrapper">
+    <div class="tarjeta-modal">
+        <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+        <div class="modal-header-azul">
+            <svg style="width: 24px; fill: white;" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM8.5 15H7.3l5.28-5.28 1.2 1.2L8.5 15zM15.42 8.35L14.22 7.15c-.2-.2-.51-.2-.71 0l-.98.98 1.41 1.41.98-.98c.2-.2.2-.52 0-.71z" /></svg>
+            EDITAR DOCENTE
+        </div>
+
+        <form asp-action="Edit" method="post" class="modal-body">
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="switch-container">
+                <div class="titulo-datos" style="margin-bottom: 0;">DATOS DEL DOCENTE</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="toggle-switch"><div class="toggle-circle"></div></div>
+                    <a asp-action="Delete" asp-route-id="@Model.Id">
+                        <svg style="width: 24px; fill: #000; cursor: pointer;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <input asp-for="Name" class="input-grueso" placeholder="NOMBRE COMPLETO" />
+                <svg class="icono-lapiz" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Rfc" class="input-grueso" placeholder="RFC" />
+                <svg class="icono-lapiz" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+            </div>
+            <!-- Regresamos a CURP -->
+            <div class="input-wrapper">
+                <input asp-for="Curp" class="input-grueso" placeholder="CURP" />
+                <svg class="icono-lapiz" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Email" class="input-grueso" placeholder="CORREO ELECTRONICO" />
+                <svg class="icono-lapiz" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 25px;">
+                <a asp-action="Index" class="btn-azul-3d" style="width: 50%;">CANCELAR</a>
+                <button type="submit" class="btn-azul-3d" style="width: 50%;">GUARDAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

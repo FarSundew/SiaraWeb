@@ -1,0 +1,51 @@
+﻿@model SIARAWEB.ViewModels.DocenteViewModel
+@{
+    ViewData["Title"] = "Nuevo Docente";
+}
+
+<div class="modal-docente-wrapper">
+    <div class="tarjeta-modal">
+        <!-- Botón Cerrar -->
+        <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+        <div class="modal-header-azul">
+            <svg style="width: 24px; fill: white;" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+            NUEVO DOCENTE
+        </div>
+
+        <form asp-action="Create" method="post" class="modal-body">
+            <div asp-validation-summary="ModelOnly" class="texto-error"></div>
+
+            <div class="titulo-datos">DATOS DEL DOCENTE</div>
+
+            <div class="input-wrapper">
+                <input asp-for="Name" class="input-grueso" placeholder="NOMBRE COMPLETO" />
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Rfc" class="input-grueso" placeholder="RFC" />
+            </div>
+            <!-- Regresamos a CURP -->
+            <div class="input-wrapper">
+                <input asp-for="Curp" class="input-grueso" placeholder="CURP" />
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Email" class="input-grueso" placeholder="CORREO ELECTRONICO" />
+            </div>
+            
+            <div class="input-wrapper">
+                <input asp-for="Password" type="password" class="input-grueso" placeholder="CONTRASEÑA" />
+            </div>
+
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn-azul-3d">GUARDAR Y ENVIAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}
