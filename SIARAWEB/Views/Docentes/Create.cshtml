@@ -1,50 +1,51 @@
-﻿@model SIARAWEB.ViewModels.DocenteViewModel 
+﻿@model SIARAWEB.ViewModels.DocenteViewModel
+@{
+    ViewData["Title"] = "Nuevo Docente";
+}
 
-<div class="container mt-4">
-    <h2>Registrar Nuevo Docente</h2>
-    <hr />
+<div class="modal-docente-wrapper">
+    <div class="tarjeta-modal">
+        <!-- Botón Cerrar -->
+        <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
 
-    <form asp-action="Create" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-        <div class="form-group mb-3">
-            <label asp-for="Name" class="control-label">Nombre Completo</label>
-            <input asp-for="Name" class="form-control" placeholder="Ej. Juan Pérez García" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+        <div class="modal-header-azul">
+            <svg style="width: 24px; fill: white;" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+            NUEVO DOCENTE
         </div>
 
-        <div class="form-group mb-3">
-            <label asp-for="Curp" class="control-label">CURP</label>
-            <input asp-for="Curp" class="form-control" />
-            <span asp-validation-for="Curp" class="text-danger"></span>
-        </div>
+        <form asp-action="Create" method="post" class="modal-body">
+            <div asp-validation-summary="ModelOnly" class="texto-error"></div>
 
-        <div class="form-group mb-3">
-            <label asp-for="Rfc" class="control-label">RFC</label>
-            <input asp-for="Rfc" class="form-control" />
-            <span asp-validation-for="Rfc" class="text-danger"></span>
-        </div>
+            <div class="titulo-datos">DATOS DEL DOCENTE</div>
 
-        <div class="form-group mb-3">
-            <label asp-for="Email" class="control-label">Correo Institucional</label>
-            <input asp-for="Email" class="form-control" placeholder="docente@siara.edu.mx" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
+            <div class="input-wrapper">
+                <input asp-for="Name" class="input-grueso" placeholder="NOMBRE COMPLETO" />
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Rfc" class="input-grueso" placeholder="RFC" />
+            </div>
+            <!-- Regresamos a CURP -->
+            <div class="input-wrapper">
+                <input asp-for="Curp" class="input-grueso" placeholder="CURP" />
+            </div>
+            <div class="input-wrapper">
+                <input asp-for="Email" class="input-grueso" placeholder="CORREO ELECTRONICO" />
+            </div>
+            
+            <div class="input-wrapper">
+                <input asp-for="Password" type="password" class="input-grueso" placeholder="CONTRASEÑA" />
+            </div>
 
-        <div class="form-group mb-3">
-            <label asp-for="Password" class="control-label">Contraseña Temporal</label>
-            <input asp-for="Password" class="form-control" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-            <small class="form-text text-muted">Asegúrate de incluir una mayúscula, un número y un carácter especial.</small>
-        </div>
-
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Registrar Docente</button>
-            <a asp-action="Index" class="btn btn-secondary">Cancelar y volver a la lista</a>
-        </div>
-    </form>
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn-azul-3d">GUARDAR Y ENVIAR</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
 }

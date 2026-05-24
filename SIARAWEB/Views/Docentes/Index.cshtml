@@ -1,51 +1,87 @@
 ﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
 
-<div class="container mt-4">
-    <h2>Lista de Docentes</h2>
-    <hr />
+@{
 
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-success">Registrar Nuevo Docente</a>
-    </div>
+    ViewData["Title"] = "Catálogo de Docentes";
 
-    <table class="table table-striped table-hover table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Nombre Completo</th>
-                <th>Correo Institucional</th>
-                <th>CURP</th>
-                <th>RFC</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Aquí validamos si la lista que envió el controlador está vacía -->
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        No hay docentes registrados en el sistema aún.
-                    </td>
-                </tr>
-            }
-            else
-            {
-                // Si hay datos, los recorremos uno por uno
-                foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="align-middle">@item.Name</td>
-                        <td class="align-middle">@item.Email</td>
-                        <td class="align-middle">@item.Curp</td>
-                        <td class="align-middle">@item.Rfc</td>
-                        <td class="align-middle text-center">
-                            <!-- Botón para Editar (Cumpliendo el RF05) -->
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 20px;">
+
+    <h2 class="titulo-pantalla" style="margin-bottom: 0;">CATÁLOGO DE DOCENTES</h2>
+
+
+    <!-- BOTÓN CON LA NUEVA CLASE 3D -->
+
+    <a asp-action="Create" class="btn-azul-3d" style="width: auto; padding: 10px 25px; font-size: 14px; display: inline-block;">
+
+        + AGREGAR DOCENTE
+
+    </a>
 </div>
+<div class="tarjeta-siara" style="max-width: 100%; padding: 20px; border-radius: 20px; text-align: left;">
+
+    <table class="table table-hover" style="vertical-align: middle; margin-bottom: 0;">
+
+        <thead style="background-color: #0b2353; color: white;">
+
+            <tr>
+
+                <th style="border-top-left-radius: 10px;">Nombre Completo</th>
+
+                <th>Correo Institucional</th>
+
+                <th>CURP</th>
+
+                <th>RFC</th>
+
+                <th style="text-align: center; border-top-right-radius: 10px;">Acciones</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @if (Model != null && Model.Any())
+
+            {
+
+                foreach (var item in Model)
+
+                {
+
+                    <tr>
+
+                        <td style="font-weight: bold;">@item.Name</td>
+
+                        <td>@item.Email</td>
+
+                        <td>@item.Curp</td>
+
+                        <td>@item.Rfc</td>
+
+                        <td style="text-align: center;">
+
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: #f0ad4e; color: white; font-weight: bold; border-radius: 20px; padding: 5px 15px;">EDITAR</a>
+
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm" style="background-color: #d9534f; color: white; font-weight: bold; border-radius: 20px; padding: 5px 15px;">ELIMINAR</a>
+
+                        </td>
+
+                    </tr>
+
+                }
+
+            }
+
+            else
+
+            {
+
+                <tr><td colspan="5" style="text-align: center; color: #888; font-weight: bold; padding: 20px;">No hay docentes registrados.</td></tr>
+
+            }
+
+        </tbody>
+
+    </table></div>
