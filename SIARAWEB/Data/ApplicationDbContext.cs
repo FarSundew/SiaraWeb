@@ -12,7 +12,12 @@ namespace SIARAWEB.Data
         {
         }
 
-        // Tabla requerida para Data Protection
+        // 3. Agrega esta propiedad que creará la tabla para las llaves de seguridad
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+        }
     }
 }
