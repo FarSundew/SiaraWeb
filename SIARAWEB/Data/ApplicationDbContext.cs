@@ -16,9 +16,9 @@ namespace SIARAWEB.Data
         // Tus tablas actuales
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<DocenteAsignatura> DocenteAsignaturas { get; set; }
-
-        // Agrega esta nueva tabla obligatoria para guardar las llaves de seguridad
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public DbSet<AcademicTracking> AcademicTrackings { get; set; }
+        public DbSet<Document> Documents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

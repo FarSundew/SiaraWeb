@@ -9,7 +9,10 @@ namespace SIARAWEB.Models
         public string Period { get; set; }
         public int Year { get; set; }
 
-        // Propiedad de navegación hacia la tabla intermedia
         public List<DocenteAsignatura> DocenteAsignaturas { get; set; } = new List<DocenteAsignatura>();
+
+        // ¡Nuevas relaciones de Uno a Muchos agregadas!
+        public List<AcademicTracking> AcademicTrackings { get; set; } = new List<AcademicTracking>();
+        public List<Document> Documents { get; set; } = new List<Document>();
     }
 }
