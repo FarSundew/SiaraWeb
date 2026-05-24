@@ -4,6 +4,7 @@ using SIARAWEB.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Configurar la Cadena de Conexi�n a SQL Server
