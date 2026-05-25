@@ -1,47 +1,85 @@
 ﻿@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Asignaturas";
+    Layout = "_Layout"; /* Mantiene el menú lateral si se tiene, o se pone null si es modal */
 }
 
-<h1>Index</h1>
+<link rel="stylesheet" href="~/css/estilos.css" />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Period)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Year)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Period)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Year)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<header class="siara-header" style="margin: -20px -20px 20px -20px;">
+    <img src="~/img/tecnm_logo.png" alt="TecNM" class="logo-header" />
+    <div class="siara-header-text">
+        <h1 style="color: white; margin: 0;">TECNOLÓGICO NACIONAL DE MÉXICO</h1>
+        <h2 style="color: white; margin: 5px 0 0 0;">Sistema Integral de Análisis y Reportes Académicos</h2>
+    </div>
+    <img src="~/img/instituto_logo.png" alt="ITC" class="logo-header" />
+</header>
+
+<div style="max-width: 950px; margin: 40px auto; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+    <!--  nueva clase de la X roja -->
+    <a asp-controller="Home" asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+    <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
+        ASIGNATURAS
+    </div>
+
+    <div style="padding: 0 30px;">
+        <table class="tabla-dashboard">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">CLAVE</th>
+                    <th style="width: 35%;">NOMBRE &#128269;</th>
+                    <th style="width: 20%;">PERIODO / SEMESTRE</th>
+                    <th style="width: 15%;">AÑO</th>
+                    <th style="width: 15%;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <!--  font-weight: 900 para que el texto se vea grueso -->
+                            <td style="font-size: 14px; font-weight: 900;">@item.Id</td>
+                            <td style="font-size: 14px; text-transform: uppercase; font-weight: 900;">@item.Name</td>
+                            <td style="font-size: 14px; text-transform: uppercase; font-weight: 900;">@item.Period</td>
+                            <td style="font-size: 14px; font-weight: 900;">@item.Year</td>
+                            <td>
+                                <div style="display: flex; justify-content: center; gap: 15px;">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;">
+                                        &#9998;
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;">
+                                        &#128465;
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="padding: 30px; color: #666; font-size: 16px;">
+                            No hay asignaturas registradas.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 25px 30px 0 30px;">
+        <!-- clase btn-siara-3d -->
+        <a asp-controller="Home" asp-action="Index" class="btn-siara-3d">SALIR</a>
+        
+        <div style="display: flex; gap: 15px;">
+            <!-- clase btn-siara-3d -->
+            <button type="button" class="btn-siara-3d">GUARDAR</button>
+            <a asp-action="Create" class="btn-siara-3d">AGREGAR</a>
+        </div>
+    </div>
+</div>

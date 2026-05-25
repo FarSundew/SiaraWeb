@@ -1,39 +1,61 @@
 ﻿@model SIARAWEB.Models.Subject
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Eliminar Asignatura";
+    Layout = null; /* Evita que cargue menús duplicados */
 }
 
-<h1>Delete</h1>
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Subject</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Period)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Period)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Year)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Year)
-        </dd>
-    </dl>
+<div class="modal-compacto" style="position: relative; max-width: 500px; margin: 40px auto; background-color: #f2f3f5; border: 2px solid #d9534f; border-radius: 10px; padding-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
     
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+    <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+    <div class="modal-header-compacto" style="background-color: #d9534f; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 8px 8px 0 0; text-transform: uppercase; font-size: 16px;">
+        ELIMINAR ASIGNATURA
+    </div>
+
+    <div style="padding: 25px 40px;">
+        
+        <h4 style="color: #d9534f; font-weight: 900; text-align: center; margin-bottom: 10px;">¿ESTÁS SEGURO?</h4>
+        <p style="font-weight: bold; color: #555; text-align: center; margin-bottom: 25px; font-size: 13px;">
+            ¿Realmente deseas eliminar esta asignatura? Esta acción no se puede deshacer.
+        </p>
+
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">NOMBRE</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #fce4e4; border: 2px solid #f5c6c6; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #d9534f; text-transform: uppercase;">
+                    @Model.Name
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">PERIODO</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #fce4e4; border: 2px solid #f5c6c6; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #d9534f; text-transform: uppercase;">
+                    @Model.Period
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 25px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">AÑO</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #fce4e4; border: 2px solid #f5c6c6; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #d9534f;">
+                    @Model.Year
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
+            <input type="hidden" asp-for="Id" />
+            
+            <a asp-action="Index" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important;">CANCELAR</a>
+            
+            <button type="submit" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #d9534f, #c9302c) !important; border-color: #ac2925 !important;">ELIMINAR</button>
+        </form>
+    </div>
 </div>
