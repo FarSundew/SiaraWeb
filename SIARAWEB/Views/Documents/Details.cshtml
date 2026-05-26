@@ -1,48 +1,83 @@
 ﻿@model SIARAWEB.Models.Document
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalles de Documentos";
 }
 
-<h1>Details</h1>
+<h3 style="color: #0b2353; font-weight: bold;">DETALLES - DOCUMENTOS INICIALES</h3>
+<hr />
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-secondary">Asignatura</dt>
+            <dd class="col-sm-8 fw-bold">@Html.DisplayFor(model => model.Subject.Name)</dd>
 
-<div>
-    <h4>Document</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FilePath)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FilePath)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UploadedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UploadedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsOnTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsOnTime)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Subject)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Subject.Id)
-        </dd>
-    </dl>
+            <dt class="col-sm-4 text-secondary">Fecha de Entrega</dt>
+            <dd class="col-sm-8">@Model.UploadedAt.ToString("dd/MM/yyyy, HH:mm \\H\\R\\S")</dd>
+
+            <dt class="col-sm-4 text-secondary">Estatus</dt>
+            <dd class="col-sm-8">
+                @(Model.IsOnTime ? "Entregado a tiempo" : "Fuera de tiempo")
+            </dd>
+
+            <dt class="col-sm-4 text-secondary mt-3">Instrumentación Didáctica</dt>
+            <dd class="col-sm-8 mt-3">
+                @if (!string.IsNullOrEmpty(Model.InstrumentacionPath))
+                {
+                    <a href="@Model.InstrumentacionPath" target="_blank" class="btn btn-sm btn-outline-primary">Descargar / Ver</a>
+                }
+                else
+                {
+
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-secondary mt-2">Instrumento de Evaluación</dt>
+            <dd class="col-sm-8 mt-2">
+                @if (!string.IsNullOrEmpty(Model.EvaluacionPath))
+                {
+                    <a href="@Model.EvaluacionPath" target="_blank" class="btn btn-sm btn-outline-primary">Descargar / Ver</a>
+                }
+                else
+                {
+
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-secondary mt-2">Práctica de Laboratorio</dt>
+            <dd class="col-sm-8 mt-2">
+                @if (!string.IsNullOrEmpty(Model.PracticaPath))
+                {
+                    <a href="@Model.PracticaPath" target="_blank" class="btn btn-sm btn-outline-primary">Descargar / Ver</a>
+                }
+                else
+                {
+
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-secondary mt-2">Proyecto Individual</dt>
+            <dd class="col-sm-8 mt-2">
+                @if (!string.IsNullOrEmpty(Model.ProyectoPath))
+                {
+                    <a href="@Model.ProyectoPath" target="_blank" class="btn btn-sm btn-outline-primary">Descargar / Ver</a>
+                }
+                else
+                {
+
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-secondary mt-3">Observaciones</dt>
+            <dd class="col-sm-8 mt-3">@Html.DisplayFor(model => model.Observaciones)</dd>
+        </dl>
+    </div>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="btn btn-secondary">REGRESAR</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">EDITAR</a>
 </div>

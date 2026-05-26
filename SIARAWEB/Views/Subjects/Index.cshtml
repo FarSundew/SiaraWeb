@@ -2,7 +2,8 @@
 
 @{
     ViewData["Title"] = "Asignaturas";
-    Layout = "_Layout"; /* Mantiene el menú lateral si se tiene, o se pone null si es modal */
+    // Si tu _Layout.cshtml ya tiene un header, podrías ver dos headers.
+    // Si es así, puedes poner Layout = null; aquí, o quitar el header de tu _Layout.
 }
 
 <link rel="stylesheet" href="~/css/estilos.css" />
@@ -18,7 +19,7 @@
 
 <div style="max-width: 950px; margin: 40px auto; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
 
-    <!--  nueva clase de la X roja -->
+    <!-- Botón de la X roja para cerrar -->
     <a asp-controller="Home" asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
 
     <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
@@ -26,13 +27,14 @@
     </div>
 
     <div style="padding: 0 30px;">
-        <table class="tabla-dashboard">
+        <table class="tabla-dashboard" style="width: 100%; text-align: center;">
             <thead>
                 <tr>
                     <th style="width: 15%;">CLAVE</th>
-                    <th style="width: 35%;">NOMBRE &#128269;</th>
-                    <th style="width: 20%;">PERIODO / SEMESTRE</th>
-                    <th style="width: 15%;">AÑO</th>
+                    <th style="width: 30%; text-align: left;">NOMBRE &#128269;</th>
+                    <th style="width: 15%;">HORAS - SEMANA</th>
+                    <th style="width: 10%;">TEMAS</th>
+                    <th style="width: 15%;">SEMESTRE</th>
                     <th style="width: 15%;">ACCIONES</th>
                 </tr>
             </thead>
@@ -42,17 +44,18 @@
                     foreach (var item in Model)
                     {
                         <tr>
-                            <!--  font-weight: 900 para que el texto se vea grueso -->
-                            <td style="font-size: 14px; font-weight: 900;">@item.Id</td>
-                            <td style="font-size: 14px; text-transform: uppercase; font-weight: 900;">@item.Name</td>
+                            <!-- Cambiamos item.Id por item.Clave para que coincida con el PDF -->
+                            <td style="font-size: 14px; font-weight: 900;">@item.Clave</td>
+                            <td style="font-size: 14px; text-transform: uppercase; font-weight: 900; text-align: left;">@item.Name</td>
+                            <td style="font-size: 14px; font-weight: 900;">@item.Horas</td>
+                            <td style="font-size: 14px; font-weight: 900;">@item.Temas</td>
                             <td style="font-size: 14px; text-transform: uppercase; font-weight: 900;">@item.Period</td>
-                            <td style="font-size: 14px; font-weight: 900;">@item.Year</td>
                             <td>
                                 <div style="display: flex; justify-content: center; gap: 15px;">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Editar">
                                         &#9998;
                                     </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;">
+                                    <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Eliminar">
                                         &#128465;
                                     </a>
                                 </div>
@@ -63,7 +66,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" style="padding: 30px; color: #666; font-size: 16px;">
+                        <td colspan="6" style="padding: 30px; color: #666; font-size: 16px;">
                             No hay asignaturas registradas.
                         </td>
                     </tr>
@@ -73,13 +76,11 @@
     </div>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 25px 30px 0 30px;">
-        <!-- clase btn-siara-3d -->
-        <a asp-controller="Home" asp-action="Index" class="btn-siara-3d">SALIR</a>
-        
+        <a asp-controller="Home" asp-action="Index" class="btn-siara-3d" style="text-decoration: none;">SALIR</a>
         <div style="display: flex; gap: 15px;">
-            <!-- clase btn-siara-3d -->
+            <!-- El botón guardar lo dejamos visual como pide el PDF, aunque en la lista (Index) no hace una acción de backend -->
             <button type="button" class="btn-siara-3d">GUARDAR</button>
-            <a asp-action="Create" class="btn-siara-3d">AGREGAR</a>
+            <a asp-action="Create" class="btn-siara-3d" style="text-decoration: none;">AGREGAR</a>
         </div>
     </div>
 </div>

@@ -48,24 +48,58 @@ namespace SIARAWEB.Controllers
         // GET: Documents/Create
         public IActionResult Create()
         {
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id");
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
             return View();
         }
 
-        // POST: Documents/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,Type,FilePath,UploadedAt,IsOnTime")] Document document)
+        public async Task<IActionResult> Create([Bind("Id,SubjectId,Observaciones")] Document document,
+    IFormFile instrumentacionFile, IFormFile evaluacionFile, IFormFile practicaFile, IFormFile proyectoFile)
         {
+            // 1. SOLUCIÓN AL GUARDADO: Ignoramos la validación del objeto Subject completo
+            ModelState.Remove("Subject");
+
             if (ModelState.IsValid)
             {
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "archivos");
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                async Task<string> SaveFileAsync(IFormFile file)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                        }
+                        return "/archivos/" + uniqueFileName;
+                    }
+                    return null;
+                }
+
+                document.InstrumentacionPath = await SaveFileAsync(instrumentacionFile);
+                document.EvaluacionPath = await SaveFileAsync(evaluacionFile);
+                document.PracticaPath = await SaveFileAsync(practicaFile);
+                document.ProyectoPath = await SaveFileAsync(proyectoFile);
+
+                document.UploadedAt = DateTime.Now;
+
                 _context.Add(document);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", document.SubjectId);
+
+            // 2. SOLUCIÓN AL MENÚ DESPLEGABLE: Cambiamos el "Id" por "Name" para cuando la página recarga
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", document.SubjectId);
             return View(document);
         }
 
@@ -91,7 +125,7 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,Type,FilePath,UploadedAt,IsOnTime")] Document document)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,InstrumentacionPath,EvaluacionPath,PracticaPath,ProyectoPath,Observaciones,UploadedAt,IsOnTime")] Document document)
         {
             if (id != document.Id)
             {

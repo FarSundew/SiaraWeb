@@ -54,8 +54,14 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Period,Year")] Subject subject)
+        // 1. AQUI ACTUALIZAMOS EL BIND PARA PERMITIR LOS NUEVOS CAMPOS DEL PDF
+        public async Task<IActionResult> Create([Bind("Id,Clave,Name,Horas,Temas,Period,Year")] Subject subject)
         {
+            // 2. AQUI IGNORAMOS LAS LISTAS RELACIONADAS PARA QUE PASE LA VALIDACIÓN
+            ModelState.Remove("DocenteAsignaturas");
+            ModelState.Remove("AcademicTrackings");
+            ModelState.Remove("Documents");
+
             if (ModelState.IsValid)
             {
                 _context.Add(subject);

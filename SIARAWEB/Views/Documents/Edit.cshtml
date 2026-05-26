@@ -1,54 +1,59 @@
 ﻿@model SIARAWEB.Models.Document
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Documentos";
 }
 
-<h1>Edit</h1>
-
-<h4>Document</h4>
+<h3 style="color: #0b2353; font-weight: bold;">EDITAR DOCUMENTOS INICIALES</h3>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
+    <div class="col-md-8">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="SubjectId" class="control-label"></label>
-                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
-                <span asp-validation-for="SubjectId" class="text-danger"></span>
+            <input type="hidden" asp-for="InstrumentacionPath" />
+            <input type="hidden" asp-for="EvaluacionPath" />
+            <input type="hidden" asp-for="PracticaPath" />
+            <input type="hidden" asp-for="ProyectoPath" />
+            <input type="hidden" asp-for="UploadedAt" />
+            <input type="hidden" asp-for="IsOnTime" />
+
+            <div class="form-group mb-3">
+                <label asp-for="SubjectId" class="control-label fw-bold">Asignatura</label>
+                <select asp-for="SubjectId" class="form-select" asp-items="ViewBag.SubjectId"></select>
+                <span class="text-muted small">Al editar no se modificará la fecha original de entrega.</span>
             </div>
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
-                <input asp-for="Type" class="form-control" />
-                <span asp-validation-for="Type" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Instrumentación Didáctica @(Model.InstrumentacionPath != null ? "(Ya subido)" : "")</label>
+                <input type="file" name="instrumentacionFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
             </div>
-            <div class="form-group">
-                <label asp-for="FilePath" class="control-label"></label>
-                <input asp-for="FilePath" class="form-control" />
-                <span asp-validation-for="FilePath" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Instrumento de Evaluación @(Model.EvaluacionPath != null ? "(Ya subido)" : "")</label>
+                <input type="file" name="evaluacionFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
             </div>
-            <div class="form-group">
-                <label asp-for="UploadedAt" class="control-label"></label>
-                <input asp-for="UploadedAt" class="form-control" />
-                <span asp-validation-for="UploadedAt" class="text-danger"></span>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Práctica de Laboratorio @(Model.PracticaPath != null ? "(Ya subido)" : "")</label>
+                <input type="file" name="practicaFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsOnTime" /> @Html.DisplayNameFor(model => model.IsOnTime)
-                </label>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Proyecto Individual @(Model.ProyectoPath != null ? "(Ya subido)" : "")</label>
+                <input type="file" name="proyectoFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
             </div>
+
+            <div class="form-group mb-4">
+                <label asp-for="Observaciones" class="control-label fw-bold">Observaciones</label>
+                <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
+            </div>
+
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary me-2">CANCELAR</a>
+                <input type="submit" value="GUARDAR CAMBIOS" class="btn btn-primary" style="background-color: #0b2353;" />
             </div>
         </form>
     </div>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

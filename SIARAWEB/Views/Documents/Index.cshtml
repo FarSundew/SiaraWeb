@@ -1,59 +1,48 @@
 ﻿@model IEnumerable<SIARAWEB.Models.Document>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Documentos Iniciales";
 }
 
-<h1>Index</h1>
-
+<h3 style="color: #0b2353; font-weight: bold;">MONITOREO DE DOCUMENTOS INICIALES</h3>
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary shadow-sm" style="background-color: #0b2353;">AGREGAR NUEVO DOCUMENTO</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FilePath)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UploadedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsOnTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FilePath)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UploadedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsOnTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="table-responsive shadow-sm">
+    <table class="table table-striped table-hover align-middle">
+        <thead style="background-color: #0b2353; color: white;">
+            <tr>
+                <th>ASIGNATURA</th>
+                <th>OBSERVACIONES</th>
+                <th>FECHA Y HORA DE ENTREGA</th>
+                <th>ESTATUS</th>
+                <th>ACCIONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@Html.DisplayFor(modelItem => item.Subject.Name)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Observaciones)</td>
+                    <td>@item.UploadedAt.ToString("dd/MM/yyyy, HH:mm \\H\\R\\S")</td>
+                    <td>
+                        @if (item.IsOnTime)
+                        {
+                            <span class="badge bg-success">ENTREGADO EN TIEMPO Y FORMA</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">FUERA DE TIEMPO ⚠</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">VISUALIZAR</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning text-dark">EDITAR</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">ELIMINAR</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
