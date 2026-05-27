@@ -1,0 +1,53 @@
+﻿@model SIARAWEB.Models.TrackingDeadline
+
+@{
+    ViewData["Title"] = "Asignar Fecha de Corte";
+}
+
+<!-- Contenedor central simulando la ventana del PDF -->
+<div style="max-width: 450px; margin: 50px auto; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+    <!-- Encabezado azul institucional -->
+    <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 18px; margin-bottom: 25px;">
+        FECHA DE CORTE
+    </div>
+
+    <div style="padding: 0 30px;">
+        <form asp-action="Create">
+            <!-- Muestra los errores de validación en rojo si faltan datos -->
+            <div asp-validation-summary="ModelOnly" class="text-danger fw-bold mb-3"></div>
+
+            <!-- Menú Desplegable del Seguimiento -->
+            <div class="form-group mb-4">
+                <label asp-for="Phase" class="control-label fw-bold mb-2" style="color: #112d60; font-size: 14px;">SEGUIMIENTO</label>
+                <select asp-for="Phase" class="form-select shadow-sm" style="border: 2px solid #ccc; border-radius: 8px; font-weight: bold; color: #333;">
+                    <option value="">-- Seleccione una opción --</option>
+                    <option value="Primer Seguimiento">PRIMER SEGUIMIENTO</option>
+                    <option value="Segundo Seguimiento">SEGUNDO SEGUIMIENTO</option>
+                    <option value="Reporte Final">REPORTE FINAL</option>
+                </select>
+                <span asp-validation-for="Phase" class="text-danger small"></span>
+            </div>
+
+            <!-- Calendario para elegir la fecha -->
+            <div class="form-group mb-4">
+                <label asp-for="CutoffDate" class="control-label fw-bold mb-2" style="color: #112d60; font-size: 14px;">FECHA DE CORTE</label>
+                <!-- Al tener type="date", HTML5 mostrará automáticamente el ícono del calendario -->
+                <input asp-for="CutoffDate" type="date" class="form-control shadow-sm text-center" style="border: 2px solid #ccc; border-radius: 8px; font-weight: bold; color: #333;" />
+                <span asp-validation-for="CutoffDate" class="text-danger small"></span>
+            </div>
+
+            <!-- Botones alineados como pide el PDF -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+                <a asp-action="Index" class="btn btn-secondary shadow-sm" style="font-weight: 900; padding: 10px 25px; border-radius: 8px;">CANCELAR</a>
+                <input type="submit" value="GUARDAR" class="btn btn-primary shadow-sm" style="background-color: #112d60; border-color: #112d60; font-weight: 900; padding: 10px 25px; border-radius: 8px;" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

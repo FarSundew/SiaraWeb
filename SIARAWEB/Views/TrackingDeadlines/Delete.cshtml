@@ -1,0 +1,27 @@
+﻿@model SIARAWEB.Models.TrackingDeadline
+
+@{
+    ViewData["Title"] = "Eliminar Fecha";
+}
+
+<div style="max-width: 450px; margin: 50px auto; background-color: #f2f3f5; border: 2px solid #dc3545; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(220,53,69,0.3);">
+
+    <div style="background-color: #dc3545; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 12px 12px 0 0; font-size: 18px; margin-bottom: 25px;">
+        ⚠ ¿ELIMINAR ESTA FECHA?
+    </div>
+
+    <div style="padding: 0 30px; text-align: center;">
+        <h5 class="fw-bold mb-3" style="color: #333;">@Model.Phase</h5>
+        <h3 class="fw-bold text-danger mb-4">@Model.CutoffDate.ToString("dd/MM/yyyy")</h3>
+
+        <p class="text-muted small mb-4">Esta acción no se puede deshacer. Los documentos ya no se evaluarán contra esta fecha límite.</p>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a asp-action="Index" class="btn btn-secondary shadow-sm" style="font-weight: 900; padding: 10px 25px; border-radius: 8px;">CANCELAR</a>
+                <input type="submit" value="ELIMINAR" class="btn btn-danger shadow-sm" style="font-weight: 900; padding: 10px 25px; border-radius: 8px;" />
+            </div>
+        </form>
+    </div>
+</div>

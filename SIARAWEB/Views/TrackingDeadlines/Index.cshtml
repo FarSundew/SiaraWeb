@@ -1,0 +1,50 @@
+﻿@model IEnumerable<SIARAWEB.Models.TrackingDeadline>
+
+@{
+    ViewData["Title"] = "Fechas de Corte Asignadas";
+}
+
+<div style="max-width: 800px; margin: 40px auto; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+    <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
+        FECHAS DE CORTE ASIGNADAS
+    </div>
+
+    <div style="padding: 0 30px;">
+        <table class="table text-center align-middle" style="width: 100%;">
+            <thead>
+                <tr style="border-bottom: 2px solid #112d60;">
+                    <th style="width: 40%; color: #112d60; font-weight: 900;">SEGUIMIENTO</th>
+                    <th style="width: 30%; color: #112d60; font-weight: 900;">FECHA LÍMITE</th>
+                    <th style="width: 30%; color: #112d60; font-weight: 900;">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="font-size: 15px; font-weight: bold; text-transform: uppercase;">@item.Phase</td>
+                            <td style="font-size: 15px; font-weight: bold; color: #d9534f;">@item.CutoffDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px; margin-right: 15px;" title="Editar">&#9998;</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Eliminar">&#128465;</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" style="padding: 30px; color: #666; font-size: 16px;">No hay fechas de corte registradas aún.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+        <a asp-action="Create" class="btn btn-primary shadow-sm" style="background-color: #112d60; border-color: #112d60; font-weight: 900; padding: 10px 30px; border-radius: 8px; text-decoration: none;">ASIGNAR NUEVA FECHA</a>
+    </div>
+</div>
