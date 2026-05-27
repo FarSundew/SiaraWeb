@@ -5,16 +5,13 @@
     Layout = null; /* Evita que cargue menús duplicados si se abre como ventana sobrepuesta */
 }
 
-<!-- Carga de estilos de Bootstrap  -->
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 <link rel="stylesheet" href="~/css/estilos.css" />
 
 <div class="modal-compacto" style="position: relative; max-width: 500px; margin: 40px auto; background-color: #f2f3f5; border-radius: 10px; padding-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
     
-    <!-- Botón X Rojo para cerrar -->
     <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
 
-    <!-- Encabezado Azul Oscuro -->
     <div class="modal-header-compacto" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 8px 8px 0 0; text-transform: uppercase; font-size: 16px;">
         EDITAR ASIGNATURA
     </div>
@@ -22,10 +19,8 @@
     <form asp-action="Edit" style="padding: 25px 40px;">
         <div asp-validation-summary="ModelOnly" class="text-danger" style="font-size: 12px; font-weight: bold; margin-bottom: 15px;"></div>
         
-        <!-- CAMPO OCULTO (CRÍTICO PARA QUE FUNCIONE EL EDITAR) -->
         <input type="hidden" asp-for="Id" />
 
-        <!-- NOMBRE -->
         <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
             <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">NOMBRE</label>
             <div class="input-container-horizontal" style="width: 65%;">
@@ -34,7 +29,6 @@
             </div>
         </div>
 
-        <!-- PERIODO -->
         <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
             <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">PERIODO</label>
             <div class="input-container-horizontal" style="width: 65%;">
@@ -43,8 +37,7 @@
             </div>
         </div>
 
-        <!-- AÑO -->
-        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 25px;">
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
             <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">AÑO</label>
             <div class="input-container-horizontal" style="width: 65%;">
                 <input asp-for="Year" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold;" />
@@ -52,9 +45,24 @@
             </div>
         </div>
 
-        <!-- Botones Inferiores -->
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">HORAS</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <input asp-for="Horas" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold;" />
+                <span asp-validation-for="Horas" class="text-danger" style="font-size: 10px; font-weight: bold;"></span>
+            </div>
+        </div>
+
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 25px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">TEMAS</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <input asp-for="Temas" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold;" />
+                <span asp-validation-for="Temas" class="text-danger" style="font-size: 10px; font-weight: bold;"></span>
+            </div>
+        </div>
+
         <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
-            <a asp-action="Index" class="btn-siara-3d" style="width: 45%;">CANCELAR</a>
+            <a asp-action="Index" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important;">CANCELAR</a>
             <button type="submit" class="btn-siara-3d" style="width: 45%;">GUARDAR</button>
         </div>
     </form>
