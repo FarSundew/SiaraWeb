@@ -37,5 +37,7 @@ namespace SIARAWEB.Data
                 .WithMany(s => s.DocenteAsignaturas)
                 .HasForeignKey(da => da.SubjectId);
         }
+    // Agrega la interfaz IDataProtectionKeyContext al final
+public DbSet<SIARAWEB.Models.TrackingDeadline> TrackingDeadline { get; set; } = default!;
     }
 }
