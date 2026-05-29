@@ -1,0 +1,48 @@
+﻿<!-- Views/Shared/_Sidebar.cshtml -->
+    <div class="sidebar-sticky">
+
+        <!-- Título del Menú -->
+        <h6 class="text-center mb-4" style="color: #ffffff; font-weight: 900; letter-spacing: 1.5px;">MENÚ PRINCIPAL</h6>
+        <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
+
+        <!-- Opciones de Navegación -->
+        <ul class="nav flex-column" style="gap: 8px; padding: 0 15px;">
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Home" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    🏠 INICIO
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Subjects" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📚 ASIGNATURAS
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Documents" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📄 DOCUMENTOS
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="TrackingDeadlines" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📅 FECHAS DE CORTE
+                </a>
+            </li>
+
+        </ul>
+    </div>

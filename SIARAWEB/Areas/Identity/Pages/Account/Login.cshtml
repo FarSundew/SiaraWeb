@@ -5,23 +5,13 @@
     ViewData["OcultarMenu"] = true;
 }
 
-<!-- ENCABEZADO PRINCIPAL -->
-<header class="siara-header">
-    <img src="~/img/tecnm_logo.png" alt="TecNM" class="logo-header" />
-    <div class="siara-header-text">
-        <h1>TECNOLOGICO NACIONAL DE MEXICO</h1> 
-        <h2>Sistema Integral de Análisis y Reportes Académicos</h2> 
-    </div>
-    <img src="~/img/instituto_logo.png" alt="ITC" class="logo-header" />
-</header>
-
 <div class="login-wrapper">
     <div class="tarjeta-siara">
         <!-- LOGO DEL SISTEMA -->
         <img src="~/img/siara_logo.png" alt="S.I.A.R.A" class="logo-siara-centro" />
-        
+
         <!-- TEXTO DE INICIO DE SESION -->
-        <h3 class="titulo-pantalla">INICIO DE SESIÓN</h3> 
+        <h3 class="titulo-pantalla">INICIO DE SESIÓN</h3>
 
         <form id="account" method="post">
             <div asp-validation-summary="ModelOnly" class="texto-error"></div>
@@ -31,7 +21,7 @@
                 <svg class="icono-input" viewBox="0 0 24 24">
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
-                <input asp-for="Input.Email" class="input-siara" autocomplete="username" placeholder="USUARIO" /> 
+                <input asp-for="Input.Email" class="input-siara" autocomplete="username" placeholder="USUARIO" />
                 <span asp-validation-for="Input.Email" class="texto-error"></span>
             </div>
 
@@ -40,15 +30,15 @@
                 <svg class="icono-input" viewBox="0 0 24 24">
                     <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
                 </svg>
-                <input asp-for="Input.Password" class="input-siara" autocomplete="current-password" placeholder="CONTRASEÑA" /> 
+                <input asp-for="Input.Password" class="input-siara" autocomplete="current-password" placeholder="CONTRASEÑA" />
                 <span asp-validation-for="Input.Password" class="texto-error"></span>
             </div>
 
             <div class="contenedor-botones">
                 <!-- BOTON PARA ENTRAR A LA PANTALLA DE RECUPERACION -->
-                <a id="forgot-password" asp-page="./ForgotPassword" class="btn-siara">RECUPERAR</a> 
+                <a id="forgot-password" asp-page="./ForgotPassword" class="btn-siara">RECUPERAR</a>
                 <!-- BOTON DE INGRESO AL SISTEMA -->
-                <button id="login-submit" type="submit" class="btn-siara">INGRESAR</button> 
+                <button id="login-submit" type="submit" class="btn-siara">INGRESAR</button>
             </div>
             <!-- NUEVO BOTÓN / ENLACE DE HOME -->
             <div style="text-align: center; margin-top: 25px;">
@@ -59,7 +49,7 @@
         </form>
     </div>
 </div>
-       
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
