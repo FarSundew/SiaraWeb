@@ -9,30 +9,28 @@
     <link rel="stylesheet" href="~/css/estilos.css" />
 </head>
 <body style="margin: 0; padding: 0; background-color: #f2f3f5; overflow-x: hidden;">
-
+    
     <!-- 1. PARTE SUPERIOR (HEADER): Ocupa el 100% del ancho -->
+
     <header class="siara-header" style="background-color: #112d60; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; width: 100%;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <img src="~/img/tecnm_logo.png" alt="TecNM" style="height: 55px;" />
-            <div class="siara-header-text" style="text-align: center;">
-                <h4 style="color: white; margin: 0; font-weight: 900;">TECNOLÓGICO NACIONAL DE MÉXICO</h4>
-                <h6 style="color: white; margin: 0;">Sistema Integral de Análisis y Reportes Académicos</h6>
-            </div>
-            <img src="~/img/instituto_logo.png" alt="ITC" style="height: 55px;" />
+        <img src="~/img/tecnm_logo.png" alt="TecNM" style="height: 55px;" />
+        <div class="siara-header-text" style="text-align: center;">
+            <h4 style="color: white; margin: 0; font-weight: 900;">TECNOLÓGICO NACIONAL DE MÉXICO</h4>
+            <h6 style="color: white; margin: 0;">Sistema Integral de Análisis y Reportes Académicos</h6>
         </div>
-        <div>
-            <partial name="_LoginPartial" />
-        </div>
+        <img src="~/img/instituto_logo.png" alt="ITC" style="height: 55px;" />
     </header>
 
     <!-- CONTENEDOR FLEXIBLE: Divide la pantalla en Izquierda y Derecha -->
+   
     <div style="display: flex; min-height: calc(100vh - 75px);">
-
         <!-- 2. PARTE LATERAL (SIDEBAR): Corta/Estrecha con un ancho fijo de 260px -->
+            @if (ViewData["Title"]?.ToString() != "Iniciar Sesión")
+            {
         <div style="width: 260px; min-width: 260px; background-color: #112d60; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 900;">
             <partial name="_Sidebar" />
         </div>
-
+    }
         <!-- 3. PARTE PRINCIPAL (DASHBOARD): Grande y expansiva (flex-grow: 1) -->
         <main role="main" style="flex-grow: 1; padding: 40px 30px; background-color: #f2f3f5; width: calc(100% - 260px);">
             @RenderBody()
@@ -43,6 +41,5 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
+    @await RenderSectionAsync("Scripts", required: false)</body>
 </html>

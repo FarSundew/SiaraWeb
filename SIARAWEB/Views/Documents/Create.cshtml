@@ -2,51 +2,94 @@
 
 @{
     ViewData["Title"] = "Subir Documentos Iniciales";
+    Layout = "_Layout";
 }
 
-<h3 style="color: #0b2353; font-weight: bold;">DOCUMENTOS INICIALES</h3>
-<hr />
-<div class="row">
-    <div class="col-md-8">
-        <!-- IMPORTANTE: enctype="multipart/form-data" permite enviar los archivos al backend -->
+<style>
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    main {
+        padding-bottom: 0 !important;
+    }
+</style>
+
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div style="background-color: #f9f9f9; padding-top: 25px; padding-bottom: 30px; min-height: 100vh; width: 100%;">
+
+    <div style="padding: 0 40px;">
+        
         <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="padding: 0 30px;"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="SubjectId" class="control-label fw-bold">Asignatura</label>
-                <!-- Este menú desplegable mostrará las materias disponibles -->
-                <select asp-for="SubjectId" class="form-select" asp-items="ViewBag.SubjectId"></select>
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 25px; gap: 20px;">
+                <div style="display: flex; gap: 15px;">
+                    <a asp-action="Index" class="btn-siara-3d" style="padding: 6px 25px !important; text-transform: none !important;">Regresar</a>
+                    <button type="submit" class="btn-siara-3d" style="padding: 6px 25px !important; text-transform: none !important;">Guardar Cambios</button>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#4caf50" /><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="white" /></svg>
+                    <h3 style="font-weight: 900; color: #000; margin: 0; font-size: 18px;">VISTA DEL MAESTRO</h3>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Instrumentación Didáctica</label>
-                <input type="file" name="instrumentacionFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+            <div style="border: 2px solid #ccc; background-color: white; text-align: center; font-weight: 900; color: #112d60; padding: 10px; margin-bottom: 20px; font-size: 16px;">
+                DOCUMENTOS INICIALES
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Instrumento de Evaluación</label>
-                <input type="file" name="evaluacionFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+            <div style="width: 100%; overflow-x: auto;">
+                <table class="tabla-dashboard" style="border: 2px solid #ccc; background-color: white; width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 15%;">ASIGNATURA</th>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 17%;">Instrumentacion<br>Didactica</th>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 17%;">Instrumento de<br>evaluacion</th>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 17%;">Practica<br>Laboratorio</th>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 17%;">Proyecto<br>Individual</th>
+                            <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px; width: 17%;">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: top;">
+                                <select asp-for="SubjectId" class="form-control" style="font-size: 12px; font-weight: bold; border: 2px solid #112d60; text-transform: uppercase;" asp-items="ViewBag.SubjectId"></select>
+                            </td>
+
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: middle;">
+                                <input type="file" name="instrumentacionFile" class="form-control" style="font-size: 10px;" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                            </td>
+
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: middle;">
+                                <input type="file" name="evaluacionFile" class="form-control" style="font-size: 10px;" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                            </td>
+
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: middle;">
+                                <input type="file" name="practicaFile" class="form-control" style="font-size: 10px;" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                            </td>
+
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: middle;">
+                                <input type="file" name="proyectoFile" class="form-control" style="font-size: 10px;" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                            </td>
+
+                            <td style="border: 2px solid #ccc; text-align: center; padding: 15px; vertical-align: top;">
+                                <textarea asp-for="Observaciones" class="form-control" rows="4" style="font-size: 12px; border: 2px solid #112d60;"></textarea>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Práctica de Laboratorio</label>
-                <input type="file" name="practicaFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
-            </div>
-
-            <div class="form-group mb-3">
-                <label class="control-label">Proyecto Individual</label>
-                <input type="file" name="proyectoFile" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx" />
-            </div>
-
-            <div class="form-group mb-4">
-                <label asp-for="Observaciones" class="control-label fw-bold">Observaciones</label>
-                <textarea asp-for="Observaciones" class="form-control" rows="3"></textarea>
-            </div>
-
-            <div class="form-group">
-                <a asp-action="Index" class="btn btn-secondary me-2">REGRESAR</a>
-                <input type="submit" value="SIGUIENTE (Guardar)" class="btn btn-primary" style="background-color: #0b2353;" />
-            </div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

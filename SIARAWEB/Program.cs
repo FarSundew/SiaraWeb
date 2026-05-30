@@ -37,9 +37,21 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>() // <-- ESTO HABILITA LOS ROLES PARA PODER ASIGNAR EL "DOCENTE"
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Agregar soporte para Controladores y Vistas
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+
+// Agregar soporte para Controladores y Vistas (Exigiendo Inicio de Sesión Global)
+builder.Services.AddControllersWithViews(options =>
+{
+    var policy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter(policy));
+});
+
+// Agregar Razor Pages y PERMITIR el acceso libre a la carpeta de cuentas (Login, Recuperar Contraseña, etc.)
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AllowAnonymousToAreaFolder("Identity", "/Account");
+});
 
 var app = builder.Build();
 
