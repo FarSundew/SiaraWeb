@@ -1,0 +1,24 @@
+﻿@model SIARAWEB.Models.Document
+
+@{
+    ViewData["Title"] = "Eliminar Registro";
+}
+
+<div class="container text-center mt-5">
+    <h3 style="color: #dc3545; font-weight: bold;">¿ELIMINAR ARCHIVO?</h3>
+    <h5 class="text-secondary mb-4">¿Estás seguro que deseas borrar este registro de documentos?</h5>
+
+    <div class="card shadow-sm mx-auto text-start mb-4" style="max-width: 500px;">
+        <div class="card-body">
+            <h5 class="card-title text-primary fw-bold">@Html.DisplayFor(model => model.Subject.Name)</h5>
+            <p class="card-text text-muted mb-1"><strong>Entregado el:</strong> @Model.UploadedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="card-text text-muted"><strong>Observaciones:</strong> @Html.DisplayFor(model => model.Observaciones)</p>
+        </div>
+    </div>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <a asp-action="Index" class="btn btn-secondary btn-lg me-3">CANCELAR</a>
+        <input type="submit" value="ACEPTAR" class="btn btn-danger btn-lg" />
+    </form>
+</div>

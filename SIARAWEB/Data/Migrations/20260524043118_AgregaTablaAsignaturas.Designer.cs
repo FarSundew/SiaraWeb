@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIARAWEB.Data;
 
@@ -11,9 +12,11 @@ using SIARAWEB.Data;
 namespace SIARAWEB.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524043118_AgregaTablaAsignaturas")]
+    partial class AgregaTablaAsignaturas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,40 +181,6 @@ namespace SIARAWEB.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.AcademicTracking", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("ApprovalPercentage")
-                        .HasColumnType("float");
-
-                    b.Property<double>("DropoutPercentage")
-                        .HasColumnType("float");
-
-                    b.Property<double>("FailurePercentage")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Phase")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UnitNumber")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubjectId");
-
-                    b.ToTable("AcademicTrackings");
-                });
-
             modelBuilder.Entity("SIARAWEB.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -301,45 +270,6 @@ namespace SIARAWEB.Data.Migrations
                     b.ToTable("DocenteAsignaturas");
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.Document", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("EvaluacionPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InstrumentacionPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsOnTime")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PracticaPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProyectoPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubjectId");
-
-                    b.ToTable("Documents");
-                });
-
             modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
                 {
                     b.Property<int>("Id")
@@ -347,13 +277,6 @@ namespace SIARAWEB.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Clave")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Horas")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -363,35 +286,12 @@ namespace SIARAWEB.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Temas")
-                        .HasColumnType("int");
-
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Subjects");
-                });
-
-            modelBuilder.Entity("SIARAWEB.Models.TrackingDeadline", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CutoffDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Phase")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrackingDeadline");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -445,17 +345,6 @@ namespace SIARAWEB.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.AcademicTracking", b =>
-                {
-                    b.HasOne("SIARAWEB.Models.Subject", "Subject")
-                        .WithMany("AcademicTrackings")
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Subject");
-                });
-
             modelBuilder.Entity("SIARAWEB.Models.DocenteAsignatura", b =>
                 {
                     b.HasOne("SIARAWEB.Models.ApplicationUser", "Docente")
@@ -475,17 +364,6 @@ namespace SIARAWEB.Data.Migrations
                     b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.Document", b =>
-                {
-                    b.HasOne("SIARAWEB.Models.Subject", "Subject")
-                        .WithMany("Documents")
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Subject");
-                });
-
             modelBuilder.Entity("SIARAWEB.Models.ApplicationUser", b =>
                 {
                     b.Navigation("DocenteAsignaturas");
@@ -493,11 +371,7 @@ namespace SIARAWEB.Data.Migrations
 
             modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
                 {
-                    b.Navigation("AcademicTrackings");
-
                     b.Navigation("DocenteAsignaturas");
-
-                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

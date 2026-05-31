@@ -1,0 +1,81 @@
+﻿@model SIARAWEB.Models.AcademicTracking
+
+@{
+    ViewData["Title"] = "Detalles del Seguimiento";
+    Layout = null; /* Evita que se dupliquen menús si lo abres como modal */
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div class="modal-compacto">
+    
+    <a asp-action="Index" class="btn-cerrar-circulo">&#10005;</a>
+
+    <div class="modal-header-compacto">
+        DETALLES DEL SEGUIMIENTO
+    </div>
+
+    <div style="padding: 25px 30px;">
+        
+        <div class="fila-horizontal">
+            <label class="label-horizontal">ASIGNATURA</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Html.DisplayFor(model => model.Subject.Id)
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal">
+            <label class="label-horizontal">UNIDAD</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.UnitNumber
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal">
+            <label class="label-horizontal">FASE</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.Phase
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal">
+            <label class="label-horizontal">% APROB.</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.ApprovalPercentage %
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal">
+            <label class="label-horizontal">% REPROB.</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.FailurePercentage %
+                </div>
+            </div>
+        </div>
+
+        <div class="fila-horizontal">
+            <label class="label-horizontal">% DESERCIÓN</label>
+            <div class="input-container-horizontal">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.DropoutPercentage %
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+            <a asp-action="Index" class="btn-pildora-institucional" style="width: 45%; padding: 8px 0; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important; box-sizing: border-box;">VOLVER</a>
+            
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-pildora-institucional" style="width: 45%; padding: 8px 0; background: linear-gradient(to bottom, #f0ad4e, #ec971f) !important; border-color: #d58512 !important; box-sizing: border-box;">EDITAR</a>
+        </div>
+    </div>
+</div>

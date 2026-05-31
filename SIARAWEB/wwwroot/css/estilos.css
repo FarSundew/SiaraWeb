@@ -148,3 +148,130 @@ body {
     margin-top: 5px;
     display: block;
 }
+/* ==========================================================================
+   DISEÑO S.I.A.R.A - DASHBOARD ACADEMIC TRACKING
+   ========================================================================== */
+
+/* Encabezado Institucional */
+.siara-header {
+    background-color: #0b2353;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    height: 90px;
+}
+
+.siara-header-text {
+    text-align: center;
+}
+
+    .siara-header-text h1 {
+        font-size: 18px;
+        margin: 0;
+        font-weight: 900;
+    }
+
+    .siara-header-text h2 {
+        font-size: 16px;
+        margin: 5px 0 0 0;
+    }
+
+.logo-header {
+    height: 70px;
+    object-fit: contain;
+}
+
+/* Botones en forma de píldora (Mapeado, Agregar, Fecha) */
+.btn-pildora-dashboard {
+    background-color: #5c728c;
+    color: white;
+    border-radius: 25px;
+    padding: 8px 18px;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    text-transform: uppercase;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.2);
+}
+
+    .btn-pildora-dashboard:hover {
+        background-color: #465970;
+        color: white;
+    }
+
+/* Tabla del Dashboard */
+.tabla-dashboard {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #000;
+    background-color: white;
+}
+
+    .tabla-dashboard th, .tabla-dashboard td {
+        border: 2px solid #000;
+        text-align: center;
+        vertical-align: middle;
+        padding: 12px;
+        font-weight: 900;
+        color: #000;
+    }
+
+    .tabla-dashboard th {
+        background-color: #112d60;
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+/* --- Botones 3D Institucionales (SALIR, GUARDAR, AGREGAR) --- */
+.btn-siara-3d {
+    background: linear-gradient(to bottom, #7ba0c6, #4b6b8f) !important;
+    color: white !important;
+    border: 2px solid #2d4564 !important;
+    border-radius: 25px !important;
+    padding: 8px 30px !important;
+    font-weight: 900 !important;
+    font-size: 14px !important;
+    text-decoration: none !important;
+    text-transform: uppercase !important;
+    display: inline-block !important;
+    box-shadow: inset 0px 2px 4px rgba(255,255,255,0.3), 0px 4px 6px rgba(0,0,0,0.4) !important;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.3) !important;
+    text-align: center;
+    cursor: pointer;
+}
+
+    .btn-siara-3d:hover {
+        background: linear-gradient(to bottom, #8bb1d3, #5a7d9f) !important;
+    }
+
+/* --- Botón circular rojo para cerrar (X) --- */
+.btn-cerrar-rojo {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 32px;
+    height: 32px;
+    background-color: white !important;
+    color: #cc0000 !important;
+    border: 2px solid #cc0000 !important;
+    border-radius: 50% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.3) !important;
+    z-index: 10;
+}
+
+    .btn-cerrar-rojo:hover {
+        background-color: #fce4e4 !important;
+        color: #990000 !important;
+        border-color: #990000 !important;
+    }

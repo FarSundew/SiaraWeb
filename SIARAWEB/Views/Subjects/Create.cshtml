@@ -1,0 +1,81 @@
+﻿@model SIARAWEB.Models.Subject
+
+@{
+    ViewData["Title"] = "Crear Asignatura";
+    // Dejamos el Layout nulo o vacío para que la tarjeta se centre limpio sin duplicar menús,
+    // o puedes quitar esta línea si prefieres que se vea el menú superior.
+    Layout = null;
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div style="background-color: #f4f6f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+
+    <div class="modal-compacto" style="position: relative; width: 100%; max-width: 550px; background-color: #f2f3f5; border-radius: 10px; padding-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+        
+        <a asp-action="Index" class="btn-cerrar-rojo" style="position: absolute; top: -15px; right: -15px; background-color: white; border: 2px solid #d9534f; color: #d9534f; border-radius: 50%; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; font-weight: bold; text-decoration: none; font-size: 18px; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer;">&#10005;</a>
+
+        <div class="modal-header-compacto" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 8px 8px 0 0; text-transform: uppercase; font-size: 16px;">
+            AGREGAR NUEVA ASIGNATURA
+        </div>
+
+        <form asp-action="Create" style="padding: 25px 40px;">
+            
+            <div asp-validation-summary="All" class="text-danger" style="font-size: 12px; font-weight: bold; margin-bottom: 15px; text-align: center;"></div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+                <label asp-for="Clave" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">CLAVE</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Clave" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase;" placeholder="H1B63" />
+                </div>
+            </div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+                <label asp-for="Name" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">NOMBRE</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Name" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase;" placeholder="DESARROLLO SUSTENTABLE" />
+                </div>
+            </div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+                <label asp-for="Horas" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">HORAS</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Horas" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-align: center;" placeholder="48" />
+                </div>
+            </div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+                <label asp-for="Temas" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">TEMAS</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Temas" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-align: center;" />
+                </div>
+            </div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+                <label asp-for="Period" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">SEMESTRE</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Period" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-transform: uppercase;" placeholder="6TO SEMESTRE" />
+                </div>
+            </div>
+
+            <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 25px;">
+                <label asp-for="Year" class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase; text-align: right; padding-right: 15px;">AÑO</label>
+                <div class="input-container-horizontal" style="width: 65%;">
+                    <input asp-for="Year" type="number" class="input-grueso" style="width: 100%; border: 2px solid #000; padding: 6px; font-size: 12px; font-weight: bold; text-align: center;" value="2026" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
+                <a asp-action="Index" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important; text-decoration: none; text-align: center;">CANCELAR</a>
+                <button type="submit" class="btn-siara-3d" style="width: 45%;">GUARDAR</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

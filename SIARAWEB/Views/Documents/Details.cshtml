@@ -1,0 +1,121 @@
+﻿@model SIARAWEB.Models.Document
+
+@{
+    ViewData["Title"] = "Detalles de Documentos";
+    Layout = "_Layout";
+
+    string ObtenerIcono(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return "<span style=\"font-weight: 900; color: #000; font-size: 14px;\">N/A</span>";
+        
+        string ext = System.IO.Path.GetExtension(path)?.ToLower() ?? "";
+        string color = "#757575";
+        string texto = "FILE";
+
+        if (ext == ".pdf") { color = "#d32f2f"; texto = "PDF"; }
+        else if (ext == ".xls" || ext == ".xlsx") { color = "#2e7d32"; texto = "XLS"; }
+        else if (ext == ".doc" || ext == ".docx") { color = "#1565c0"; texto = "DOC"; }
+
+        return $"<a href=\"{path}\" target=\"_blank\" title=\"Descargar Archivo\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"{color}\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"></path><polyline points=\"14 2 14 8 20 8\" fill=\"none\" stroke=\"white\" stroke-width=\"2\"></polyline><text x=\"8\" y=\"16\" fill=\"white\" font-family=\"Arial\" font-size=\"6\" font-weight=\"bold\">{texto}</text></svg></a>";
+    }
+}
+
+<style>
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    main {
+        padding-bottom: 0 !important;
+    }
+</style>
+
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div style="background-color: #f9f9f9; padding-top: 25px; padding-bottom: 30px; min-height: 100vh; width: 100%;">
+
+    <div style="padding: 0 40px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+            
+            <div style="width: 38%;">
+                <div style="color: #112d60; font-weight: 900; margin-bottom: 2px; text-transform: uppercase; font-size: 13px;">CARRERA:</div>
+                <div style="border: 2px solid #000; padding: 8px 10px; font-weight: 900; text-transform: uppercase; font-size: 13px; color: #000; background-color: white;">
+                    ING. EN SISTEMAS COMPUTACIONALES
+                </div>
+            </div>
+
+            <div style="width: 28%;">
+                <div style="color: #112d60; font-weight: 900; margin-bottom: 2px; text-transform: uppercase; font-size: 13px;">SEMESTRE Y AÑO:</div>
+                <div style="border: 2px solid #000; padding: 8px 10px; font-weight: 900; text-transform: uppercase; font-size: 13px; color: #000; background-color: white; text-align: center;">
+                    ENERO - JUNIO 26
+                </div>
+            </div>
+
+            <div style="width: 28%; display: flex; gap: 15px; justify-content: flex-end; padding-bottom: 5px;">
+                <a asp-action="Index" class="btn-siara-3d" style="padding: 5px 20px !important; text-transform: none !important;">Regresar</a>
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-siara-3d" style="padding: 5px 20px !important; background: linear-gradient(to bottom, #f0ad4e, #ec971f) !important; border-color: #d58512 !important;">EDITAR</a>
+            </div>
+        </div>
+
+        <div style="border: 2px solid #ccc; background-color: white; text-align: center; font-weight: 900; color: #112d60; padding: 10px; margin-bottom: 20px; font-size: 16px;">
+            DOCUMENTOS INICIALES
+        </div>
+
+        <div style="width: 100%;">
+            <table class="tabla-dashboard" style="border: 2px solid #ccc; background-color: white; width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">ASIGNATURA</th>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">INSTRUMENTACION<br>DIDACTICA</th>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">INSTRUMENTO DE<br>EVALUACION</th>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">PRACTICA<br>LABORATORIO</th>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">PROYECTO<br>INDIVIDUAL</th>
+                        <th style="border: 2px solid #ccc; background-color: white; color: #112d60 !important; font-size: 12px; text-align: center; padding: 10px;">OBSERVACIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 2px solid #ccc; font-weight: 900; color: #112d60; text-align: center; padding: 15px; font-size: 13px; text-transform: uppercase;">
+                            @Html.DisplayFor(model => model.Subject.Name)
+                        </td>
+
+                        <td style="border: 2px solid #ccc; text-align: center; padding: 15px;">
+                            @Html.Raw(ObtenerIcono(Model?.InstrumentacionPath))
+                        </td>
+
+                        <td style="border: 2px solid #ccc; text-align: center; padding: 15px;">
+                            @Html.Raw(ObtenerIcono(Model?.EvaluacionPath))
+                        </td>
+
+                        <td style="border: 2px solid #ccc; text-align: center; padding: 15px;">
+                            @Html.Raw(ObtenerIcono(Model?.PracticaPath))
+                        </td>
+
+                        <td style="border: 2px solid #ccc; text-align: center; padding: 15px;">
+                            @Html.Raw(ObtenerIcono(Model?.ProyectoPath))
+                        </td>
+
+                        <td style="border: 2px solid #ccc; text-align: center; padding: 15px; font-size: 13px; color: #112d60; font-weight: 900;">
+                            @Html.DisplayFor(model => model.Observaciones)
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 15px; text-align: right; font-weight: 900; font-size: 14px;">
+                ESTATUS DE ENTREGA:
+                @if (Model?.IsOnTime == true)
+                {
+                    <span style="color: #4caf50;">ENTREGADO A TIEMPO</span>
+                }
+                else
+                {
+                    <span style="color: #d9534f;">FUERA DE TIEMPO ⚠</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>

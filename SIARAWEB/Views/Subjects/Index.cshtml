@@ -1,0 +1,89 @@
+﻿@model IEnumerable<SIARAWEB.Models.Subject>
+
+@{
+    ViewData["Title"] = "Asignaturas";
+    Layout = "_Layout";
+}
+
+<style>
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    main {
+        padding-bottom: 0 !important;
+    }
+</style>
+
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div style="background-color: #f4f6f9; padding-top: 25px; padding-bottom: 40px; min-height: 100vh; width: 100%;">
+
+    <div style="margin: 0 40px; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+        <a asp-controller="AcademicTrackings" asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+        <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
+            ASIGNATURAS
+        </div>
+
+        <div style="padding: 0 30px;">
+            <table class="tabla-dashboard" style="width: 100%; text-align: center;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">CLAVE</th>
+                        <th style="width: 30%; text-align: left;">NOMBRE &#128269;</th>
+                        <th style="width: 15%;">HORAS - SEMANA</th>
+                        <th style="width: 10%;">TEMAS</th>
+                        <th style="width: 15%;">SEMESTRE</th>
+                        <th style="width: 15%;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td style="font-size: 14px; font-weight: 900;">@item.Clave</td>
+                                <td style="font-size: 14px; text-transform: uppercase; font-weight: 900; text-align: left;">@item.Name</td>
+                                <td style="font-size: 14px; font-weight: 900;">@item.Horas</td>
+                                <td style="font-size: 14px; font-weight: 900;">@item.Temas</td>
+                                <td style="font-size: 14px; text-transform: uppercase; font-weight: 900;">@item.Period</td>
+                                <td>
+                                    <div style="display: flex; justify-content: center; gap: 15px;">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Editar">
+                                            &#9998;
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Eliminar">
+                                            &#128465;
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" style="padding: 30px; color: #666; font-size: 16px;">
+                                No hay asignaturas registradas.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 25px 30px 0 30px;">
+            
+            <a asp-controller="AcademicTrackings" asp-action="Index" class="btn-siara-3d" style="text-decoration: none;">SALIR</a>
+            
+            <div style="display: flex; gap: 15px;">
+                <button type="button" class="btn-siara-3d">GUARDAR</button>
+                <a asp-action="Create" class="btn-siara-3d" style="text-decoration: none;">AGREGAR</a>
+            </div>
+        </div>
+    </div>
+</div>

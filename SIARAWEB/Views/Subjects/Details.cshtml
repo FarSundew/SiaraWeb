@@ -1,0 +1,63 @@
+﻿@model SIARAWEB.Models.Subject
+
+@{
+    ViewData["Title"] = "Detalles de Asignatura";
+    Layout = null; /* Evita que cargue menús duplicados */
+}
+
+<!-- Carga de estilos de Bootstrap  -->
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div class="modal-compacto" style="position: relative; max-width: 500px; margin: 40px auto; background-color: #f2f3f5; border-radius: 10px; padding-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+    
+    <!-- Botón X Rojo para cerrar -->
+    <a asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+    <!-- Encabezado Azul Oscuro -->
+    <div class="modal-header-compacto" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 8px 8px 0 0; text-transform: uppercase; font-size: 16px;">
+        DETALLES DE ASIGNATURA
+    </div>
+
+    <div style="padding: 25px 40px;">
+
+        <!-- NOMBRE -->
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">NOMBRE</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333; text-transform: uppercase;">
+                    @Model.Name
+                </div>
+            </div>
+        </div>
+
+        <!-- PERIODO -->
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">PERIODO</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333; text-transform: uppercase;">
+                    @Model.Period
+                </div>
+            </div>
+        </div>
+
+        <!-- AÑO -->
+        <div class="fila-horizontal" style="display: flex; align-items: center; margin-bottom: 25px;">
+            <label class="label-horizontal" style="width: 35%; font-weight: 900; font-size: 13px; text-transform: uppercase;">AÑO</label>
+            <div class="input-container-horizontal" style="width: 65%;">
+                <div style="background-color: #f8f9fa; border: 2px solid #ccc; border-radius: 5px; padding: 6px 10px; font-weight: 900; font-size: 12px; color: #333;">
+                    @Model.Year
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
+            <!-- Botón Volver (Usa clase 3D forzando tonos grises) -->
+            <a asp-action="Index" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important;">VOLVER</a>
+            
+            <!-- Botón Editar (Usa clase 3D forzando el naranja institucional) -->
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn-siara-3d" style="width: 45%; background: linear-gradient(to bottom, #f0ad4e, #ec971f) !important; border-color: #d58512 !important;">EDITAR</a>
+        </div>
+    </div>
+</div>

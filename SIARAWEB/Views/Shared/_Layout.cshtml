@@ -1,91 +1,45 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SIARAWEB</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - SIARA</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/SIARAWEB.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/estilos.css" />
 </head>
-<body>
+<body style="margin: 0; padding: 0; background-color: #f2f3f5; overflow-x: hidden;">
     
-    <!-- CONDICIÓN PARA OCULTAR EL MENÚ -->
-    @if (ViewData["OcultarMenu"] as bool? != true)
-    {
-        <header>
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-                <div class="container-fluid">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SIARAWEB</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                        <ul class="navbar-nav flex-grow-1">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                            </li>
-                        </ul>
-                        <partial name="_LoginPartial" />
-                    </div>
-                </div>
-            </nav>
-        </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            <div class="container">
-               
-        
-                <main role="main" class="pb-3">
-                    @RenderBody()
-                </main>
-            </div>
+    <!-- 1. PARTE SUPERIOR (HEADER): Ocupa el 100% del ancho -->
+
+    <header class="siara-header" style="background-color: #112d60; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; width: 100%;">
+        <img src="~/img/tecnm_logo.png" alt="TecNM" style="height: 55px;" />
+        <div class="siara-header-text" style="text-align: center;">
+            <h4 style="color: white; margin: 0; font-weight: 900;">TECNOLÓGICO NACIONAL DE MÉXICO</h4>
+            <h6 style="color: white; margin: 0;">Sistema Integral de Análisis y Reportes Académicos</h6>
+        </div>
+        <img src="~/img/instituto_logo.png" alt="ITC" style="height: 55px;" />
+    </header>
+
+    <!-- CONTENEDOR FLEXIBLE: Divide la pantalla en Izquierda y Derecha -->
+   
+    <div style="display: flex; min-height: calc(100vh - 75px);">
+        <!-- 2. PARTE LATERAL (SIDEBAR): Corta/Estrecha con un ancho fijo de 260px -->
+            @if (ViewData["Title"]?.ToString() != "Iniciar Sesión")
+            {
+        <div style="width: 260px; min-width: 260px; background-color: #112d60; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 900;">
+            <partial name="_Sidebar" />
+        </div>
+    }
+        <!-- 3. PARTE PRINCIPAL (DASHBOARD): Grande y expansiva (flex-grow: 1) -->
+        <main role="main" style="flex-grow: 1; padding: 40px 30px; background-color: #f2f3f5; width: calc(100% - 260px);">
             @RenderBody()
         </main>
+
     </div>
-    }
-
-    <!-- CONDICIÓN PARA EL CONTENEDOR (Bordes blancos) -->
-    @if (ViewData["OcultarMenu"] as bool? == true)
-    {
-        <!-- Si es la pantalla de Login, se usa todo el ancho de la pantalla -->
-        <div style="padding: 0; margin: 0; max-width: 100%;">
-            <main role="main">
-                @RenderBody()
-            </main>
-        </div>
-    }
-    else
-    {
-        <!-- Si es cualquier otra pantalla, se usa el contenedor normal de Bootstrap -->
-        <div class="container">
-            <main role="main" class="pb-3">
-                @RenderBody()
-            </main>
-        </div>
-    }
-
-    <!-- CONDICIÓN PARA OCULTAR EL PIE DE PÁGINA (Footer) -->
-    @if (ViewData["OcultarMenu"] as bool? != true)
-    {
-        <footer class="border-top footer text-muted">
-            <div class="container">
-                &copy; 2026 - SIARAWEB - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-            </div>
-        </footer>
-    }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
+    @await RenderSectionAsync("Scripts", required: false)</body>
 </html>
