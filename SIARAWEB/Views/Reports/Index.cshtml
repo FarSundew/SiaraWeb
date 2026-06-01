@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "Reporte de Gráficas";
+}
+
+<div class="container-fluid mt-4">
+    <h2 style="color: #112d60; font-weight: 900; margin-bottom: 20px;">GENERACIÓN DE GRÁFICAS</h2>
+
+    <div class="row mb-4">
+        <!-- Tarjetas de Resumen (KPIs) -->
+        <div class="col-md-4">
+            <div class="card text-white text-center shadow-sm" style="background-color: #112d60; border-radius: 10px;">
+                <div class="card-body">
+                    <h5>ÍNDICE DE APROBACIÓN</h5>
+                    <h2 class="fw-bold">@ViewBag.IndiceAprobacion %</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white text-center shadow-sm" style="background-color: #f4a915; border-radius: 10px;">
+                <div class="card-body">
+                    <h5>ÍNDICE DE REPROBACIÓN</h5>
+                    <h2 class="fw-bold">@ViewBag.IndiceReprobacion %</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white text-center shadow-sm" style="background-color: #d9534f; border-radius: 10px;">
+                <div class="card-body">
+                    <h5>TASA DE DESERCIÓN</h5>
+                    <h2 class="fw-bold">@ViewBag.TasaDesercion %</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor para la Gráfica que tu compañero de Frontend diseñará -->
+    <div class="card shadow-sm" style="border-radius: 10px;">
+        <div class="card-body text-center">
+            <h4 style="color: #112d60; font-weight: 700;">GRÁFICO DE APROBADOS, REPROBADOS Y DESERTORES</h4>
+
+            <!-- Lienzo donde se dibujará la gráfica con Javascript -->
+            <div style="width: 100%; max-width: 500px; margin: 0 auto;">
+                <canvas id="graficaDesempeno"></canvas>
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-secondary">DESCARGAR GRÁFICA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Tu compañero debe descargar Chart.js y ponerlo en wwwroot, por ahora usamos CDN para que funcione de inmediato -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var ctx = document.getElementById('graficaDesempeno').getContext('2d');
+
+            // Aquí inyectamos los datos reales desde tu Backend (C#) hacia Javascript
+            var aprobados = @Html.Raw(ViewBag.IndiceAprobacion ?? 0);
+            var reprobados = @Html.Raw(ViewBag.IndiceReprobacion ?? 0);
+            var desertores = @Html.Raw(ViewBag.TasaDesercion ?? 0);
+
+            var miGrafica = new Chart(ctx, {
+                type: 'pie', // El prototipo pide gráfica de pastel
+                data: {
+                    labels: ['Aprobación', 'Reprobación', 'Deserción'],
+                    datasets: [{
+                        data: [aprobados, reprobados, desertores],
+                        backgroundColor: [
+                            '#112d60', // Azul Institucional
+                            '#e0e0e0', // Gris/Plata
+                            '#f4a915'  // Dorado Institucional
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

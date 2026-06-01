@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Administrador")]
     public class DocentesController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

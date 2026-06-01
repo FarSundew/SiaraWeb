@@ -5,6 +5,7 @@
 
     <ul class="nav flex-column" style="gap: 8px; padding: 0 15px;">
 
+
         <li class="nav-item">
             <a class="nav-link fw-bold" asp-controller="Home" asp-action="Index"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
@@ -13,15 +14,67 @@
                 🏠 INICIO
             </a>
         </li>
-
-        <li class="nav-item">
-            <a class="nav-link fw-bold" asp-controller="Subjects" asp-action="Index"
+        @if (User.IsInRole("Administrador"))
+        {
+        
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Docentes" asp-action="Index"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                📚 ASIGNATURAS
-            </a>
-        </li>
+                    👨‍🏫 AGREGAR NUEVO DOCENTE
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Subjects" asp-action="Index"
+                       style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                       onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📚 ASIGNATURAS
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="Reports" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📉 REPORTE DE GRÁFICAS
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" asp-controller="TrackingDeadlines" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📅 FECHAS DE CORTE
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" href="#"
+                       style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                       onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    ☁️ CREAR RESPALDO
+                </a>
+
+
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link fw-bold" href="#"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    📥 DESCARGAR FORMATO
+                </a>
+            </li>
+
+        }
+        <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
 
         <li class="nav-item">
             <a class="nav-link fw-bold" asp-controller="Documents" asp-action="Index"
@@ -33,15 +86,6 @@
         </li>
 
         <li class="nav-item">
-            <a class="nav-link fw-bold" asp-controller="TrackingDeadlines" asp-action="Index"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                📅 FECHAS DE CORTE
-            </a>
-        </li>
-
-        <li class="nav-item">
             <a class="nav-link fw-bold" asp-controller="AcademicTrackings" asp-action="Index"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
@@ -49,33 +93,7 @@
                 📊 SEGUIMIENTO
             </a>
         </li>
-
-        <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                👨‍🏫 AGREGAR NUEVO DOCENTE
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                📉 REPORTE DE GRÁFICAS
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                📥 DESCARGAR FORMATO
-            </a>
-        </li>
+        <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
 
         <li class="nav-item">
             <a class="nav-link fw-bold" href="#"
@@ -86,17 +104,7 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                ☁️ CREAR RESPALDO
-            </a>
-        </li>
-
-        <hr style="border-top: 1px solid #ffffff; margin: 10px 20px; opacity: 0.3;" />
-
+        
         <li class="nav-item">
             <a class="nav-link fw-bold" href="#"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
@@ -107,7 +115,7 @@
         </li>
 
         <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
+            <a class="nav-link fw-bold" asp-area="Identity" asp-page="/Account/Manage/ChangePassword"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
