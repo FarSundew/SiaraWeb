@@ -1,24 +1,34 @@
 ﻿@model SIARAWEB.Models.Document
 
 @{
-    ViewData["Title"] = "Eliminar Registro";
+    ViewData["Title"] = "Eliminar Documento";
+    Layout = "_Layout";
 }
 
-<div class="container text-center mt-5">
-    <h3 style="color: #dc3545; font-weight: bold;">¿ELIMINAR ARCHIVO?</h3>
-    <h5 class="text-secondary mb-4">¿Estás seguro que deseas borrar este registro de documentos?</h5>
-
-    <div class="card shadow-sm mx-auto text-start mb-4" style="max-width: 500px;">
-        <div class="card-body">
-            <h5 class="card-title text-primary fw-bold">@Html.DisplayFor(model => model.Subject.Name)</h5>
-            <p class="card-text text-muted mb-1"><strong>Entregado el:</strong> @Model.UploadedAt.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="card-text text-muted"><strong>Observaciones:</strong> @Html.DisplayFor(model => model.Observaciones)</p>
-        </div>
+<div class="container mt-4">
+    <div class="alert alert-danger shadow-sm">
+        <h3 class="fw-bold mb-0">¿Estás seguro de que deseas eliminar este documento?</h3>
+        <p class="mb-0 mt-2">Esta acción no se puede deshacer y el archivo PDF se perderá.</p>
     </div>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <a asp-action="Index" class="btn btn-secondary btn-lg me-3">CANCELAR</a>
-        <input type="submit" value="ACEPTAR" class="btn btn-danger btn-lg" />
-    </form>
+    <div class="card shadow-sm mt-3">
+        <div class="card-body p-4">
+            <dl class="row">
+                <dt class="col-sm-3">Asignatura</dt>
+                <dd class="col-sm-9 fw-bold">@Html.DisplayFor(model => model.Subject.Name)</dd>
+
+                <dt class="col-sm-3">Tipo</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Type)</dd>
+
+                <dt class="col-sm-3">Fecha de Subida</dt>
+                <dd class="col-sm-9">@Model.UploadedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <form asp-action="Delete" class="mt-4">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger fw-bold">🗑️ ELIMINAR DOCUMENTO</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
 </div>
