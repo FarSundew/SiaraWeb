@@ -50,7 +50,7 @@ namespace SIARAWEB.Controllers
         // GET: AcademicTrackings/Create
         public IActionResult Create()
         {
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id");
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
             return View();
         }
 
@@ -61,13 +61,14 @@ namespace SIARAWEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,SubjectId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Phase")] AcademicTracking academicTracking)
         {
+            ModelState.Remove("Subject");
             if (ModelState.IsValid)
             {
                 _context.Add(academicTracking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", academicTracking.SubjectId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
@@ -84,7 +85,7 @@ namespace SIARAWEB.Controllers
             {
                 return NotFound();
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", academicTracking.SubjectId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
@@ -99,6 +100,7 @@ namespace SIARAWEB.Controllers
             {
                 return NotFound();
             }
+            ModelState.Remove("Subject");
 
             if (ModelState.IsValid)
             {
@@ -120,7 +122,7 @@ namespace SIARAWEB.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", academicTracking.SubjectId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
