@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Models;
-using SIARAWEB.ViewModel;
 using SIARAWEB.ViewModels;
+using SIARAWEB.Data; // <- Asegúrate de usar el namespace del DbContext
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,23 +15,36 @@ namespace SIARAWEB.Controllers
     public class DocentesController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context; // agregado
 
-        public DocentesController(UserManager<ApplicationUser> userManager)
+        public DocentesController(UserManager<ApplicationUser> userManager, ApplicationDbContext context) // modificado
         {
             _userManager = userManager;
+            _context = context;
         }
 
         // GET: Muestra la lista de docentes
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // Filtramos a los usuarios (podrías filtrar después solo los que tienen rol 'docente')
-            var docentes = _userManager.Users.ToList();
-            return View(docentes);
+            // 1. Obtenemos a los usuarios
+            var docentes = await _userManager.GetUsersInRoleAsync("Docente");
+            var docentesIds = docentes.Select(d => d.Id).ToList();
+
+            // 2. ⚠️ ESTA ES LA PARTE VITAL: Usamos .Include() para traer los datos del departamento
+            var docentesConDepartamento = await _context.Users
+                .Include(u => u.Departamento)
+                .Where(u => docentesIds.Contains(u.Id))
+                .ToListAsync();
+
+            // 3. ⚠️ Enviamos "docentesConDepartamento" a la vista, NO la variable "docentes"
+            return View(docentesConDepartamento);
         }
 
         // GET: Muestra el formulario para registrar
         public IActionResult Create()
         {
+            // Poblar la lista de departamentos antes de mostrar la vista
+            ViewBag.DepartamentosLista = new SelectList(_context.Departamentos, "Id", "Nombre");
             return View();
         }
 
@@ -45,99 +60,109 @@ namespace SIARAWEB.Controllers
                     UserName = model.Email,
                     Email = model.Email,
                     Name = model.Name,
+                    Rfc = model.Rfc,
                     Curp = model.Curp,
-                    Rfc = model.Rfc
+                    DepartamentoId = int.TryParse(model.Departamento, out var depId) ? depId : (int?)null
                 };
 
-                // CreateAsync guarda el usuario y encripta su contraseña automáticamente
-                var result = await _userManager.CreateAsync(user, model.Password!);
+                var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    // Le asignamos el rol de docente
-                    await _userManager.AddToRoleAsync(user, "docente");
+                    await _userManager.AddToRoleAsync(user, "Docente");
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Si la contraseña no cumple las reglas (ej. no tiene mayúsculas), muestra el error
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
+
+            ViewBag.DepartamentosLista = new SelectList(_context.Departamentos, "Id", "Nombre", model.Departamento);
             return View(model);
         }
 
-        // GET: Docentes/Edit/5
+        // --- 4. EDITAR DOCENTE (GET) ---
+        // --- 4. EDITAR DOCENTE (GET) ---
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null) return NotFound();
 
-            // Buscamos al usuario en la base de datos
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Pasamos los datos actuales al formulario
+            // Pasamos los datos del usuario a nuestro "molde" de edición
             var model = new DocenteEditViewModel
             {
                 Id = user.Id,
-                Name = user.Name ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                Curp = user.Curp ?? string.Empty,
-                Rfc = user.Rfc ?? string.Empty
+                Name = user.Name,
+                Email = user.Email,
+                Rfc = user.Rfc,    // Uso mayúsculas si tu modelo ApplicationUser lo tiene así
+                Curp = user.Curp,  // Uso mayúsculas si tu modelo ApplicationUser lo tiene así
+
+                // ⚠️ ERROR CORREGIDO: Antes decía user.Departamento
+                DepartamentoId = user.DepartamentoId
             };
+
+            // ⚠️ ERROR CORREGIDO: Antes decía user.Departamento
+            ViewBag.DepartamentosLista = new SelectList(_context.Departamentos, "Id", "Nombre", user.DepartamentoId);
 
             return View(model);
         }
 
-        // POST: Docentes/Edit/5
+        // --- 5. EDITAR DOCENTE (POST) ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(DocenteEditViewModel model)
+        public async Task<IActionResult> Edit(string id, DocenteEditViewModel model)
         {
+            if (id != model.Id) return NotFound();
+
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByIdAsync(model.Id);
+                var user = await _userManager.FindByIdAsync(id);
                 if (user == null) return NotFound();
 
-                // Actualizamos las propiedades con lo que viene del formulario
+                // Actualizamos los datos
                 user.Name = model.Name;
                 user.Email = model.Email;
-                user.UserName = model.Email; // En Identity, el UserName suele ser igual al Email
-                user.Curp = model.Curp;
+                user.UserName = model.Email; // El UserName de Identity debe ser igual al Email
                 user.Rfc = model.Rfc;
+                user.Curp = model.Curp;
 
-                // Guardamos los cambios de forma segura
+                // ⚠️ ERROR VITAL CORREGIDO: Antes decía user.Departamento = model.DepartamentoId;
+                user.DepartamentoId = model.DepartamentoId;
+
                 var result = await _userManager.UpdateAsync(user);
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction(nameof(Index)); // Regresa a la tabla si todo sale bien
+                    return RedirectToAction(nameof(Index));
                 }
 
-                // Si hay errores (ej. correo duplicado), los mostramos
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
+
+            // Si hay error, recargamos los departamentos
+            ViewBag.DepartamentosLista = new SelectList(_context.Departamentos, "Id", "Nombre", model.DepartamentoId);
             return View(model);
         }
 
-        // GET: Docentes/Delete/5
+        // --- 6. ELIMINAR DOCENTE (GET) ---
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null) return NotFound();
 
-            // Buscamos al usuario por su ID
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Le pasamos el usuario a la vista para preguntar "¿Estás seguro de eliminar a X?"
-            return View(user);
+            return View(user); // Mandamos el modelo directo de Identity
         }
 
-        // POST: Docentes/Delete/5
+        // --- 7. ELIMINAR DOCENTE (POST) ---
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -145,22 +170,9 @@ namespace SIARAWEB.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user != null)
             {
-                // Ejecutamos el borrado utilizando Identity
-                var result = await _userManager.DeleteAsync(user);
-
-                if (result.Succeeded)
-                {
-                    return RedirectToAction(nameof(Index)); // Si se borró, regresamos a la tabla
-                }
-
-                // Si ocurre un error, lo mostramos
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                await _userManager.DeleteAsync(user);
             }
-
-            return View(user);
+            return RedirectToAction(nameof(Index));
         }
 
 

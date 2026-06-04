@@ -1,25 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SIARAWEB.ViewModel
+namespace SIARAWEB.ViewModels
 {
     public class DocenteEditViewModel
     {
-        // Inicializamos con string.Empty para quitar la advertencia
-        public string Id { get; set; } = string.Empty;
+        public string? Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio")]
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; }
 
         [Required(ErrorMessage = "El correo es obligatorio")]
         [EmailAddress(ErrorMessage = "Ingresa un correo válido")]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "La CURP es obligatoria")]
-        [StringLength(18, ErrorMessage = "La CURP debe tener 18 caracteres")]
-        public string Curp { get; set; } = string.Empty;
+        [StringLength(18, MinimumLength = 18, ErrorMessage = "La CURP debe tener exactamente 18 caracteres")]
+        public string? Curp { get; set; }
 
         [Required(ErrorMessage = "El RFC es obligatorio")]
-        [StringLength(13, ErrorMessage = "El RFC no puede exceder los 13 caracteres")]
-        public string Rfc { get; set; } = string.Empty;
+        [StringLength(13, MinimumLength = 12, ErrorMessage = "El RFC debe tener entre 12 y 13 caracteres")]
+        public string? Rfc { get; set; }
+
+        [Required(ErrorMessage = "El departamento es obligatorio")]
+        public int? DepartamentoId { get; set; }
     }
 }

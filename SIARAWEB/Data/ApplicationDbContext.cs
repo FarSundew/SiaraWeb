@@ -19,7 +19,7 @@ namespace SIARAWEB.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
         public DbSet<AcademicTracking> AcademicTrackings { get; set; }
         public DbSet<Document> Documents { get; set; }
-
+        public DbSet<Departamento> Departamentos { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
