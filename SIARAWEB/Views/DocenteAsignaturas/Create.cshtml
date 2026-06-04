@@ -1,0 +1,33 @@
+﻿@model SIARAWEB.Models.DocenteAsignatura
+
+@{
+    ViewData["Title"] = "Asignar Materia";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg" style="border-radius: 15px; border-top: 5px solid #112d60;">
+        <div class="card-body p-5">
+            <h3 class="text-center mb-4" style="color: #112d60; font-weight: 900;">AGREGAR ASIGNATURA A DOCENTE</h3>
+
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DocenteId" class="control-label fw-bold">Seleccionar Docente</label>
+                        <select asp-for="DocenteId" class="form-control" asp-items="ViewBag.DocenteId"></select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="SubjectId" class="control-label fw-bold">Seleccionar Asignatura</label>
+                        <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 gap-2">
+                    <a asp-action="Index" class="btn btn-secondary">CANCELAR</a>
+                    <input type="submit" value="GUARDAR" class="btn fw-bold" style="background-color: #112d60; color: white;" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

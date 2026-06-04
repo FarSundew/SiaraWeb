@@ -1,176 +1,201 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
 using SIARAWEB.Models;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
+    // Solo pedimos que el usuario haya iniciado sesión (sin especificar rol estricto)
+    [Authorize]
     public class DocumentsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DocumentsController(ApplicationDbContext context)
+        public DocumentsController(ApplicationDbContext context,
+                                   IWebHostEnvironment webHostEnvironment,
+                                   UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
+            _userManager = userManager;
         }
 
         // GET: Documents
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Documents.Include(d => d.Subject);
-            return View(await applicationDbContext.ToListAsync());
+            // Consultamos la fecha límite para saber en qué seguimiento estamos
+            var fechaCorte = await _context.TrackingDeadline
+                .Where(f => f.CutoffDate >= DateTime.Today)
+                .OrderBy(f => f.CutoffDate)
+                .FirstOrDefaultAsync();
+
+            ViewBag.FechaCorte = fechaCorte;
+
+            var documentos = _context.Documents.Include(d => d.Subject).AsQueryable();
+
+            // Si es Administrador, ve la tabla general de monitoreo
+            if (User.IsInRole("Administrador"))
+            {
+                return View(await documentos.ToListAsync());
+            }
+            else
+            {
+                // Si NO es administrador, asumimos que es el Docente
+                var userId = _userManager.GetUserId(User);
+
+                // Buscamos qué materias tiene asignadas este maestro
+                var misMateriasIds = await _context.DocenteAsignaturas
+                    .Where(da => da.DocenteId == userId)
+                    .Select(da => da.SubjectId)
+                    .ToListAsync();
+
+                // Extraemos las materias completas para dibujar la cuadrícula en la vista
+                ViewBag.MisMaterias = await _context.Subjects
+                    .Where(s => misMateriasIds.Contains(s.Id))
+                    .ToListAsync();
+
+                // Filtramos para enviar solo los documentos que le pertenecen a este maestro
+                var misDocumentos = await documentos
+                    .Where(d => misMateriasIds.Contains(d.SubjectId))
+                    .ToListAsync();
+
+                return View(misDocumentos);
+            }
+        }
+
+        // GET: Documents/Create
+        // Ahora recibe el id de la materia y el tipo de documento desde el botón de la cuadrícula
+        public async Task<IActionResult> Create(int? subjectId, string tipo)
+        {
+            // Si alguien intenta entrar directo por URL, lo regresamos al índice
+            if (subjectId == null || string.IsNullOrEmpty(tipo))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var fechaCorte = await _context.TrackingDeadline
+                .Where(f => f.CutoffDate >= DateTime.Today)
+                .OrderBy(f => f.CutoffDate)
+                .FirstOrDefaultAsync();
+
+            ViewBag.FechaCorte = fechaCorte;
+
+            // Buscamos la materia para mostrarle al docente a qué materia le está subiendo
+            var materia = await _context.Subjects.FindAsync(subjectId);
+            if (materia == null) return NotFound();
+
+            ViewBag.MateriaNombre = materia.Name;
+
+            // Creamos un documento base con los datos ya llenos para mandárselos a la vista
+            var document = new Document
+            {
+                SubjectId = subjectId.Value,
+                Type = tipo
+            };
+
+            return View(document);
+        }
+
+        // POST: Documents/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("SubjectId,Type")] Document document, IFormFile archivoPdf)
+        {
+            // Ignoramos el objeto Subject para que no falle la validación del modelo
+            ModelState.Remove("Subject");
+            ModelState.Remove("FilePath");
+
+            var fechaCorte = await _context.TrackingDeadline
+                .Where(f => f.CutoffDate >= DateTime.Today)
+                .OrderBy(f => f.CutoffDate)
+                .FirstOrDefaultAsync();
+
+            if (ModelState.IsValid)
+            {
+                if (archivoPdf != null && archivoPdf.Length > 0)
+                {
+                    // Guardado físico del archivo
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + archivoPdf.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await archivoPdf.CopyToAsync(fileStream);
+                    }
+
+                    // Llenar los datos internos de la base de datos
+                    document.FilePath = "/uploads/" + uniqueFileName;
+                    document.UploadedAt = DateTime.Now;
+
+                    if (fechaCorte != null)
+                    {
+                        // Compara la fecha de entrega con la fecha límite
+                        document.IsOnTime = document.UploadedAt.Date <= fechaCorte.CutoffDate.Date;
+                    }
+                    else
+                    {
+                        document.IsOnTime = true;
+                    }
+
+                    _context.Add(document);
+                    await _context.SaveChangesAsync();
+
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Por favor adjunta un documento PDF válido.");
+                }
+            }
+
+            // SI LA VALIDACIÓN FALLA: Recargamos los textos para que la pantalla no truene
+            ViewBag.FechaCorte = fechaCorte;
+            var materiaFallo = await _context.Subjects.FindAsync(document.SubjectId);
+            ViewBag.MateriaNombre = materiaFallo?.Name;
+
+            return View(document);
         }
 
         // GET: Documents/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var document = await _context.Documents
                 .Include(d => d.Subject)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
-            {
-                return NotFound();
-            }
 
-            return View(document);
-        }
+            if (document == null) return NotFound();
 
-        // GET: Documents/Create
-        public IActionResult Create()
-        {
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,Observaciones")] Document document,
-    IFormFile instrumentacionFile, IFormFile evaluacionFile, IFormFile practicaFile, IFormFile proyectoFile)
-        {
-            // 1. SOLUCIÓN AL GUARDADO: Ignoramos la validación del objeto Subject completo
-            ModelState.Remove("Subject");
-
-            if (ModelState.IsValid)
-            {
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "archivos");
-
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                async Task<string> SaveFileAsync(IFormFile file)
-                {
-                    if (file != null && file.Length > 0)
-                    {
-                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(fileStream);
-                        }
-                        return "/archivos/" + uniqueFileName;
-                    }
-                    return null;
-                }
-
-                document.InstrumentacionPath = await SaveFileAsync(instrumentacionFile);
-                document.EvaluacionPath = await SaveFileAsync(evaluacionFile);
-                document.PracticaPath = await SaveFileAsync(practicaFile);
-                document.ProyectoPath = await SaveFileAsync(proyectoFile);
-
-                document.UploadedAt = DateTime.Now;
-
-                _context.Add(document);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
-            }
-
-            // 2. SOLUCIÓN AL MENÚ DESPLEGABLE: Cambiamos el "Id" por "Name" para cuando la página recarga
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", document.SubjectId);
-            return View(document);
-        }
-
-        // GET: Documents/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var document = await _context.Documents.FindAsync(id);
-            if (document == null)
-            {
-                return NotFound();
-            }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", document.SubjectId);
-            return View(document);
-        }
-
-        // POST: Documents/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,InstrumentacionPath,EvaluacionPath,PracticaPath,ProyectoPath,Observaciones,UploadedAt,IsOnTime")] Document document)
-        {
-            if (id != document.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(document);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!DocumentExists(document.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Id", document.SubjectId);
             return View(document);
         }
 
         // GET: Documents/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var document = await _context.Documents
                 .Include(d => d.Subject)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
-            {
-                return NotFound();
-            }
+
+            if (document == null) return NotFound();
 
             return View(document);
         }
@@ -183,16 +208,18 @@ namespace SIARAWEB.Controllers
             var document = await _context.Documents.FindAsync(id);
             if (document != null)
             {
+                // Elimina físicamente el archivo del servidor
+                var filePath = Path.Combine(_webHostEnvironment.WebRootPath, document.FilePath.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+
+                // Lo elimina de la base de datos
                 _context.Documents.Remove(document);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool DocumentExists(int id)
-        {
-            return _context.Documents.Any(e => e.Id == id);
         }
     }
 }

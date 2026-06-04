@@ -12,15 +12,19 @@ namespace SIARAWEB.ViewModels
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "La CURP es obligatoria")]
-        [StringLength(18, ErrorMessage = "La CURP debe tener 18 caracteres")]
+        [StringLength(18, MinimumLength = 18, ErrorMessage = "La CURP debe tener exactamente 18 caracteres")]
         public string? Curp { get; set; }
 
         [Required(ErrorMessage = "El RFC es obligatorio")]
-        [StringLength(13, ErrorMessage = "El RFC no puede exceder los 13 caracteres")]
+        [StringLength(13, MinimumLength = 12, ErrorMessage = "El RFC debe tener entre 12 y 13 caracteres")]
         public string? Rfc { get; set; }
 
         [Required(ErrorMessage = "La contraseña temporal es obligatoria")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
+
+        // ⚠️ AGREGAMOS EL DEPARTAMENTO QUE FALTA
+        [Required(ErrorMessage = "Debe seleccionar un departamento")]
+        public string? Departamento { get; set; }
     }
 }

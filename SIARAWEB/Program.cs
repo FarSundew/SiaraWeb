@@ -79,46 +79,58 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 
-// 5. DATA SEEDING: Creaci�n de Roles y Administrador Maestro
+// 5. DATA SEEDING: Creación de Roles y Administrador Maestro
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-
-    // Crear el rol "admin"
-    if (!await roleManager.RoleExistsAsync("admin"))
+    try
     {
-        await roleManager.CreateAsync(new IdentityRole("admin"));
-    }
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    // Crear el rol "DOCENTE" para que no d� el error al registrar un maestro
-    if (!await roleManager.RoleExistsAsync("DOCENTE"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("DOCENTE"));
-    }
+        // 5.1 Crear los roles del sistema si no existen
+        string[] rolesDelSistema = { "Administrador", "Docente" };
 
-    // Crear el usuario Administrador Maestro por defecto
-    string emailAdmin = "admin@siara.edu.mx";
-    if (await userManager.FindByEmailAsync(emailAdmin) == null)
-    {
-        var adminUser = new ApplicationUser
+        foreach (var rol in rolesDelSistema)
         {
-            UserName = emailAdmin,
-            Email = emailAdmin,
-            Name = "Jefe de Carrera",
-            Curp = "ADMIN0000000000000",
-            Rfc = "ADMIN000000"
-        };
-
-        // Guarda al usuario con su contrase�a
-        var result = await userManager.CreateAsync(adminUser, "AdminSiara.2026");
-
-        if (result.Succeeded)
-        {
-            // Le asignamos el rol de administrador
-            await userManager.AddToRoleAsync(adminUser, "admin");
+            var rolExiste = await roleManager.RoleExistsAsync(rol);
+            if (!rolExiste)
+            {
+                await roleManager.CreateAsync(new IdentityRole(rol));
+            }
         }
+
+        // 5.2 Crear la cuenta del Administrador Maestro por defecto
+        var adminEmail = "admin@tecnm.mx"; // Puedes cambiar este correo
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+        if (adminUser == null)
+        {
+            var nuevoAdmin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                // Como tu ApplicationUser tiene propiedades extra (RF04), puedes llenarlas aquí o dejarlas nulas si no son obligatorias:
+                // Name = "Administrador Principal",
+                // RFC = "XAXX010101000",
+                // CURP = "XXXX010101XXXXXX00"
+            };
+
+            // Creamos al usuario con una contraseña inicial segura
+            var result = await userManager.CreateAsync(nuevoAdmin, "AdminSiara2026!");
+
+            if (result.Succeeded)
+            {
+                // Le asignamos el rol con todos los privilegios
+                await userManager.AddToRoleAsync(nuevoAdmin, "Administrador");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al sembrar los roles y el administrador.");
     }
 }
 

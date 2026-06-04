@@ -1,0 +1,70 @@
+﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Generación de Reportes";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+
+    <!-- Encabezado web idéntico al diseño del sistema -->
+    <div class="d-flex align-items-center border-bottom pb-3 mb-4" style="border-color: #112d60;">
+        <img src="~/img/siara_logo.png" alt="S.I.A.R.A." style="height: 70px; margin-right: 20px;" />
+        <div>
+            <h4 style="color: #112d60; font-weight: 900; margin: 0;">TECNOLÓGICO NACIONAL DE MÉXICO</h4>
+            <h5 class="text-muted" style="margin: 0;">Sistema Integral de Análisis y Reportes Académicos</h5>
+        </div>
+    </div>
+
+    <h5 style="color: #112d60; font-weight: bold;" class="mb-3">REPORTE POR DOCENTE (ÍNDICES DE DESEMPEÑO)</h5>
+
+    <div class="card shadow-sm border-top border-4" style="border-color: #f4a915 !important;">
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle text-center">
+                <thead style="background-color: #112d60; color: white;">
+                    <tr>
+                        <th class="text-start">Nombre del Docente</th>
+                        <th>Departamento</th>
+                        <th>Correo Electrónico</th>
+                        <th>Generar Reporte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var docente in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-start" style="color: #112d60;">@docente.Name</td>
+                                <td>
+                                    @if (docente.DepartamentoId != null && ViewBag.Departamentos != null)
+                                    {
+                                        var departamento = ((IEnumerable<SIARAWEB.Models.Departamento>)ViewBag.Departamentos)
+                                            .FirstOrDefault(d => d.Id == docente.DepartamentoId);
+                                        @departamento?.Nombre
+                                    }
+                                    else
+                                    {
+                                        @:N/A
+                                    }
+                                </td>
+                                <td>@docente.Email</td>
+                                <td>
+                                    <a asp-action="DocenteReport" asp-route-id="@docente.Id" class="btn btn-outline-danger btn-sm fw-bold">
+                                        📄 DESCARGAR PDF
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-muted p-4">No hay docentes registrados en el sistema en este momento.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

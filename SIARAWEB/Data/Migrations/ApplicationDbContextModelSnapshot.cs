@@ -227,6 +227,9 @@ namespace SIARAWEB.Data.Migrations
                     b.Property<string>("Curp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("DepartamentoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -286,6 +289,23 @@ namespace SIARAWEB.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("SIARAWEB.Models.Departamento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Departamentos");
+                });
+
             modelBuilder.Entity("SIARAWEB.Models.DocenteAsignatura", b =>
                 {
                     b.Property<string>("DocenteId")
@@ -309,26 +329,18 @@ namespace SIARAWEB.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("EvaluacionPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InstrumentacionPath")
+                    b.Property<string>("FilePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsOnTime")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PracticaPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProyectoPath")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("SubjectId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
