@@ -22,7 +22,7 @@
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                    👨‍🏫 AGREGAR NUEVO DOCENTE
+                    👨‍🏫 DOCENTES
                 </a>
             </li>
 
@@ -40,16 +40,7 @@
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                    ➗ AGREGAR ASIGNATURA A DOCENTE
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link fw-bold" asp-controller="Reports" asp-action="Index"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                    📉 REPORTE DE GRÁFICAS
+                    ➗ ASIGNATURA-DOCENTE
                 </a>
             </li>
 
@@ -63,18 +54,16 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link fw-bold" href="#"
-                       style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                       onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                    ☁️ CREAR RESPALDO
+                <a class="nav-link fw-bold" asp-controller="Departamentoes" asp-action="Index"
+                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
+                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
+                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
+                    🏢 Departamentos
                 </a>
-
-
             </li>
 
             <li class="nav-item">
-                <a class="nav-link fw-bold" href="#"
+                <a class="nav-link fw-bold" asp-controller="Reports" asp-action="Index"
                    style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
                    onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
@@ -113,15 +102,6 @@
             </a>
         </li>
 
-        
-        <li class="nav-item">
-            <a class="nav-link fw-bold" href="#"
-                   style="color: #ffffff; font-size: 14px; padding: 12px 20px; border-radius: 8px; transition: all 0.3s ease;"
-                   onmouseover="this.style.backgroundColor='#f4a915'; this.style.color='#112d60';"
-                   onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ffffff';">
-                🔄 CAMBIAR CUENTA
-            </a>
-        </li>
 
         <li class="nav-item">
             <a class="nav-link fw-bold" asp-area="Identity" asp-page="/Account/Manage/ChangePassword"

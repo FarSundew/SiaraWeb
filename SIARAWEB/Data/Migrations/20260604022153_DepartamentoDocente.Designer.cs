@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIARAWEB.Data;
 
@@ -11,9 +12,11 @@ using SIARAWEB.Data;
 namespace SIARAWEB.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260604022153_DepartamentoDocente")]
+    partial class DepartamentoDocente
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,7 +230,10 @@ namespace SIARAWEB.Data.Migrations
                     b.Property<string>("Curp")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("DepartamentoId")
+                    b.Property<int?>("Departamento")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DepartamentoAsignadoId")
                         .HasColumnType("int");
 
                     b.Property<string>("Email")
@@ -277,6 +283,8 @@ namespace SIARAWEB.Data.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartamentoAsignadoId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -466,6 +474,15 @@ namespace SIARAWEB.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("SIARAWEB.Models.Departamento", "DepartamentoAsignado")
+                        .WithMany()
+                        .HasForeignKey("DepartamentoAsignadoId");
+
+                    b.Navigation("DepartamentoAsignado");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.DocenteAsignatura", b =>

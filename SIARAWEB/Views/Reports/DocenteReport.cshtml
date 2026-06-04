@@ -1,0 +1,142 @@
+﻿@model IEnumerable<SIARAWEB.Models.AcademicTracking>
+
+@{
+    ViewData["Title"] = "Reporte Académico";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte de @ViewBag.NombreDocente</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-color: #fff;
+            color: #000;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        /* Estructura del encabezado igual al PDF oficial */
+        .header-logos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #112d60;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        /* ⚠️ LA MARCA DE AGUA DEL LOGO SIARA */
+        .watermark {
+            position: fixed;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.15; /* Transparencia para que no tape el texto */
+            width: 450px; /* Tamaño grande para el fondo */
+            z-index: -1;
+        }
+
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+
+            @@page {
+                margin: 1.5cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- FONDO DE MARCA DE AGUA -->
+    <img src="~/img/siara_logo.png" class="watermark" alt="Fondo SIARA" />
+
+    <div class="container mt-4">
+        <!-- Botones de Acción -->
+        <div class="d-flex justify-content-end mb-3 no-print gap-3">
+            <a href="/Reports/Index" class="btn btn-outline-secondary fw-bold">⬅ REGRESAR</a>
+            <button onclick="window.print()" class="btn btn-danger fw-bold">📄 DESCARGAR PDF</button>
+        </div>
+
+        <!-- ENCABEZADO OFICIAL INSTITUCIONAL -->
+        <div class="header-logos">
+            <!-- Logo Izquierdo: TecNM -->
+            <img src="~/img/tecnm_logo.png" alt="TecNM" style="height: 70px; object-fit: contain;" />
+
+            <!-- Centro: Textos -->
+            <div class="text-center">
+                <h5 style="margin:0; font-weight:bold; color: #000;">SISTEMA INTEGRAL DE ANÁLISIS</h5>
+                <h5 style="margin:0; font-weight:bold; color: #000;">Y REPORTES ACADÉMICOS</h5>
+            </div>
+
+            <!-- Logo Derecho: Instituto (ITC) -->
+            <img src="~/img/instituto_logo.png" alt="ITC" style="height: 70px; object-fit: contain;" />
+        </div>
+
+        <!-- DATOS DEL REPORTE -->
+        <div class="mb-4">
+            <h6 style="font-weight: bold;">DATOS DEL REPORTE</h6>
+            <p class="mb-1"><strong>DOCENTE:</strong> @ViewBag.NombreDocente</p>
+            <p class="mb-1"><strong>DEPARTAMENTO:</strong> @ViewBag.DepartamentoDocente</p>
+            <p class="mb-1"><strong>FECHA:</strong> @DateTime.Now.ToString("dd/MM/yyyy")</p>
+        </div>
+
+        <h5 class="text-center mb-4" style="font-weight: bold;">TABLA DE PROGRESO ACADÉMICO</h5>
+
+        <!-- TABLA DE RESULTADOS -->
+        <table class="table table-bordered table-sm text-center align-middle bg-white">
+            <thead style="background-color: #112d60; color: white;">
+                <tr>
+                    <th class="text-start">Asignatura</th>
+                    <th>Tema / Unidad</th>
+                    <th>Fase de Evaluación</th>
+                    <th>Aprobación</th>
+                    <th>Reprobación</th>
+                    <th>Deserción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="p-4 text-muted">Este docente aún no ha registrado seguimientos.</td></tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-start">@item.Subject.Name</td>
+                            <td>Tema @item.UnitNumber</td>
+                            <td>@item.Phase</td>
+                            <td class="fw-bold text-success">@item.ApprovalPercentage %</td>
+                            <td class="fw-bold text-danger">@item.FailurePercentage %</td>
+                            <td class="fw-bold text-warning">@item.DropoutPercentage %</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <!-- ZONA DE FIRMAS INFERIOR -->
+        <div class="row text-center" style="margin-top: 80px;">
+            <div class="col-12" style="background-color: #112d60; color: white; padding: 5px;">
+                <strong>NOTAS Y FIRMAS</strong>
+            </div>
+            <div class="col-6 mt-5">
+                <p>_______________________________________</p>
+                <p><strong>Firma de Autorización</strong></p>
+            </div>
+            <div class="col-6 mt-3">
+                <div style="border: 2px solid #000; height: 80px; width: 80%; margin: 0 auto;">
+                    <p class="mt-1" style="font-size: 12px; font-weight: bold;">COMENTARIOS</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
