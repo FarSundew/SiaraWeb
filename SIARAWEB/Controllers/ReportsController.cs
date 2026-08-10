@@ -1,31 +1,30 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity; // ⚠️ Necesario para buscar a los docentes
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering; // ⚠️ Necesario para SelectList de la gráfica
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
-using SIARAWEB.Models; // ⚠️ Necesario para ApplicationUser y AcademicTracking
+using SIARAWEB.Models;
+using SIARAWEB.ViewModels; // ⚠️ Necesario para ReporteFiltroViewModel
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    // 🔒 BLOQUEO: Solo los Jefes de Carrera pueden ver las gráficas y reportes [1]
+    // 🔒 BLOQUEO: Solo los Jefes de Carrera pueden ver las gráficas y reportes
     [Authorize(Roles = "Administrador")]
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;
-
-        // 1️⃣ AÑADIMOS EL ADMINISTRADOR DE USUARIOS
         private readonly UserManager<ApplicationUser> _userManager;
 
-        // 2️⃣ ACTUALIZAMOS EL CONSTRUCTOR PARA RECIBIR AMBOS SERVICIOS
         public ReportsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
         }
 
-        // 3️⃣ NUEVO: Pantalla principal que lista a los maestros
+        // 1️⃣ NUEVO: Pantalla principal que lista a los maestros
         public async Task<IActionResult> Index()
         {
             // Traemos a todos los usuarios que tienen rol de Docente
@@ -37,7 +36,7 @@ namespace SIARAWEB.Controllers
             return View(docentes);
         }
 
-        // 4️⃣ NUEVO: Genera el documento oficial del docente seleccionado (Puro texto, listo para PDF)
+        // 2️⃣ NUEVO: Genera el documento oficial del docente seleccionado (Puro texto, listo para PDF)
         public async Task<IActionResult> DocenteReport(string id)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
@@ -74,8 +73,37 @@ namespace SIARAWEB.Controllers
             return View(seguimientos);
         }
 
-        // 👇 ¡ATENCIÓN! 👇
-        // DEBAJO DE ESTA LÍNEA PEGA O MANTÉN EL MÉTODO QUE YA TENÍAS PARA TU GRÁFICA DE PASTEL.
-        // Ejemplo: public IActionResult GraficaDesempeno() { ... }
+        // ====================================================================
+        // 👇 MÉTODOS DEL MÓDULO DE GRÁFICAS Y FILTROS INTERACTIVOS 👇
+        // ====================================================================
+
+        // 3️⃣ GET: Pantalla del Generador de Gráficas (Antes era Index, ahora es Graficas)
+        public async Task<IActionResult> Graficas()
+        {
+            if (_context.Departamentos != null)
+            {
+                ViewBag.Departamentos = new SelectList(await _context.Departamentos.ToListAsync(), "Id", "Nombre");
+            }
+            else
+            {
+                ViewBag.Departamentos = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
+
+            return View(new ReporteFiltroViewModel());
+        }
+
+        // 4️⃣ POST (AJAX): Devuelve los datos para dibujar la gráfica en vivo con Chart.js
+        [HttpPost]
+        public IActionResult ObtenerDatosGrafica([FromBody] ReporteFiltroViewModel filtros)
+        {
+            var datosSimulados = new
+            {
+                Aprobacion = 48.3,
+                Reprobacion = 25.3,
+                Desercion = 16.5
+            };
+
+            return Json(datosSimulados);
+        }
     }
 }

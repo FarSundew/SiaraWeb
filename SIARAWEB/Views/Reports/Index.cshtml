@@ -1,58 +1,60 @@
 ﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
 
 @{
-    ViewData["Title"] = "Generación de Reportes";
+    ViewData["Title"] = "Reportes por Docente";
     Layout = "_Layout";
 }
 
-<div class="container mt-4">
+<style>
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
 
-    <!-- Encabezado web idéntico al diseño del sistema -->
-    <div class="d-flex align-items-center border-bottom pb-3 mb-4" style="border-color: #112d60;">
-        <img src="~/img/siara_logo.png" alt="S.I.A.R.A." style="height: 70px; margin-right: 20px;" />
-        <div>
-            <h4 style="color: #112d60; font-weight: 900; margin: 0;">TECNOLÓGICO NACIONAL DE MÉXICO</h4>
-            <h5 class="text-muted" style="margin: 0;">Sistema Integral de Análisis y Reportes Académicos</h5>
+    main {
+        padding-bottom: 0 !important;
+    }
+</style>
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div style="background-color: #f4f6f9; padding-top: 25px; padding-bottom: 40px; min-height: 100vh; width: 100%;">
+
+    <div style="margin: 0 40px; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+
+        <a asp-controller="Home" asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
+
+        <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
+            SEGUIMIENTO ACADÉMICO POR DOCENTE
         </div>
-    </div>
 
-    <h5 style="color: #112d60; font-weight: bold;" class="mb-3">REPORTE POR DOCENTE (ÍNDICES DE DESEMPEÑO)</h5>
+        <div style="padding: 0 30px;">
+            <p class="text-muted fw-bold mb-4">Seleccione un docente de la lista para visualizar sus asignaturas y generar su reporte de avance.</p>
 
-    <div class="card shadow-sm border-top border-4" style="border-color: #f4a915 !important;">
-        <div class="card-body table-responsive">
-            <table class="table table-hover align-middle text-center">
-                <thead style="background-color: #112d60; color: white;">
+            <table class="tabla-dashboard" style="width: 100%; text-align: center;">
+                <thead>
                     <tr>
-                        <th class="text-start">Nombre del Docente</th>
-                        <th>Departamento</th>
-                        <th>Correo Electrónico</th>
-                        <th>Generar Reporte</th>
+                        <th style="width: 35%; text-align: left;">NOMBRE DEL DOCENTE &#128269;</th>
+                        <th style="width: 25%;">CORREO INSTITUCIONAL</th>
+                        <th style="width: 20%;">RFC</th>
+                        <th style="width: 20%;">REPORTES</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (Model != null && Model.Any())
                     {
-                        @foreach (var docente in Model)
+                        foreach (var item in Model)
                         {
                             <tr>
-                                <td class="fw-bold text-start" style="color: #112d60;">@docente.Name</td>
+                                <td style="font-size: 14px; text-transform: uppercase; font-weight: 900; text-align: left;">@item.Name</td>
+                                <td style="font-size: 14px; font-weight: 900;">@item.Email</td>
+                                <td style="font-size: 14px; font-weight: 900;">@item.Rfc</td>
                                 <td>
-                                    @if (docente.DepartamentoId != null && ViewBag.Departamentos != null)
-                                    {
-                                        var departamento = ((IEnumerable<SIARAWEB.Models.Departamento>)ViewBag.Departamentos)
-                                            .FirstOrDefault(d => d.Id == docente.DepartamentoId);
-                                        @departamento?.Nombre
-                                    }
-                                    else
-                                    {
-                                        @:N/A
-                                    }
-                                </td>
-                                <td>@docente.Email</td>
-                                <td>
-                                    <a asp-action="DocenteReport" asp-route-id="@docente.Id" class="btn btn-outline-danger btn-sm fw-bold">
-                                        📄 DESCARGAR PDF
-                                    </a>
+                                    <!-- ⚠️ Este botón envía el ID del maestro al método DocenteReport -->
+                                    <div style="display: flex; justify-content: center;">
+                                        <a asp-action="DocenteReport" asp-route-id="@item.Id" class="btn-siara-3d" style="text-decoration: none; padding: 8px 15px; font-size: 12px; margin: 0;">
+                                            📄 VER REPORTE
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -60,11 +62,17 @@
                     else
                     {
                         <tr>
-                            <td colspan="4" class="text-muted p-4">No hay docentes registrados en el sistema en este momento.</td>
+                            <td colspan="4" style="padding: 30px; color: #666; font-size: 16px; font-weight: bold;">
+                                No se encontraron docentes en el sistema.
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div style="display: flex; justify-content: flex-start; padding: 25px 30px 0 30px;">
+            <a asp-controller="Home" asp-action="Index" class="btn-siara-3d" style="text-decoration: none; background: linear-gradient(to bottom, #999, #666) !important; border-color: #555 !important;">VOLVER</a>
         </div>
     </div>
 </div>
