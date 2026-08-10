@@ -1,4 +1,4 @@
-﻿@model SIARAWEB.Models.Subject
+﻿@model SIARAWEB.Models.CutoffDate
 
 @{
     ViewData["Title"] = "Details";
@@ -7,14 +7,20 @@
 <h1>Details</h1>
 
 <div>
-    <h4>Subject</h4>
+    <h4>CutoffDate</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Code)
+            @Html.DisplayNameFor(model => model.AcademicPeriod)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Code)
+            @Html.DisplayFor(model => model.AcademicPeriod.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.PhaseNumber)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PhaseNumber)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
@@ -23,16 +29,16 @@
             @Html.DisplayFor(model => model.Name)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Departamento)
+            @Html.DisplayNameFor(model => model.StartDate)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Departamento.Name)
+            @Html.DisplayFor(model => model.StartDate)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AcademicPeriod)
+            @Html.DisplayNameFor(model => model.DueDate)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AcademicPeriod.Name)
+            @Html.DisplayFor(model => model.DueDate)
         </dd>
     </dl>
 </div>

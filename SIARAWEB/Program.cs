@@ -1,42 +1,39 @@
 using Microsoft.AspNetCore.DataProtection;
-using SIARAWEB.Data; // Aseg�rate de que este namespace coincida con el tuyo
-using SIARAWEB.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using SIARAWEB.Data; // Asegúrate de que este namespace coincida con el tuyo
+using SIARAWEB.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configurar la Cadena de Conexi�n a SQL Server
+// 1. Configurar la Cadena de Conexión a SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("No se encontr� la cadena de conexi�n 'DefaultConnection'.");
+    ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'DefaultConnection'.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 2. Configurar Data Protection (Guarda llaves criptogr�ficas en SQL Server)
+// 2. Configurar Data Protection (Guarda llaves criptográficas en SQL Server)
 builder.Services.AddDataProtection()
     .PersistKeysToDbContext<ApplicationDbContext>();
 
-// 3. Configurar Identity con reglas espec�ficas de SIARA, Vistas por defecto y Roles
-// 3. Configurar Identity con reglas espec�ficas de SIARA
+// 3. Configurar Identity con reglas específicas de SIARA y habilitación de Roles
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false; // Cambiar a true si usar�n confirmaci�n por correo
+    options.SignIn.RequireConfirmedAccount = false; // Cambiar a true si usarán confirmación por correo
 
     // REQUISITO SIARA: Bloqueo de cuenta a los 3 intentos fallidos
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     options.Lockout.MaxFailedAccessAttempts = 3;
     options.Lockout.AllowedForNewUsers = true;
 
-    // Reglas de contrase�a
+    // Reglas de contraseña
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 8;
     options.Password.RequireNonAlphanumeric = true;
 })
-.AddRoles<IdentityRole>() // <-- ESTO HABILITA LOS ROLES PARA PODER ASIGNAR EL "DOCENTE"
+.AddRoles<IdentityRole>() // Habilita la gestión de roles
 .AddEntityFrameworkStores<ApplicationDbContext>();
-
 
 // Agregar soporte para Controladores y Vistas (Exigiendo Inicio de Sesión Global)
 builder.Services.AddControllersWithViews(options =>
@@ -55,7 +52,7 @@ builder.Services.AddRazorPages(options =>
 
 var app = builder.Build();
 
-// Configuraci�n del Pipeline HTTP
+// Configuración del Pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -67,7 +64,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// 4. Agregar Autenticaci�n al Pipeline (Debe ir antes de Authorization)
+// 4. Agregar Autenticación y Autorización al Pipeline
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -75,11 +72,11 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Mapear p�ginas de Identity (Login, Register, etc.)
+// Mapear páginas de Identity (Login, Register, etc.)
 app.MapRazorPages();
 
 
-// 5. DATA SEEDING: Creación de Roles y Administrador Maestro
+// 5. DATA SEEDING: Creación automática de los 4 Roles y Administrador Maestro
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -88,8 +85,8 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // 5.1 Crear los roles del sistema si no existen
-        string[] rolesDelSistema = { "Administrador", "Docente" };
+        // 5.1 Crear los 4 roles jerárquicos del sistema si no existen
+        string[] rolesDelSistema = { "Administrador", "JefeGeneral", "JefeCarrera", "Docente" };
 
         foreach (var rol in rolesDelSistema)
         {
@@ -101,7 +98,7 @@ using (var scope = app.Services.CreateScope())
         }
 
         // 5.2 Crear la cuenta del Administrador Maestro por defecto
-        var adminEmail = "admin@tecnm.mx"; // Puedes cambiar este correo
+        var adminEmail = "admin@tecnm.mx";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
         if (adminUser == null)
@@ -111,10 +108,8 @@ using (var scope = app.Services.CreateScope())
                 UserName = adminEmail,
                 Email = adminEmail,
                 EmailConfirmed = true,
-                // Como tu ApplicationUser tiene propiedades extra (RF04), puedes llenarlas aquí o dejarlas nulas si no son obligatorias:
-                // Name = "Administrador Principal",
-                // RFC = "XAXX010101000",
-                // CURP = "XXXX010101XXXXXX00"
+                FullName = "Administrador del Sistema",
+                IsActive = true
             };
 
             // Creamos al usuario con una contraseña inicial segura
@@ -122,7 +117,7 @@ using (var scope = app.Services.CreateScope())
 
             if (result.Succeeded)
             {
-                // Le asignamos el rol con todos los privilegios
+                // Le asignamos el rol con todos los privilegios técnicos
                 await userManager.AddToRoleAsync(nuevoAdmin, "Administrador");
             }
         }

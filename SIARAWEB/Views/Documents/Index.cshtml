@@ -1,164 +1,71 @@
 ﻿@model IEnumerable<SIARAWEB.Models.Document>
 
 @{
-    ViewData["Title"] = "Monitoreo de Documentos";
-    Layout = "_Layout";
-    // Identificamos la fase activa
-    var faseActual = ViewBag.FechaCorte != null ? ViewBag.FechaCorte.Phase : "Documentos Iniciales";
+    ViewData["Title"] = "Index";
 }
 
-<div class="container-fluid mt-4">
-    <!-- Título -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 style="color: #112d60; font-weight: 900;">MONITOREO DE DOCUMENTOS</h2>
-    </div>
+<h1>Index</h1>
 
-    <!-- ⚠️ RECORDATORIO DE FECHA DE CORTE ⚠️ -->
-    @if (ViewBag.FechaCorte != null)
-    {
-        <div class="alert shadow-sm d-flex align-items-center justify-content-between" style="background-color: #f8d7da; border-left: 6px solid #d9534f; border-radius: 8px;">
-            <div>
-                <h5 style="margin: 0; color: #721c24; font-weight: bold;">
-                    ⏱️ FECHA LÍMITE: @ViewBag.FechaCorte.CutoffDate.ToString("dd/MM/yyyy")
-                </h5>
-                <p style="margin: 5px 0 0 0; color: #721c24; font-size: 15px;">
-                    Fase activa: <strong>@faseActual</strong>. Sube tus archivos pendientes antes de esta fecha.
-                </p>
-            </div>
-        </div>
-    }
-
-    <!-- ⚠️ AQUÍ ESTÁ EL CAMBIO CLAVE: Si NO es administrador, asume que es Docente -->
-    @if (!User.IsInRole("Administrador"))
-    {
-        var misMaterias = ViewBag.MisMaterias as IEnumerable<SIARAWEB.Models.Subject>;
-
-        <div class="card shadow-sm" style="border-radius: 10px; border-top: 4px solid #112d60;">
-            <div class="card-header bg-white">
-                <h4 class="mb-0 text-center" style="color: #112d60; font-weight: bold;">
-                    PANEL DE ENTREGAS: @faseActual.ToUpper()
-                </h4>
-            </div>
-            <div class="card-body table-responsive">
-                <table class="table table-bordered text-center align-middle">
-                    <thead style="background-color: #f4a915; color: #112d60;">
-                        <tr>
-                            <th class="align-middle">ASIGNATURA</th>
-                            <!-- DIBUJAMOS LAS COLUMNAS DEPENDIENDO DE LA FASE ACTIVA -->
-                            @if (faseActual == "Primer Seguimiento")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Calif. Parcial</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Eval. Diagnóstica</th>
-                                <th>Avance Proy. Ind.</th>
-                            }
-                            else if (faseActual == "Segundo Seguimiento")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Calif. Parcial</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Avance Proy. Ind.</th>
-                            }
-                            else if (faseActual == "Reporte Final")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Acta Calificaciones</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Reporte Final</th>
-                                <th>Cierre Proy. Ind.</th>
-                            }
-                            else // Documentos Iniciales
-                            {
-                                <th>Instrumentación Didáctica</th>
-                                <th>Instrumento de Evaluación</th>
-                                <th>Práctica de Laboratorio</th>
-                                <th>Proyecto Individual</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (misMaterias != null)
-                        {
-                            foreach (var materia in misMaterias)
-                            {
-                                <tr>
-                                    <td class="fw-bold" style="color: #112d60; text-align: left;">@materia.Name</td>
-
-                                    <!-- Lógica para pintar las celdas y botones -->
-                                    @{
-                                        var tiposRequeridos = new List<string>();
-                                        if (faseActual == "Primer Seguimiento") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Calificación Parcial", "Instrumento de Evaluación", "Evaluación Diagnóstica", "Avance Proyecto Individual" }); }
-                                        else if (faseActual == "Segundo Seguimiento") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Calificación Parcial", "Instrumento de Evaluación", "Avance Proyecto Individual" }); }
-                                        else if (faseActual == "Reporte Final") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Acta de Calificaciones", "Instrumento de Evaluación", "Reporte Final", "Cierre Proyecto Individual" }); }
-                                        else { tiposRequeridos.AddRange(new[] { "Instrumentación Didáctica", "Instrumento de Evaluación", "Práctica de Laboratorio", "Proyecto Individual" }); }
-                                    }
-
-                                    @foreach (var tipo in tiposRequeridos)
-                                    {
-                                        // Buscamos si el archivo de esta materia y de este tipo ya fue subido
-                                        var docSubido = Model.FirstOrDefault(d => d.SubjectId == materia.Id && d.Type == tipo);
-                                        <td>
-                                            @if (docSubido != null)
-                                            {
-                                                <span class="badge bg-success d-block mb-1">Entregado</span>
-                                                <small class="text-muted" style="font-size: 0.75rem;">@docSubido.UploadedAt.ToString("dd/MM/yy HH:mm")</small>
-                                            }
-                                            else
-                                            {
-                                                <a asp-action="Create" asp-route-subjectId="@materia.Id" asp-route-tipo="@tipo" class="btn btn-sm btn-outline-danger fw-bold">☁️ Subir</a>
-                                            }
-                                        </td>
-                                    }
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- VISTA DEL ADMINISTRADOR -->
-        <div class="card shadow-sm" style="border-radius: 10px; border-top: 4px solid #112d60;">
-            <div class="card-body table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>Asignatura</th>
-                            <th>Tipo de Documento</th>
-                            <th>Fecha de Subida</th>
-                            <th>Estado de Entrega</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="fw-bold">@Html.DisplayFor(modelItem => item.Subject.Name)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Type)</td>
-                                <td>@item.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    @if (item.IsOnTime)
-                                    {
-                                        <span class="badge bg-success">EN TIEMPO Y FORMA</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">FUERA DE TIEMPO ⚠</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Ver</a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Borrar</a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-</div>
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Subject)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CutoffDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DocumentType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FilePath)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UploadedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsOnTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Subject.Code)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CutoffDate.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DocumentType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FilePath)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UploadedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsOnTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

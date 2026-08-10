@@ -10,23 +10,22 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
-    public class DocumentsController : Controller
+    public class AcademicPeriodsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public DocumentsController(ApplicationDbContext context)
+        public AcademicPeriodsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Documents
+        // GET: AcademicPeriods
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Documents.Include(d => d.CutoffDate).Include(d => d.Subject);
-            return View(await applicationDbContext.ToListAsync());
+            return View(await _context.AcademicPeriods.ToListAsync());
         }
 
-        // GET: Documents/Details/5
+        // GET: AcademicPeriods/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,45 +33,39 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents
-                .Include(d => d.CutoffDate)
-                .Include(d => d.Subject)
+            var academicPeriod = await _context.AcademicPeriods
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
+            if (academicPeriod == null)
             {
                 return NotFound();
             }
 
-            return View(document);
+            return View(academicPeriod);
         }
 
-        // GET: Documents/Create
+        // GET: AcademicPeriods/Create
         public IActionResult Create()
         {
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name");
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code");
             return View();
         }
 
-        // POST: Documents/Create
+        // POST: AcademicPeriods/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,CutoffDateId,DocumentType,FilePath,UploadedAt,IsOnTime,Status")] Document document)
+        public async Task<IActionResult> Create([Bind("Id,Name,StartDate,EndDate,IsActive")] AcademicPeriod academicPeriod)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(document);
+                _context.Add(academicPeriod);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            return View(academicPeriod);
         }
 
-        // GET: Documents/Edit/5
+        // GET: AcademicPeriods/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -80,24 +73,22 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents.FindAsync(id);
-            if (document == null)
+            var academicPeriod = await _context.AcademicPeriods.FindAsync(id);
+            if (academicPeriod == null)
             {
                 return NotFound();
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            return View(academicPeriod);
         }
 
-        // POST: Documents/Edit/5
+        // POST: AcademicPeriods/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,CutoffDateId,DocumentType,FilePath,UploadedAt,IsOnTime,Status")] Document document)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,StartDate,EndDate,IsActive")] AcademicPeriod academicPeriod)
         {
-            if (id != document.Id)
+            if (id != academicPeriod.Id)
             {
                 return NotFound();
             }
@@ -106,12 +97,12 @@ namespace SIARAWEB.Controllers
             {
                 try
                 {
-                    _context.Update(document);
+                    _context.Update(academicPeriod);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DocumentExists(document.Id))
+                    if (!AcademicPeriodExists(academicPeriod.Id))
                     {
                         return NotFound();
                     }
@@ -122,12 +113,10 @@ namespace SIARAWEB.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            return View(academicPeriod);
         }
 
-        // GET: Documents/Delete/5
+        // GET: AcademicPeriods/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -135,36 +124,34 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents
-                .Include(d => d.CutoffDate)
-                .Include(d => d.Subject)
+            var academicPeriod = await _context.AcademicPeriods
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
+            if (academicPeriod == null)
             {
                 return NotFound();
             }
 
-            return View(document);
+            return View(academicPeriod);
         }
 
-        // POST: Documents/Delete/5
+        // POST: AcademicPeriods/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var document = await _context.Documents.FindAsync(id);
-            if (document != null)
+            var academicPeriod = await _context.AcademicPeriods.FindAsync(id);
+            if (academicPeriod != null)
             {
-                _context.Documents.Remove(document);
+                _context.AcademicPeriods.Remove(academicPeriod);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DocumentExists(int id)
+        private bool AcademicPeriodExists(int id)
         {
-            return _context.Documents.Any(e => e.Id == id);
+            return _context.AcademicPeriods.Any(e => e.Id == id);
         }
     }
 }

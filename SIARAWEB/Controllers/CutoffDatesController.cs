@@ -10,23 +10,23 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
-    public class DocumentsController : Controller
+    public class CutoffDatesController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public DocumentsController(ApplicationDbContext context)
+        public CutoffDatesController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Documents
+        // GET: CutoffDates
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Documents.Include(d => d.CutoffDate).Include(d => d.Subject);
+            var applicationDbContext = _context.CutoffDates.Include(c => c.AcademicPeriod);
             return View(await applicationDbContext.ToListAsync());
         }
 
-        // GET: Documents/Details/5
+        // GET: CutoffDates/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,45 +34,42 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents
-                .Include(d => d.CutoffDate)
-                .Include(d => d.Subject)
+            var cutoffDate = await _context.CutoffDates
+                .Include(c => c.AcademicPeriod)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
+            if (cutoffDate == null)
             {
                 return NotFound();
             }
 
-            return View(document);
+            return View(cutoffDate);
         }
 
-        // GET: Documents/Create
+        // GET: CutoffDates/Create
         public IActionResult Create()
         {
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name");
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code");
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name");
             return View();
         }
 
-        // POST: Documents/Create
+        // POST: CutoffDates/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,CutoffDateId,DocumentType,FilePath,UploadedAt,IsOnTime,Status")] Document document)
+        public async Task<IActionResult> Create([Bind("Id,AcademicPeriodId,PhaseNumber,Name,StartDate,DueDate")] CutoffDate cutoffDate)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(document);
+                _context.Add(cutoffDate);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
+            return View(cutoffDate);
         }
 
-        // GET: Documents/Edit/5
+        // GET: CutoffDates/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -80,24 +77,23 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents.FindAsync(id);
-            if (document == null)
+            var cutoffDate = await _context.CutoffDates.FindAsync(id);
+            if (cutoffDate == null)
             {
                 return NotFound();
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
+            return View(cutoffDate);
         }
 
-        // POST: Documents/Edit/5
+        // POST: CutoffDates/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,CutoffDateId,DocumentType,FilePath,UploadedAt,IsOnTime,Status")] Document document)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,AcademicPeriodId,PhaseNumber,Name,StartDate,DueDate")] CutoffDate cutoffDate)
         {
-            if (id != document.Id)
+            if (id != cutoffDate.Id)
             {
                 return NotFound();
             }
@@ -106,12 +102,12 @@ namespace SIARAWEB.Controllers
             {
                 try
                 {
-                    _context.Update(document);
+                    _context.Update(cutoffDate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DocumentExists(document.Id))
+                    if (!CutoffDateExists(cutoffDate.Id))
                     {
                         return NotFound();
                     }
@@ -122,12 +118,11 @@ namespace SIARAWEB.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", document.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", document.SubjectId);
-            return View(document);
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
+            return View(cutoffDate);
         }
 
-        // GET: Documents/Delete/5
+        // GET: CutoffDates/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -135,36 +130,35 @@ namespace SIARAWEB.Controllers
                 return NotFound();
             }
 
-            var document = await _context.Documents
-                .Include(d => d.CutoffDate)
-                .Include(d => d.Subject)
+            var cutoffDate = await _context.CutoffDates
+                .Include(c => c.AcademicPeriod)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (document == null)
+            if (cutoffDate == null)
             {
                 return NotFound();
             }
 
-            return View(document);
+            return View(cutoffDate);
         }
 
-        // POST: Documents/Delete/5
+        // POST: CutoffDates/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var document = await _context.Documents.FindAsync(id);
-            if (document != null)
+            var cutoffDate = await _context.CutoffDates.FindAsync(id);
+            if (cutoffDate != null)
             {
-                _context.Documents.Remove(document);
+                _context.CutoffDates.Remove(cutoffDate);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DocumentExists(int id)
+        private bool CutoffDateExists(int id)
         {
-            return _context.Documents.Any(e => e.Id == id);
+            return _context.CutoffDates.Any(e => e.Id == id);
         }
     }
 }

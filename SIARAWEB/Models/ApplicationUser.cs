@@ -1,20 +1,19 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations.Schema; // ⚠️ Necesario para la llave foránea
 
 namespace SIARAWEB.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        public string? Name { get; set; }
-        public string? Rfc { get; set; }
-        public string? Curp { get; set; }
-        public int? DepartamentoId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string? RFC { get; set; }
+        public string? CURP { get; set; }
+        public bool IsActive { get; set; } = true;
 
-        // Navegación hacia Departamento
-        [ForeignKey("DepartamentoId")]
+        // Relación con Departamento
+        public int? DepartamentoId { get; set; }
         public Departamento? Departamento { get; set; }
 
-        // Colección de navegación
-        public ICollection<DocenteAsignatura> DocenteAsignaturas { get; set; } = new List<DocenteAsignatura>();
+        // 🟢 ESTA LÍNEA SOLUCIONA EL TERCER ERROR:
+        public ICollection<DocenteAsignatura>? DocenteAsignaturas { get; set; }
     }
 }

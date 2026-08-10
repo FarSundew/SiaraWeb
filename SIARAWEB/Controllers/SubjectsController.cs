@@ -1,17 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
 using SIARAWEB.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "Administrador")]
     public class SubjectsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,7 +22,8 @@ namespace SIARAWEB.Controllers
         // GET: Subjects
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Subjects.ToListAsync());
+            var applicationDbContext = _context.Subjects.Include(s => s.AcademicPeriod).Include(s => s.Departamento);
+            return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: Subjects/Details/5
@@ -36,6 +35,8 @@ namespace SIARAWEB.Controllers
             }
 
             var subject = await _context.Subjects
+                .Include(s => s.AcademicPeriod)
+                .Include(s => s.Departamento)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (subject == null)
             {
@@ -48,6 +49,8 @@ namespace SIARAWEB.Controllers
         // GET: Subjects/Create
         public IActionResult Create()
         {
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name");
+            ViewData["DepartamentoId"] = new SelectList(_context.Departamentos, "Id", "Name");
             return View();
         }
 
@@ -56,20 +59,16 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // 1. AQUI ACTUALIZAMOS EL BIND PARA PERMITIR LOS NUEVOS CAMPOS DEL PDF
-        public async Task<IActionResult> Create([Bind("Id,Clave,Name,Horas,Temas,Period,Year")] Subject subject)
+        public async Task<IActionResult> Create([Bind("Id,Code,Name,DepartamentoId,AcademicPeriodId")] Subject subject)
         {
-            // 2. AQUI IGNORAMOS LAS LISTAS RELACIONADAS PARA QUE PASE LA VALIDACIÓN
-            ModelState.Remove("DocenteAsignaturas");
-            ModelState.Remove("AcademicTrackings");
-            ModelState.Remove("Documents");
-
             if (ModelState.IsValid)
             {
                 _context.Add(subject);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", subject.AcademicPeriodId);
+            ViewData["DepartamentoId"] = new SelectList(_context.Departamentos, "Id", "Name", subject.DepartamentoId);
             return View(subject);
         }
 
@@ -86,6 +85,8 @@ namespace SIARAWEB.Controllers
             {
                 return NotFound();
             }
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", subject.AcademicPeriodId);
+            ViewData["DepartamentoId"] = new SelectList(_context.Departamentos, "Id", "Name", subject.DepartamentoId);
             return View(subject);
         }
 
@@ -94,7 +95,7 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Period,Year")] Subject subject)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Code,Name,DepartamentoId,AcademicPeriodId")] Subject subject)
         {
             if (id != subject.Id)
             {
@@ -121,6 +122,8 @@ namespace SIARAWEB.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", subject.AcademicPeriodId);
+            ViewData["DepartamentoId"] = new SelectList(_context.Departamentos, "Id", "Name", subject.DepartamentoId);
             return View(subject);
         }
 
@@ -133,6 +136,8 @@ namespace SIARAWEB.Controllers
             }
 
             var subject = await _context.Subjects
+                .Include(s => s.AcademicPeriod)
+                .Include(s => s.Departamento)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (subject == null)
             {

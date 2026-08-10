@@ -1,17 +1,15 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
 using SIARAWEB.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize]
     public class AcademicTrackingsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,7 +22,7 @@ namespace SIARAWEB.Controllers
         // GET: AcademicTrackings
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.AcademicTrackings.Include(a => a.Subject);
+            var applicationDbContext = _context.AcademicTrackings.Include(a => a.CutoffDate).Include(a => a.Subject);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -37,6 +35,7 @@ namespace SIARAWEB.Controllers
             }
 
             var academicTracking = await _context.AcademicTrackings
+                .Include(a => a.CutoffDate)
                 .Include(a => a.Subject)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (academicTracking == null)
@@ -50,7 +49,8 @@ namespace SIARAWEB.Controllers
         // GET: AcademicTrackings/Create
         public IActionResult Create()
         {
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
+            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name");
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code");
             return View();
         }
 
@@ -59,16 +59,16 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Phase")] AcademicTracking academicTracking)
+        public async Task<IActionResult> Create([Bind("Id,SubjectId,CutoffDateId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Observations")] AcademicTracking academicTracking)
         {
-            ModelState.Remove("Subject");
             if (ModelState.IsValid)
             {
                 _context.Add(academicTracking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
+            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
@@ -85,7 +85,8 @@ namespace SIARAWEB.Controllers
             {
                 return NotFound();
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
+            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
@@ -94,13 +95,12 @@ namespace SIARAWEB.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Phase")] AcademicTracking academicTracking)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,CutoffDateId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Observations")] AcademicTracking academicTracking)
         {
             if (id != academicTracking.Id)
             {
                 return NotFound();
             }
-            ModelState.Remove("Subject");
 
             if (ModelState.IsValid)
             {
@@ -122,7 +122,8 @@ namespace SIARAWEB.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", academicTracking.SubjectId);
+            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
             return View(academicTracking);
         }
 
@@ -135,6 +136,7 @@ namespace SIARAWEB.Controllers
             }
 
             var academicTracking = await _context.AcademicTrackings
+                .Include(a => a.CutoffDate)
                 .Include(a => a.Subject)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (academicTracking == null)

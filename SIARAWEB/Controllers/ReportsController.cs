@@ -46,16 +46,16 @@ namespace SIARAWEB.Controllers
             if (docente == null) return NotFound();
 
             // Pasamos el nombre del maestro a la vista
-            ViewBag.NombreDocente = docente.Name ?? docente.UserName;
+            //ViewBag.NombreDocente = docente.Name ?? docente.UserName;
 
             // Rellenar el nombre del departamento del docente (si existe)
-            string departamentoNombre = "N/A";
+            /*string departamentoNombre = "N/A";
             if (docente.DepartamentoId.HasValue)
             {
                 var departamento = await _context.Departamentos.FindAsync(docente.DepartamentoId.Value);
                 departamentoNombre = departamento?.Nombre ?? "N/A";
             }
-            ViewBag.DepartamentoDocente = departamentoNombre;
+            ViewBag.DepartamentoDocente = departamentoNombre;*/
 
             // Buscamos a qué materias está asignado este maestro específico
             var asignaturasIds = await _context.DocenteAsignaturas
