@@ -1,0 +1,73 @@
+﻿@model SIARAWEB.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Registrar Nuevo Usuario";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h4 class="m-0 fw-bold"><i class="bi bi-person-plus me-2"></i> Alta de Nuevo Usuario</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="FullName" class="form-control" placeholder="Nombre completo" required />
+                            <label asp-for="FullName">Nombre Completo</label>
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" placeholder="correo@tecnm.mx" required />
+                            <label asp-for="Email">Correo Institucional (Usuario)</label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="RFC" class="form-control" placeholder="RFC" style="text-transform: uppercase;" />
+                                <label asp-for="RFC" style="padding-left: 25px;">RFC</label>
+                                <span asp-validation-for="RFC" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="CURP" class="form-control" placeholder="CURP" style="text-transform: uppercase;" />
+                                <label asp-for="CURP" style="padding-left: 25px;">CURP</label>
+                                <span asp-validation-for="CURP" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-3">
+                                <select name="role" class="form-select" asp-items="ViewBag.Roles" required>
+                                    <option value="">-- Seleccione un Rol --</option>
+                                </select>
+                                <label style="padding-left: 25px;">Rol en el Sistema</label>
+                            </div>
+                            <div class="col-md-6 form-floating mb-3">
+                                <input type="password" name="password" class="form-control" placeholder="Contraseña temporal" required />
+                                <label style="padding-left: 25px;">Contraseña Inicial</label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Regresar
+                            </a>
+                            <button type="submit" class="btn text-white px-4 py-2" style="background-color: #112d60; border-radius: 8px;">
+                                <i class="bi bi-check-lg me-2"></i> Registrar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

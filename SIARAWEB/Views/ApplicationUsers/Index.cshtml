@@ -1,0 +1,87 @@
+﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Plantilla y Usuarios del Sistema</h2>
+            <p class="text-muted m-0">Administración general de cuentas institucionales y roles de acceso.</p>
+        </div>
+        <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #112d60; border-radius: 8px;">
+            <i class="bi bi-person-plus-fill me-2"></i> Nuevo Usuario
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc; color: #112d60;">
+                        <tr>
+                            <th class="py-3 px-4">Nombre Completo</th>
+                            <th class="py-3 px-4">Correo Institucional</th>
+                            <th class="py-3 px-4">RFC</th>
+                            <th class="py-3 px-4">CURP</th>
+                            <th class="py-3 px-4 text-center">Estado</th>
+                            <th class="py-3 px-4 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="px-4 fw-bold text-dark">@item.FullName</td>
+                                <td class="px-4 text-muted">@item.Email</td>
+                                <td class="px-4">@(string.IsNullOrEmpty(item.RFC) ? "N/A" : item.RFC)</td>
+                                <td class="px-4">@(string.IsNullOrEmpty(item.CURP) ? "N/A" : item.CURP)</td>
+                                <td class="px-4 text-center">
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success bg-opacity-15 text-success px-3 py-2" style="border-radius: 20px;">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger bg-opacity-15 text-danger px-3 py-2" style="border-radius: 20px;">Bloqueado</span>
+                                    }
+                                </td>
+
+                                <td class="px-4 text-end">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-2" title="Editar datos">
+                                        <i class="bi bi-pencil-fill"></i> Editar
+                                    </a>
+                                    @if (item.IsActive && (item.LockoutEnd == null || item.LockoutEnd <= DateTimeOffset.UtcNow))
+                                    {
+                                        <form asp-action="LockAccount" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Bloquear cuenta" onclick="return confirm('¿Estás seguro de bloquear el acceso a este usuario?');">
+                                                <i class="bi bi-lock-fill"></i> Bloquear
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="UnlockAccount" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Desbloquear cuenta" onclick="return confirm('¿Estás seguro de reactivar este usuario?');">
+                                                <i class="bi bi-unlock-fill"></i> Desbloquear
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
