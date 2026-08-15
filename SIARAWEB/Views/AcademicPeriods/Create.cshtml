@@ -1,48 +1,97 @@
 ﻿@model SIARAWEB.Models.AcademicPeriod
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Apertura de Periodo Escolar";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h5 class="m-0 fw-bold"><i class="bi bi-calendar-plus me-2"></i> Apertura de Nuevo Semestre</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-<h4>AcademicPeriod</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="row mb-3">
+                            <div class="col-md-7 form-floating">
+                                <select name="semestre" class="form-select" id="selectSemestre" required>
+                                    <option value="">-- Seleccione Semestre --</option>
+                                    <option value="Febrero - Junio">Febrero - Junio</option>
+                                    <option value="Agosto - Diciembre">Agosto - Diciembre</option>
+                                </select>
+                                <label style="padding-left: 25px;">Semestre Escolar</label>
+                            </div>
+                            <div class="col-md-5 form-floating">
+                                <input name="anio" type="number" class="form-control" id="inputAnio" value="@DateTime.Now.Year" min="2024" max="2035" required />
+                                <label style="padding-left: 25px;">Año</label>
+                            </div>
+                        </div>
+
+                        <input type="hidden" asp-for="Name" id="hdnPeriodName" />
+
+                        <div class="alert alert-info py-2 px-3 mb-3 border-0 shadow-sm" style="font-size: 14px; border-radius: 8px;">
+                            <i class="bi bi-info-circle-fill me-2"></i> <strong>Nombre del Periodo:</strong> <span id="lblPreviewName" class="fw-bold text-dark">Seleccione semestre...</span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="StartDate" type="date" class="form-control" required />
+                                <label asp-for="StartDate" style="padding-left: 25px;">Fecha Inicio Oficial</label>
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="EndDate" type="date" class="form-control" required />
+                                <label asp-for="EndDate" style="padding-left: 25px;">Fecha Cierre Oficial</label>
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-4 ms-1">
+                            <input class="form-check-input" type="checkbox" asp-for="IsActive" id="activeSwitch" checked style="cursor: pointer;">
+                            <label class="form-check-label fw-bold text-muted" for="activeSwitch" style="cursor: pointer;">
+                                Establecer como semestre activo del sistema
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                                <i class="bi bi-save me-2"></i> Aperturar Semestre
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Script dinámico para actualizar la previsualización y el campo Name del modelo
+        const selectSemestre = document.getElementById('selectSemestre');
+        const inputAnio = document.getElementById('inputAnio');
+        const hdnName = document.getElementById('hdnPeriodName');
+        const preview = document.getElementById('lblPreviewName');
+
+        function actualizarNombre() {
+            if (selectSemestre.value && inputAnio.value) {
+                const nombreCompleto = `${selectSemestre.value} ${inputAnio.value}`;
+                hdnName.value = nombreCompleto;
+                preview.textContent = nombreCompleto;
+            } else {
+                hdnName.value = '';
+                preview.textContent = 'Seleccione semestre...';
+            }
+        }
+
+        selectSemestre.addEventListener('change', actualizarNombre);
+        inputAnio.addEventListener('input', actualizarNombre);
+    </script>
 }

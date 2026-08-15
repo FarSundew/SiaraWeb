@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +7,7 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
+    [Authorize(Roles = "JefeGeneral,Administrador")]
     public class CutoffDatesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,122 +20,33 @@ namespace SIARAWEB.Controllers
         // GET: CutoffDates
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.CutoffDates.Include(c => c.AcademicPeriod);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: CutoffDates/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cutoffDate = await _context.CutoffDates
-                .Include(c => c.AcademicPeriod)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (cutoffDate == null)
-            {
-                return NotFound();
-            }
-
-            return View(cutoffDate);
+            var dates = await _context.CutoffDates
+                                      .Include(c => c.AcademicPeriod)
+                                      .OrderByDescending(c => c.DueDate)
+                                      .ToListAsync();
+            return View(dates);
         }
 
         // GET: CutoffDates/Create
         public IActionResult Create()
         {
-            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name");
+            ViewBag.AcademicPeriods = new SelectList(_context.AcademicPeriods.Where(p => p.IsActive), "Id", "Name");
             return View();
         }
 
         // POST: CutoffDates/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,AcademicPeriodId,PhaseNumber,Name,StartDate,DueDate")] CutoffDate cutoffDate)
+        public async Task<IActionResult> Create(CutoffDate cutoffDate)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(cutoffDate);
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Fecha de corte programada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
-            return View(cutoffDate);
-        }
-
-        // GET: CutoffDates/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cutoffDate = await _context.CutoffDates.FindAsync(id);
-            if (cutoffDate == null)
-            {
-                return NotFound();
-            }
-            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
-            return View(cutoffDate);
-        }
-
-        // POST: CutoffDates/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,AcademicPeriodId,PhaseNumber,Name,StartDate,DueDate")] CutoffDate cutoffDate)
-        {
-            if (id != cutoffDate.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(cutoffDate);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CutoffDateExists(cutoffDate.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["AcademicPeriodId"] = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
-            return View(cutoffDate);
-        }
-
-        // GET: CutoffDates/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var cutoffDate = await _context.CutoffDates
-                .Include(c => c.AcademicPeriod)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (cutoffDate == null)
-            {
-                return NotFound();
-            }
-
+            ViewBag.AcademicPeriods = new SelectList(_context.AcademicPeriods.Where(p => p.IsActive), "Id", "Name", cutoffDate.AcademicPeriodId);
             return View(cutoffDate);
         }
 
@@ -146,19 +55,14 @@ namespace SIARAWEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cutoffDate = await _context.CutoffDates.FindAsync(id);
-            if (cutoffDate != null)
+            var date = await _context.CutoffDates.FindAsync(id);
+            if (date != null)
             {
-                _context.CutoffDates.Remove(cutoffDate);
+                _context.CutoffDates.Remove(date);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Fecha de corte eliminada.";
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CutoffDateExists(int id)
-        {
-            return _context.CutoffDates.Any(e => e.Id == id);
         }
     }
 }

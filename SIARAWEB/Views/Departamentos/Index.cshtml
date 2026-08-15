@@ -1,17 +1,17 @@
-﻿@model IEnumerable<SIARAWEB.Models.CutoffDate>
+﻿@model IEnumerable<SIARAWEB.Models.Departamento>
 
 @{
-    ViewData["Title"] = "Fechas de Corte por Periodo";
+    ViewData["Title"] = "Catálogo de Departamentos";
 }
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold" style="color: #112d60;">Calendario de Entregas</h2>
-            <p class="text-muted m-0">Define los días de apertura y límite para la entrega de seguimientos.</p>
+            <h2 class="fw-bold" style="color: #112d60;">Catálogo de Departamentos y Carreras</h2>
+            <p class="text-muted m-0">Administración de programas educativos y asignación de Jefes de Carrera.</p>
         </div>
         <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-            <i class="bi bi-calendar-event-fill me-2"></i> Nueva Fecha de Corte
+            <i class="bi bi-building-add me-2"></i> Nuevo Departamento
         </a>
     </div>
 
@@ -29,48 +29,46 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead style="background-color: #112d60; color: #ffffff;">
                         <tr>
-                            <th class="py-3 px-4">Periodo Escolar</th>
-                            <th class="py-3 px-4">Fase</th>
-                            <th class="py-3 px-4">Seguimiento</th>
-                            <th class="py-3 px-4">Apertura y Cierre</th>
-                            <th class="py-3 px-4 text-center">Estado</th>
+                            <th class="py-3 px-4">Clave / Sigla</th>
+                            <th class="py-3 px-4">Nombre del Departamento</th>
+                            <th class="py-3 px-4">Jefe(a) de Carrera Asignado</th>
                             <th class="py-3 px-4 text-end">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!Model.Any())
                         {
-                            <tr><td colspan="6" class="text-center py-4 text-muted">No hay fechas programadas.</td></tr>
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Aún no hay departamentos registrados.</td>
+                            </tr>
                         }
 
                         @foreach (var item in Model)
                         {
-                            bool yaPaso = item.DueDate < DateTime.Now;
                             <tr>
-                                <td class="px-4 fw-bold text-primary">
-                                    <i class="bi bi-calendar3 me-2"></i>@(item.AcademicPeriod?.Name ?? "Sin Periodo")
-                                </td>
-                                <td class="px-4 text-center">
-                                    <span class="badge bg-dark rounded-circle p-2">@item.PhaseNumber</span>
+                                <td class="px-4 fw-bold">
+                                    <span class="badge bg-secondary px-3 py-2" style="font-size: 13px;">
+                                        @(string.IsNullOrEmpty(item.Code) ? "S/C" : item.Code)
+                                    </span>
                                 </td>
                                 <td class="px-4 fw-bold text-dark">@item.Name</td>
                                 <td class="px-4">
-                                    <small class="text-success d-block"><i class="bi bi-play-circle me-1"></i> @item.StartDate.ToString("dd/MMM/yyyy HH:mm")</small>
-                                    <small class="text-danger fw-bold d-block"><i class="bi bi-stop-circle me-1"></i> @item.DueDate.ToString("dd/MMM/yyyy HH:mm")</small>
-                                </td>
-                                <td class="px-4 text-center">
-                                    @if (yaPaso)
+                                    @if (item.HeadOfDepartment != null)
                                     {
-                                        <span class="badge bg-secondary px-3 py-2" style="border-radius: 20px;">Concluido</span>
+                                        <span class="text-dark fw-semibold">
+                                            <i class="bi bi-person-badge text-primary me-2"></i>@item.HeadOfDepartment.FullName
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success bg-opacity-15 text-success px-3 py-2" style="border-radius: 20px;">Vigente</span>
+                                        <span class="text-danger fw-semibold">
+                                            <i class="bi bi-exclamation-triangle me-1"></i> Sin asignar
+                                        </span>
                                     }
                                 </td>
                                 <td class="px-4 text-end">
                                     <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" onclick="return confirm('¿Eliminar esta fecha?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" title="Eliminar Departamento" onclick="return confirm('¿Estás seguro de eliminar definitivamente este departamento?');">
                                             <i class="bi bi-trash"></i> Eliminar
                                         </button>
                                     </form>

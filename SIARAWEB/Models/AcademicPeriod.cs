@@ -20,7 +20,7 @@ namespace SIARAWEB.Models
 
         public ICollection<CutoffDate>? CutoffDates { get; set; }
 
-        // 🟢 ESTA ES LA LÍNEA QUE FALTA PARA RESOLVER EL ERROR:
+        // 🟢 ESTA ES LA LÍNEA QUE DEBES TENER:
         public ICollection<Subject>? Subjects { get; set; }
     }
 }

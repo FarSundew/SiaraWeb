@@ -1,52 +1,75 @@
 ﻿@model SIARAWEB.Models.CutoffDate
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Agregar Fecha de Corte";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h5 class="m-0 fw-bold"><i class="bi bi-calendar-plus me-2"></i> Programar Fecha de Corte</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-<h4>CutoffDate</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="AcademicPeriodId" class="control-label"></label>
-                <select asp-for="AcademicPeriodId" class ="form-control" asp-items="ViewBag.AcademicPeriodId"></select>
+                        <div class="form-floating mb-3">
+                            <select asp-for="AcademicPeriodId" class="form-select" asp-items="ViewBag.AcademicPeriods" required>
+                                <option value="">-- Seleccione el Periodo --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Periodo Académico</label>
+                            <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 form-floating mb-3">
+                                <input asp-for="PhaseNumber" type="number" min="1" max="4" class="form-control" placeholder="1" required />
+                                <label asp-for="PhaseNumber" style="padding-left: 25px;">No. Fase (1 al 4)</label>
+                                <span asp-validation-for="PhaseNumber" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-8 form-floating mb-3">
+                                <select asp-for="Name" class="form-select" required>
+                                    <option value="">-- Seleccione la Etapa --</option>
+                                    <option value="1er Seguimiento Académico">1er Seguimiento Académico</option>
+                                    <option value="2do Seguimiento Académico">2do Seguimiento Académico</option>
+                                    <option value="3er Seguimiento Académico">3er Seguimiento Académico</option>
+                                    <option value="Reporte Final de Calificaciones">Reporte Final de Calificaciones</option>
+                                </select>
+                                <label style="padding-left: 25px;">Nombre del Seguimiento</label>
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-4">
+                                <input asp-for="StartDate" type="datetime-local" class="form-control" required />
+                                <label asp-for="StartDate" style="padding-left: 25px;">Fecha/Hora de Apertura</label>
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating mb-4">
+                                <input asp-for="DueDate" type="datetime-local" class="form-control" required />
+                                <label asp-for="DueDate" style="padding-left: 25px;">Fecha/Hora Límite (Cierre)</label>
+                                <span asp-validation-for="DueDate" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                                <i class="bi bi-save me-2"></i> Programar Fecha
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="PhaseNumber" class="control-label"></label>
-                <input asp-for="PhaseNumber" class="form-control" />
-                <span asp-validation-for="PhaseNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DueDate" class="control-label"></label>
-                <input asp-for="DueDate" class="form-control" />
-                <span asp-validation-for="DueDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }
