@@ -1,46 +1,72 @@
 ﻿@model SIARAWEB.Models.Subject
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Registrar Asignatura";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h5 class="m-0 fw-bold"><i class="bi bi-journal-plus me-2"></i> Alta de Nueva Asignatura</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-<h4>Subject</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Code" class="control-label"></label>
-                <input asp-for="Code" class="form-control" />
-                <span asp-validation-for="Code" class="text-danger"></span>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Code" class="form-control" placeholder="Ej. AED-1285" style="text-transform: uppercase;" required />
+                            <label asp-for="Code">Clave de la Asignatura (Ej. AED-1285)</label>
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Name" class="form-control" placeholder="Nombre completo" required />
+                            <label asp-for="Name">Nombre de la Asignatura</label>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="DepartamentoId" class="form-select" asp-items="ViewBag.Departamentos" required>
+                                <option value="">-- Seleccione el Departamento --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Departamento / Carrera</label>
+                            <span asp-validation-for="DepartamentoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <select asp-for="AcademicPeriodId" class="form-select" asp-items="ViewBag.AcademicPeriods" required>
+                                <option value="">-- Seleccione el Periodo --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Periodo Académico Activo</label>
+                            <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold" style="color: #112d60;">Docentes que imparten la asignatura</label>
+                            <select name="selectedDocentes" class="form-select" asp-items="ViewBag.Docentes" multiple style="height: 130px; border-radius: 8px;">
+                            </select>
+                            <small class="text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i> Mantén presionada la tecla <strong>Ctrl</strong> para seleccionar a uno o varios docentes.
+                            </small>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                                <i class="bi bi-save me-2"></i> Guardar Asignatura
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DepartamentoId" class="control-label"></label>
-                <select asp-for="DepartamentoId" class ="form-control" asp-items="ViewBag.DepartamentoId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="AcademicPeriodId" class="control-label"></label>
-                <select asp-for="AcademicPeriodId" class ="form-control" asp-items="ViewBag.AcademicPeriodId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

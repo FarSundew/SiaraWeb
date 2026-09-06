@@ -13,6 +13,8 @@
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
                         <div class="form-floating mb-3">
@@ -23,22 +25,25 @@
                             <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
                         </div>
 
+                        <!-- Agregado: campo obligatorio 'Name' que exige el modelo -->
+                        <div class="form-floating mb-3">
+                            <input asp-for="Name" class="form-control" placeholder="Nombre descriptivo" required />
+                            <label asp-for="Name" style="padding-left: 25px;">Nombre descriptivo</label>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
                         <div class="row">
-                            <div class="col-md-4 form-floating mb-3">
-                                <input asp-for="PhaseNumber" type="number" min="1" max="4" class="form-control" placeholder="1" required />
-                                <label asp-for="PhaseNumber" style="padding-left: 25px;">No. Fase (1 al 4)</label>
-                                <span asp-validation-for="PhaseNumber" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-8 form-floating mb-3">
-                                <select asp-for="Name" class="form-select" required>
-                                    <option value="">-- Seleccione la Etapa --</option>
-                                    <option value="1er Seguimiento Académico">1er Seguimiento Académico</option>
-                                    <option value="2do Seguimiento Académico">2do Seguimiento Académico</option>
-                                    <option value="3er Seguimiento Académico">3er Seguimiento Académico</option>
-                                    <option value="Reporte Final de Calificaciones">Reporte Final de Calificaciones</option>
+                            <!-- Eliminado el input numérico duplicado para PhaseType -->
+                            <div class="mb-3 col-12">
+                                <label asp-for="PhaseType" class="form-label fw-bold"></label>
+                                <select asp-for="PhaseType" class="form-select border-dark" required>
+                                    <option value="">-- Selecciona la etapa oficial --</option>
+                                    <option value="Inicial">Documentos Iniciales</option>
+                                    <option value="Seguimiento1">Primer Seguimiento</option>
+                                    <option value="Seguimiento2">Segundo Seguimiento</option>
+                                    <option value="Final">Reporte Final</option>
                                 </select>
-                                <label style="padding-left: 25px;">Nombre del Seguimiento</label>
-                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <span asp-validation-for="PhaseType" class="text-danger"></span>
                             </div>
                         </div>
 

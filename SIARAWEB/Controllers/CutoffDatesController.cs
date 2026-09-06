@@ -55,13 +55,23 @@ namespace SIARAWEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var date = await _context.CutoffDates.FindAsync(id);
-            if (date != null)
+            var cutoffDate = await _context.CutoffDates.FindAsync(id);
+            if (cutoffDate != null)
             {
-                _context.CutoffDates.Remove(date);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Fecha de corte eliminada.";
+                try
+                {
+                    _context.CutoffDates.Remove(cutoffDate);
+                    await _context.SaveChangesAsync(); // Aquí es donde ocurría el error original
+                    TempData["Success"] = "Fase eliminada correctamente.";
+                }
+                catch (DbUpdateException)
+                {
+                    // 🟢 ATRAPAMOS EL ERROR DE LLAVE FORÁNEA
+                    TempData["Error"] = "No puedes eliminar esta fase porque ya existen documentos o calificaciones vinculadas a ella. Primero debes eliminar esos registros.";
+                    return RedirectToAction(nameof(Index));
+                }
             }
+
             return RedirectToAction(nameof(Index));
         }
     }

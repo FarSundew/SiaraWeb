@@ -1,0 +1,138 @@
+﻿@model SIARAWEB.Models.AcademicTracking
+
+@{
+    var subject = (SIARAWEB.Models.Subject)ViewBag.Subject;
+    ViewData["Title"] = "Captura de Seguimiento";
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase;">
+            SEGUIMIENTO ACADÉMICO - @subject.Code
+        </h3>
+        <a asp-action="Index" class="btn-siara-3d" style="text-decoration: none; padding: 10px 20px;">SALIR</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold text-center">@TempData["Success"]</div>
+    }
+
+    <div class="row">
+        <!-- Panel de Captura -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                <div class="card-header" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px;">
+                    NUEVA CAPTURA
+                </div>
+                <div class="card-body">
+                    <form asp-action="Capture" method="post">
+                        <input type="hidden" asp-for="SubjectId" />
+
+                        <div class="mb-3">
+                            <label class="fw-bold" style="color: #112d60; font-size: 13px;">FASE DE SEGUIMIENTO</label>
+                            <select asp-for="CutoffDateId" class="form-select fw-bold" asp-items="ViewBag.CutoffDates" required>
+                                <option value="">-- SELECCIONAR --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold" style="color: #112d60; font-size: 13px;">TEMA / UNIDAD</label>
+                            <input asp-for="UnitNumber" type="number" min="1" max="10" class="form-control fw-bold text-center" required />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6 mb-2">
+                                <label class="fw-bold" style="font-size: 12px;">TOTAL ALUMNOS</label>
+                                <input asp-for="TotalStudents" type="number" min="1" class="form-control text-center" required />
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="fw-bold text-success" style="font-size: 12px;">APROBADOS</label>
+                                <input asp-for="ApprovedStudents" type="number" min="0" class="form-control text-center text-success fw-bold" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold text-danger" style="font-size: 12px;">REPROBADOS</label>
+                                <input asp-for="FailedStudents" type="number" min="0" class="form-control text-center text-danger fw-bold" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold text-muted" style="font-size: 12px;">DESERTORES</label>
+                                <input asp-for="DroppedStudents" type="number" min="0" class="form-control text-center fw-bold" required />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-siara-3d w-100 mt-2">GUARDAR RENDIMIENTO</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Resultados -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 8px;">
+                <div class="card-header" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px;">
+                    ESTADÍSTICAS DE RENDIMIENTO REGISTRADAS
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped align-middle text-center mb-0">
+                        <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
+                            <tr>
+                                <th>FASE</th>
+                                <th>TEMA</th>
+                                <th class="text-success">ACREDITACIÓN</th>
+                                <th class="text-danger">REPROBACIÓN</th>
+                                <th class="text-muted">DESERCIÓN</th>
+                                <th>JEFATURA</th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (subject.AcademicTrackings == null || !subject.AcademicTrackings.Any())
+                            {
+                                <tr><td colspan="7" class="py-4 text-muted fw-bold">SIN REGISTROS AÚN</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var track in subject.AcademicTrackings.OrderBy(t => t.UnitNumber))
+                                {
+                                    <tr style="font-weight: 900; font-size: 14px;">
+                                        <td class="text-primary">@(track.CutoffDate?.Name)</td>
+                                        <td>TEMA @track.UnitNumber</td>
+                                        <td class="text-success">@track.ApprovalPercentage.ToString("F1")%</td>
+                                        <td class="text-danger">@track.FailurePercentage.ToString("F1")%</td>
+                                        <td class="text-muted">@track.DropoutPercentage.ToString("F1")%</td>
+                                        <td>
+                                            @if (track.ApprovalStatus == "Aprobado")
+                                            {
+                                                <span class="badge bg-success">APROBADO</span>
+                                            }
+                                            else if (track.ApprovalStatus == "Rechazado")
+                                            {
+
+                                                <span class="badge bg-danger" title="@track.Feedback">RECHAZADO</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span class="badge bg-warning text-dark">PENDIENTE</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <form asp-action="Delete" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@track.Id" />
+                                                <input type="hidden" name="subjectId" value="@subject.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('¿Eliminar?');">🗑️</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,161 +8,104 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
+    [Authorize(Roles = "Docente,JefeCarrera")]
     public class AcademicTrackingsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AcademicTrackingsController(ApplicationDbContext context)
+        public AcademicTrackingsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        // GET: AcademicTrackings
+        // GET: AcademicTrackings (Lista de Materias del Docente para Seguimiento)
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.AcademicTrackings.Include(a => a.CutoffDate).Include(a => a.Subject);
-            return View(await applicationDbContext.ToListAsync());
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Login", "Account");
+
+            var misAsignaturas = await _context.DocenteAsignaturas
+                .Include(da => da.Subject)
+                    .ThenInclude(s => s!.AcademicPeriod)
+                .Include(da => da.Subject)
+                    .ThenInclude(s => s!.AcademicTrackings)
+                .Where(da => da.DocenteId == currentUser.Id)
+                .Select(da => da.Subject)
+                .ToListAsync();
+
+            return View(misAsignaturas);
         }
 
-        // GET: AcademicTrackings/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: AcademicTrackings/Capture/5 (ID de la Asignatura)
+        public async Task<IActionResult> Capture(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var subject = await _context.Subjects
+                .Include(s => s.AcademicPeriod)
+                .Include(s => s.AcademicTrackings!)
+                    .ThenInclude(at => at.CutoffDate)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
-            var academicTracking = await _context.AcademicTrackings
-                .Include(a => a.CutoffDate)
-                .Include(a => a.Subject)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (academicTracking == null)
-            {
-                return NotFound();
-            }
+            if (subject == null) return NotFound();
 
-            return View(academicTracking);
+            ViewBag.CutoffDates = new SelectList(
+                _context.CutoffDates.Where(c => c.AcademicPeriodId == subject.AcademicPeriodId && c.PhaseType != "Inicial"),                "Id",
+                "Name"
+            );
+
+            ViewBag.Subject = subject;
+            return View(new AcademicTracking { SubjectId = id });
         }
 
-        // GET: AcademicTrackings/Create
-        public IActionResult Create()
-        {
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name");
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code");
-            return View();
-        }
-
-        // POST: AcademicTrackings/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: AcademicTrackings/Capture
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SubjectId,CutoffDateId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Observations")] AcademicTracking academicTracking)
+        // GET: AcademicTrackings/Capture/5
+        public async Task<IActionResult> Capture(int id, string? faseSeleccionada)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(academicTracking);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
-            return View(academicTracking);
-        }
+            var subject = await _context.Subjects
+                .Include(s => s.AcademicPeriod)
+                .Include(s => s.AcademicTrackings) // Traemos las calificaciones guardadas
+                .FirstOrDefaultAsync(s => s.Id == id);
 
-        // GET: AcademicTrackings/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (subject == null) return NotFound();
 
-            var academicTracking = await _context.AcademicTrackings.FindAsync(id);
-            if (academicTracking == null)
-            {
-                return NotFound();
-            }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
-            return View(academicTracking);
-        }
+            // 1. Buscamos la fase activa real en el calendario
+            var faseActiva = await _context.CutoffDates
+                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId && c.DueDate >= DateTime.Now)
+                .OrderBy(c => c.DueDate)
+                .FirstOrDefaultAsync();
 
-        // POST: AcademicTrackings/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SubjectId,CutoffDateId,UnitNumber,ApprovalPercentage,FailurePercentage,DropoutPercentage,Observations")] AcademicTracking academicTracking)
-        {
-            if (id != academicTracking.Id)
-            {
-                return NotFound();
-            }
+            // 2. Definimos qué fase se va a mostrar en pantalla
+            // Si el maestro no seleccionó ninguna, mostramos la activa. Si no hay activa, por defecto "Seguimiento1"
+            string faseActual = faseSeleccionada ?? faseActiva?.PhaseType ?? "Seguimiento1";
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(academicTracking);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AcademicTrackingExists(academicTracking.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CutoffDateId"] = new SelectList(_context.CutoffDates, "Id", "Name", academicTracking.CutoffDateId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Code", academicTracking.SubjectId);
-            return View(academicTracking);
-        }
+            // 3. 🟢 LÓGICA DE SOLO LECTURA: 
+            // Es de solo lectura si no hay fase activa, O si la fase que está viendo NO es la activa
+            bool esSoloLectura = faseActiva == null || faseActiva.PhaseType != faseActual;
 
-        // GET: AcademicTrackings/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            // Pasamos todas estas variables a la vista
+            ViewBag.FaseActiva = faseActiva?.PhaseType; // Para saber cuál pintar de verde
+            ViewBag.FaseActual = faseActual; // La que estamos viendo ahorita
+            ViewBag.EsSoloLectura = esSoloLectura;
 
-            var academicTracking = await _context.AcademicTrackings
-                .Include(a => a.CutoffDate)
-                .Include(a => a.Subject)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (academicTracking == null)
-            {
-                return NotFound();
-            }
-
-            return View(academicTracking);
+            return View(subject);
         }
 
         // POST: AcademicTrackings/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id, int subjectId)
         {
-            var academicTracking = await _context.AcademicTrackings.FindAsync(id);
-            if (academicTracking != null)
+            var tracking = await _context.AcademicTrackings.FindAsync(id);
+            if (tracking != null)
             {
-                _context.AcademicTrackings.Remove(academicTracking);
+                _context.AcademicTrackings.Remove(tracking);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Registro de tema eliminado.";
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool AcademicTrackingExists(int id)
-        {
-            return _context.AcademicTrackings.Any(e => e.Id == id);
+            return RedirectToAction(nameof(Capture), new { id = subjectId });
         }
     }
 }

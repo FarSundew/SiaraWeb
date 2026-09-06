@@ -1,0 +1,122 @@
+﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Directorio de Docentes";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Directorio de Docentes</h2>
+            <p class="text-muted m-0">Consulta la plantilla docente y la carga de asignaturas asignadas por periodo.</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Total Docentes</h6>
+                        <h3 class="fw-bold m-0" style="color: #112d60;">@Model.Count()</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3 bg-success">
+                        <i class="bi bi-journal-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Con Carga Académica</h6>
+                        <h3 class="fw-bold m-0 text-success">@Model.Count(d => d.DocenteAsignaturas != null && d.DocenteAsignaturas.Any())</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #f4a915 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3" style="background-color: #f4a915;">
+                        <i class="bi bi-exclamation-triangle-fill fs-4" style="color: #112d60;"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Sin Asignaturas</h6>
+                        <h3 class="fw-bold m-0" style="color: #112d60;">@Model.Count(d => d.DocenteAsignaturas == null || !d.DocenteAsignaturas.Any())</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #112d60; color: #ffffff;">
+                        <tr>
+                            <th class="py-3 px-4">Docente</th>
+                            <th class="py-3 px-4">Correo Institucional</th>
+                            <th class="py-3 px-4 text-center">Asignaturas Impartidas</th>
+                            <th class="py-3 px-4 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No se encontraron docentes registrados.</td>
+                            </tr>
+                        }
+
+                        @foreach (var docente in Model)
+                        {
+                            int cantidadMaterias = docente.DocenteAsignaturas?.Count ?? 0;
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3 text-white fw-bold d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px; background-color: #112d60; border-radius: 50%; font-size: 14px;">
+                                            @(string.IsNullOrEmpty(docente.FullName) ? "D" : docente.FullName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block">@(string.IsNullOrEmpty(docente.FullName) ? docente.UserName : docente.FullName)</span>
+                                            <small class="text-muted">Docente adscrito</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 text-muted">
+                                    <i class="bi bi-envelope me-1"></i>@docente.Email
+                                </td>
+                                <td class="px-4 text-center">
+                                    @if (cantidadMaterias > 0)
+                                    {
+                                        <span class="badge bg-success bg-opacity-15 text-success px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                            <i class="bi bi-book me-1"></i> @cantidadMaterias materia(s)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-15 text-dark px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                            Sin materias
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-4 text-end">
+                                    <a asp-action="Details" asp-route-id="@docente.Id" class="btn btn-sm text-white px-3 py-1" style="background-color: #112d60; border-radius: 8px;">
+                                        <i class="bi bi-eye me-1"></i> Ver Carga
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

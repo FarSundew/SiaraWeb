@@ -153,5 +153,25 @@ namespace SIARAWEB.Controllers
         {
             return _context.AcademicPeriods.Any(e => e.Id == id);
         }
+        // GET: AcademicPeriods/ToggleStatus/5
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var periodo = await _context.AcademicPeriods.FindAsync(id);
+
+            if (periodo == null)
+            {
+                return NotFound();
+            }
+
+            // Alternamos el estado activo/inactivo (ajusta 'IsActive' al nombre real de tu campo si es diferente)
+            periodo.IsActive = !periodo.IsActive;
+
+            _context.Update(periodo);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = periodo.IsActive ? "Periodo activado." : "Periodo concluido y archivado.";
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

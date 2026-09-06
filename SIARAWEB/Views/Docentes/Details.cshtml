@@ -1,0 +1,76 @@
+﻿@model SIARAWEB.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Detalle del Docente";
+}
+
+<div class="container-fluid">
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3" style="border-radius: 8px;">
+            <i class="bi bi-arrow-left me-1"></i> Regresar al Directorio
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="fw-bold mb-1" style="color: #112d60;">
+                        <i class="bi bi-person-badge me-2"></i>@(string.IsNullOrEmpty(Model.FullName) ? Model.UserName : Model.FullName)
+                    </h3>
+                    <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i> @Model.Email</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge px-4 py-2" style="background-color: #f4a915; color: #112d60; font-size: 14px; font-weight: bold; border-radius: 20px;">
+                        Docente Titular
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header py-3 px-4 text-white" style="background-color: #112d60;">
+            <h5 class="m-0 fw-bold"><i class="bi bi-journal-bookmark me-2"></i> Carga Académica de Asignaturas</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 px-4">Clave</th>
+                            <th class="py-3 px-4">Nombre de la Asignatura</th>
+                            <th class="py-3 px-4">Departamento</th>
+                            <th class="py-3 px-4">Periodo Escolar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DocenteAsignaturas == null || !Model.DocenteAsignaturas.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Este docente no tiene asignaturas asignadas en el sistema.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var asignacion in Model.DocenteAsignaturas)
+                            {
+                                var materia = asignacion.Subject;
+                                <tr>
+                                    <td class="px-4 fw-bold">
+                                        <span class="badge bg-secondary px-3 py-2">@(materia?.Code ?? "S/C")</span>
+                                    </td>
+                                    <td class="px-4 fw-bold text-dark">@(materia?.Name ?? "N/A")</td>
+                                    <td class="px-4 text-muted">@(materia?.Departamento?.Name ?? "N/A")</td>
+                                    <td class="px-4 text-primary">
+                                        <i class="bi bi-calendar3 me-1"></i>@(materia?.AcademicPeriod?.Name ?? "N/A")
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

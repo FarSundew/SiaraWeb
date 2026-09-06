@@ -1,71 +1,65 @@
-﻿@model IEnumerable<SIARAWEB.Models.AcademicTracking>
+﻿@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Seguimiento Académico";
 }
 
-<h1>Index</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">📊 Captura de Seguimiento Académico</h2>
+            <p class="text-muted m-0">Selecciona una asignatura para ingresar los porcentajes de rendimiento por tema/unidad.</p>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CutoffDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnitNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApprovalPercentage)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FailurePercentage)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DropoutPercentage)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Observations)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Code)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CutoffDate.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnitNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ApprovalPercentage)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FailurePercentage)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DropoutPercentage)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Observations)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-journal-x display-4 d-block mb-3"></i>
+                <p class="fs-5">No tienes asignaturas activas asignadas para seguimiento.</p>
+            </div>
+        }
+
+        @foreach (var subject in Model)
+        {
+            int temasRegistrados = subject?.AcademicTrackings?.Count ?? 0;
+
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0" style="border-radius: 12px; border-top: 5px solid #f4a915 !important;">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <h5 class="fw-bold m-0 mb-1" style="color: #112d60;">@subject?.Name</h5>
+                            <p class="text-muted mb-3"><i class="bi bi-upc-scan me-1"></i> Clave: <strong>@subject?.Code</strong></p>
+
+                            <div class="p-3 mb-3 bg-light rounded-3" style="font-size: 14px;">
+                                <div class="d-flex align-items-center text-muted mb-2">
+                                    <i class="bi bi-calendar3 text-primary me-2 fs-5"></i>
+                                    <span>Periodo: <strong>@subject?.AcademicPeriod?.Name</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center text-muted">
+                                    <i class="bi bi-bar-chart-fill text-success me-2 fs-5"></i>
+                                    <span>Unidades capturadas: <strong>@temasRegistrados</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <a asp-action="Capture" asp-route-id="@subject?.Id" class="btn w-100 py-2 fw-bold text-white" style="background-color: #112d60; border-radius: 8px;">
+                                <i class="bi bi-pencil-square me-2"></i> Capturar Calificaciones
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

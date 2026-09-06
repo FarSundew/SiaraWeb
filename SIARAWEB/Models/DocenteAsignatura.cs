@@ -5,17 +5,20 @@ namespace SIARAWEB.Models
 {
     public class DocenteAsignatura
     {
-        [Key]
         public int Id { get; set; }
 
-        // Relación con el Docente (Usuario)
+        // Llave foránea hacia el Docente (ApplicationUser)
+        [Required]
         public string DocenteId { get; set; } = string.Empty;
-        [ForeignKey("DocenteId")]
-        public virtual ApplicationUser? Docente { get; set; }
 
-        // Relación con la Asignatura
+        [ForeignKey("DocenteId")]
+        public ApplicationUser? Docente { get; set; }
+
+        // Llave foránea hacia la Asignatura (Subject)
+        [Required]
         public int SubjectId { get; set; }
+
         [ForeignKey("SubjectId")]
-        public virtual Subject? Subject { get; set; }
+        public Subject? Subject { get; set; }
     }
 }

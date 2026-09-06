@@ -14,5 +14,8 @@
         public DateTime UploadedAt { get; set; } = DateTime.Now;
         public bool IsOnTime { get; set; } // Calculado: UploadedAt <= CutoffDate.DueDate
         public string Status { get; set; } = "EnTiempo"; // "EnTiempo", "Atrasado"
+                                                         // Agrega estas propiedades a tu modelo Document
+        public string ApprovalStatus { get; set; } = "Pendiente"; // Opciones: "Pendiente", "Aprobado", "Rechazado"
+        public string? Feedback { get; set; } // Comentarios de corrección del Jefe de Carrera
     }
 }

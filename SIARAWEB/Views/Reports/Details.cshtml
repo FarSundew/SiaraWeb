@@ -1,0 +1,124 @@
+﻿@model SIARAWEB.Models.Subject
+
+@{
+    ViewData["Title"] = "Auditoría de Entregas";
+    var docente = Model.DocenteAsignaturas?.FirstOrDefault()?.Docente;
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                REVISIÓN DOCUMENTAL - @Model.Code
+            </h3>
+            <p class="text-muted fw-bold mt-1">Docente: @(docente?.FullName ?? "No asignado") | @Model.Name</p>
+        </div>
+        <a asp-action="Index" class="btn btn-secondary fw-bold" style="border-radius: 8px;">
+            <i class="bi bi-arrow-left me-1"></i> VOLVER AL SEMÁFORO
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header" style="background-color: #112d60; color: white; font-weight: 900; padding: 15px;">
+            <i class="bi bi-file-earmark-pdf me-2"></i> DOCUMENTOS ENTREGADOS POR EL DOCENTE
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover align-middle mb-0 text-center">
+                <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
+                    <tr>
+                        <th style="padding: 15px;">DOCUMENTO</th>
+                        <th>FASE</th>
+                        <th>FECHA ENTREGA</th>
+                        <th>ESTADO ACTUAL</th>
+                        <th>ARCHIVO</th>
+                        <th style="width: 35%;">ACCIÓN DE JEFATURA (AUDITORÍA)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Documents == null || !Model.Documents.Any())
+                    {
+                        <tr><td colspan="6" class="py-4 fw-bold text-muted">El docente aún no ha subido documentos.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var doc in Model.Documents.OrderBy(d => d.UploadedAt))
+                        {
+                            <tr>
+                                <td class="fw-bold text-dark">@doc.DocumentType</td>
+                                <td class="text-primary fw-bold">@(doc.CutoffDate?.Name ?? "Inicial")</td>
+                                <td>
+                                    @doc.UploadedAt.ToString("dd/MMM/yyyy")<br />
+                                    @if (doc.FilePath == "N/A")
+                                    {
+                                        <span class="badge bg-secondary">NO APLICA</span>
+                                    }
+                                    else if (doc.IsOnTime)
+                                    {
+
+                                        <span class="badge bg-success">A TIEMPO</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="badge bg-danger">CON RETRASO</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (doc.ApprovalStatus == "Aprobado")
+                                    {
+                                        <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> APROBADO</span>
+                                    }
+                                    else if (doc.ApprovalStatus == "Rechazado")
+                                    {
+
+                                        <span class="badge bg-danger fs-6"><i class="bi bi-x-circle"></i> RECHAZADO</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split"></i> PENDIENTE</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (doc.FilePath != "N/A")
+                                    {
+                                        <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary fw-bold">
+                                            <i class="bi bi-eye"></i> VER PDF
+                                        </a>
+                                    }
+                                </td>
+                                <td class="text-start p-3 bg-light">
+                                    @if (doc.FilePath != "N/A")
+                                    {
+                                        <form asp-action="ReviewDocument" method="post" class="d-flex flex-column gap-2">
+                                            <input type="hidden" name="documentId" value="@doc.Id" />
+                                            <input type="hidden" name="subjectId" value="@Model.Id" />
+
+                                            <input type="text" name="feedback" class="form-control form-control-sm" placeholder="Motivo de rechazo o comentario..." value="@doc.Feedback" />
+
+                                            <div class="d-flex gap-2 mt-1">
+                                                <button type="submit" name="status" value="Aprobado" class="btn btn-sm btn-success fw-bold flex-fill">
+                                                    <i class="bi bi-check-lg"></i> APROBAR
+                                                </button>
+                                                <button type="submit" name="status" value="Rechazado" class="btn btn-sm btn-danger fw-bold flex-fill">
+                                                    <i class="bi bi-x-lg"></i> RECHAZAR
+                                                </button>
+                                            </div>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

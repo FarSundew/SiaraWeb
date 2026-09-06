@@ -1,53 +1,88 @@
 ﻿@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Gestión de Asignaturas";
 }
 
-<h1>Index</h1>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Catálogo de Asignaturas</h2>
+            <p class="text-muted m-0">Administra las materias y visualiza a los docentes titulares vinculados.</p>
+        </div>
+        <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+            <i class="bi bi-journal-plus me-2"></i> Nueva Asignatura
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Code)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Departamento)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AcademicPeriod)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Code)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Departamento.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AcademicPeriod.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #112d60; color: #ffffff;">
+                        <tr>
+                            <th class="py-3 px-4">Clave</th>
+                            <th class="py-3 px-4">Nombre de la Asignatura</th>
+                            <th class="py-3 px-4">Departamento</th>
+                            <th class="py-3 px-4">Periodo Escolar</th>
+                            <th class="py-3 px-4">Docente(s) Asignado(s)</th>
+                            <th class="py-3 px-4 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No hay asignaturas registradas actualmente.</td>
+                            </tr>
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="px-4 fw-bold">
+                                    <span class="badge bg-secondary px-3 py-2">@(string.IsNullOrEmpty(item.Code) ? "S/C" : item.Code)</span>
+                                </td>
+                                <td class="px-4 fw-bold text-dark">@item.Name</td>
+                                <td class="px-4 text-muted">@(item.Departamento?.Name ?? "N/A")</td>
+                                <td class="px-4 text-primary">
+                                    <i class="bi bi-calendar3 me-1"></i> @(item.AcademicPeriod?.Name ?? "N/A")
+                                </td>
+                                <td class="px-4">
+                                    @if (item.DocenteAsignaturas != null && item.DocenteAsignaturas.Any())
+                                    {
+                                        <ul class="list-unstyled m-0">
+                                            @foreach (var da in item.DocenteAsignaturas)
+                                            {
+                                                <li><i class="bi bi-person-badge text-success me-1"></i> @(da.Docente?.FullName ?? "Docente sin nombre")</li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle"></i> Sin docentes asignados</span>
+                                    }
+                                </td>
+                                <td class="px-4 text-end">
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" onclick="return confirm('¿Estás seguro de eliminar esta asignatura?');">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

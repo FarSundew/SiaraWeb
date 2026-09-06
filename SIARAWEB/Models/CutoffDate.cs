@@ -9,17 +9,20 @@ namespace SIARAWEB.Models
         public int AcademicPeriodId { get; set; }
         public AcademicPeriod? AcademicPeriod { get; set; }
 
-        [Display(Name = "Número de Seguimiento")]
-        public int PhaseNumber { get; set; } // 1: 1er Seguimiento, 2: 2do, 3: 3er, 4: Reporte Final
+        [Required(ErrorMessage = "Debes seleccionar la etapa del semestre.")]
+        [Display(Name = "Clasificación de la Fase")]
+        public string PhaseType { get; set; } = string.Empty; // Opciones: "Inicial", "Seguimiento1", "Seguimiento2", "Final"
 
-        [Required]
-        [Display(Name = "Nombre del Corte")]
-        public string Name { get; set; } = string.Empty; // Ej. "Primer Seguimiento"
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [Display(Name = "Nombre Descriptivo del Corte")]
+        public string Name { get; set; } = string.Empty; // Ej. "Entrega de Documentos Iniciales" o "Corte 1er Parcial"
 
+        [Display(Name = "Fecha de Inicio")]
         [DataType(DataType.DateTime)]
         public DateTime StartDate { get; set; }
 
+        [Display(Name = "Fecha Límite (Cierre)")]
         [DataType(DataType.DateTime)]
-        public DateTime DueDate { get; set; } // Fecha/Hora límite
+        public DateTime DueDate { get; set; }
     }
 }

@@ -1,8 +1,186 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <div class="card border-0 shadow-sm mb-4 p-4 text-white" style="background: linear-gradient(135deg, #112d60 0%, #1d428a 100%); border-radius: 15px;">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1">¡Bienvenido, @ViewBag.UserFullName! 👋</h2>
+                <p class="mb-0 opacity-75">Sistema Integral de Análisis y Reportes Académicos (SIARA)</p>
+            </div>
+            <div class="text-md-end">
+                <span class="badge px-3 py-2 fs-6" style="background-color: #f4a915; color: #112d60; font-weight: bold; border-radius: 20px;">
+                    <i class="bi bi-calendar-event me-1"></i> Periodo: @ViewBag.ActivePeriodName
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
+    {
+        <h5 class="fw-bold mb-3" style="color: #112d60;"><i class="bi bi-person-workspace me-2"></i>Resumen Operativo Cátedra</h5>
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
+                            <i class="bi bi-journal-bookmark fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Mis Asignaturas</h6>
+                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.MySubjectsCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #f4a915 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #f4a915;">
+                            <i class="bi bi-file-earmark-check fs-3" style="color: #112d60;"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Archivos Subidos</h6>
+                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.MyDocsCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3 bg-success">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Acreditación Promedio</h6>
+                            <h3 class="fw-bold m-0 text-success">@ViewBag.MyAvgApproval%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
+    {
+        <h5 class="fw-bold mb-3" style="color: #112d60;"><i class="bi bi-speedometer2 me-2"></i>Indicadores de Dirección Académica</h5>
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Docentes</h6>
+                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.TotalDocentes</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #17a2b8 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3 bg-info">
+                            <i class="bi bi-journal-text fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Asignaturas</h6>
+                            <h3 class="fw-bold m-0 text-info">@ViewBag.TotalAsignaturas</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #6f42c1 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #6f42c1;">
+                            <i class="bi bi-building fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Carreras / Deptos</h6>
+                            <h3 class="fw-bold m-0" style="color: #6f42c1;">@ViewBag.TotalDepartamentos</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 text-white me-3 bg-success">
+                            <i class="bi bi-pie-chart-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-0">Acreditación Global</h6>
+                            <h3 class="fw-bold m-0 text-success">@ViewBag.GlobalApproval%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <h5 class="fw-bold mb-3" style="color: #112d60;"><i class="bi bi-lightning-charge me-2"></i>Accesos Rápidos</h5>
+    <div class="row">
+        @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
+        {
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Documents" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-file-earmark-pdf fs-2 text-danger me-3"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">Subir Instrumentación</h6>
+                                <small class="text-muted">Cargar evidencias en PDF</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a asp-controller="AcademicTrackings" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-bar-chart-line fs-2 text-primary me-3"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">Capturar Calificaciones</h6>
+                                <small class="text-muted">Ingresar aprobados y reprobados</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
+        {
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Reports" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-traffic-light fs-2 text-warning me-3"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">Semáforo de Cumplimiento</h6>
+                                <small class="text-muted">Ver entregas de la plantilla</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+    .hover-card:hover {
+        transform: translateY(-4px);
+    }
+</style>

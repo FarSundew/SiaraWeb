@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIARAWEB.Data;
 
@@ -11,9 +12,11 @@ using SIARAWEB.Data;
 namespace SIARAWEB.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818161746_AddTablaDocenteAsignatura")]
+    partial class AddTablaDocenteAsignatura
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -213,43 +216,21 @@ namespace SIARAWEB.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("ApprovalPercentage")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<string>("ApprovalStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ApprovedStudents")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CutoffDateId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("DropoutPercentage")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<int>("DroppedStudents")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FailedStudents")
-                        .HasColumnType("int");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("FailurePercentage")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<string>("Feedback")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Observations")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SubjectId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalStudents")
                         .HasColumnType("int");
 
                     b.Property<int>("UnitNumber")
@@ -366,9 +347,8 @@ namespace SIARAWEB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PhaseType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("PhaseNumber")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -438,18 +418,11 @@ namespace SIARAWEB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApprovalStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("CutoffDateId")
                         .HasColumnType("int");
 
                     b.Property<string>("DocumentType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Feedback")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FilePath")
