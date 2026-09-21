@@ -7,18 +7,23 @@ namespace SIARAWEB.Models
     {
         public int Id { get; set; }
 
-        // Llave foránea hacia el Docente (ApplicationUser)
         [Required]
         public string DocenteId { get; set; } = string.Empty;
-
         [ForeignKey("DocenteId")]
-        public ApplicationUser? Docente { get; set; }
+        public virtual ApplicationUser? Docente { get; set; }
 
-        // Llave foránea hacia la Asignatura (Subject)
         [Required]
         public int SubjectId { get; set; }
-
         [ForeignKey("SubjectId")]
-        public Subject? Subject { get; set; }
+        public virtual Subject? Subject { get; set; }
+
+        // Periodo al que corresponde la impartición
+        public int? AcademicPeriodId { get; set; }
+        [ForeignKey("AcademicPeriodId")]
+        public virtual AcademicPeriod? AcademicPeriod { get; set; }
+
+        // 🟢 Identificador de Grupo / Turno
+        [StringLength(20)]
+        public string Group { get; set; } = "A"; // Ejemplos: "Matutino", "Vespertino", "A", "B"
     }
 }

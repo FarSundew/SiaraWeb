@@ -1,80 +1,63 @@
 ﻿@model SIARAWEB.Models.CutoffDate
 
 @{
-    ViewData["Title"] = "Agregar Fecha de Corte";
+    ViewData["Title"] = "Nueva Fecha de Corte";
 }
 
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <div class="card shadow-sm border-0" style="border-radius: 12px;">
-                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-                    <h5 class="m-0 fw-bold"><i class="bi bi-calendar-plus me-2"></i> Programar Fecha de Corte</h5>
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60;">
+            <i class="bi bi-calendar-plus me-2"></i> NUEVA FECHA DE CORTE
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-bold small text-muted">NOMBRE DEL CORTE</label>
+                    <input asp-for="Name" class="form-control fw-bold" placeholder="Ej. 1er Seguimiento - Sistemas" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
-                <div class="card-body p-4">
-                    <form asp-action="Create" method="post">
-                        @Html.AntiForgeryToken()
 
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
-
-                        <div class="form-floating mb-3">
-                            <select asp-for="AcademicPeriodId" class="form-select" asp-items="ViewBag.AcademicPeriods" required>
-                                <option value="">-- Seleccione el Periodo --</option>
-                            </select>
-                            <label style="padding-left: 25px;">Periodo Académico</label>
-                            <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
-                        </div>
-
-                        <!-- Agregado: campo obligatorio 'Name' que exige el modelo -->
-                        <div class="form-floating mb-3">
-                            <input asp-for="Name" class="form-control" placeholder="Nombre descriptivo" required />
-                            <label asp-for="Name" style="padding-left: 25px;">Nombre descriptivo</label>
-                            <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-
-                        <div class="row">
-                            <!-- Eliminado el input numérico duplicado para PhaseType -->
-                            <div class="mb-3 col-12">
-                                <label asp-for="PhaseType" class="form-label fw-bold"></label>
-                                <select asp-for="PhaseType" class="form-select border-dark" required>
-                                    <option value="">-- Selecciona la etapa oficial --</option>
-                                    <option value="Inicial">Documentos Iniciales</option>
-                                    <option value="Seguimiento1">Primer Seguimiento</option>
-                                    <option value="Seguimiento2">Segundo Seguimiento</option>
-                                    <option value="Final">Reporte Final</option>
-                                </select>
-                                <span asp-validation-for="PhaseType" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 form-floating mb-4">
-                                <input asp-for="StartDate" type="datetime-local" class="form-control" required />
-                                <label asp-for="StartDate" style="padding-left: 25px;">Fecha/Hora de Apertura</label>
-                                <span asp-validation-for="StartDate" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6 form-floating mb-4">
-                                <input asp-for="DueDate" type="datetime-local" class="form-control" required />
-                                <label asp-for="DueDate" style="padding-left: 25px;">Fecha/Hora Límite (Cierre)</label>
-                                <span asp-validation-for="DueDate" class="text-danger"></span>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-2">
-                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
-                                <i class="bi bi-arrow-left me-2"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-                                <i class="bi bi-save me-2"></i> Programar Fecha
-                            </button>
-                        </div>
-                    </form>
+                <div class="mb-3">
+                    <label asp-for="AcademicPeriodId" class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                    <select asp-for="AcademicPeriodId" class="form-select fw-bold" asp-items="ViewBag.AcademicPeriodId" required></select>
                 </div>
-            </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhaseType" class="form-label fw-bold small text-muted">TIPO DE FASE</label>
+                    <select asp-for="PhaseType" class="form-select fw-bold" required>
+                        <option value="Inicial">Documentos Iniciales</option>
+                        <option value="Seguimiento1">1er Seguimiento</option>
+                        <option value="Seguimiento2">2do Seguimiento</option>
+                        <option value="Final">Reporte Final</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DepartamentoId" class="form-label fw-bold small text-muted">DEPARTAMENTO / CARRERA</label>
+                    <select asp-for="DepartamentoId" class="form-select fw-bold" asp-items="ViewBag.DepartamentoId">
+                        <option value="">-- Toda la Institución (General) --</option>
+                    </select>
+                    <small class="text-muted">Si se deja vacío, aplica para toda la institución.</small>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label asp-for="StartDate" class="form-label fw-bold small text-muted">FECHA DE APERTURA</label>
+                        <input asp-for="StartDate" type="datetime-local" class="form-control fw-bold" required />
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="DueDate" class="form-label fw-bold small text-muted">FECHA LÍMITE</label>
+                        <input asp-for="DueDate" type="datetime-local" class="form-control fw-bold" required />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary fw-bold">Cancelar</a>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Fecha</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

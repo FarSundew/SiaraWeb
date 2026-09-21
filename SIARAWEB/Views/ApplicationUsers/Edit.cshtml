@@ -40,6 +40,13 @@
                                 <span asp-validation-for="CURP" class="text-danger"></span>
                             </div>
                         </div>
+                        <div class="form-floating mb-3">
+                            <select asp-for="DepartamentoId" class="form-select" asp-items="ViewBag.Departamentos">
+                                <option value="">-- Sin departamento base (ej. Subdirector / TI) --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Departamento / Carrera de Adscripción</label>
+                            <span asp-validation-for="DepartamentoId" class="text-danger"></span>
+                        </div>
 
                         <div class="form-floating mb-3">
                             <select name="role" class="form-select" asp-items="ViewBag.Roles" required>

@@ -18,7 +18,7 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success fw-bold text-center">@TempData["Success"]</div>
+        <div class="alert alert-success fw-bold text-center shadow-sm">@TempData["Success"]</div>
     }
 
     <div class="row">
@@ -29,7 +29,7 @@
                     NUEVA CAPTURA
                 </div>
                 <div class="card-body">
-                    <form asp-action="Capture" method="post">
+                    <form asp-action="Capture" method="post" id="trackingForm">
                         <input type="hidden" asp-for="SubjectId" />
 
                         <div class="mb-3">
@@ -47,20 +47,36 @@
                         <div class="row mb-3">
                             <div class="col-6 mb-2">
                                 <label class="fw-bold" style="font-size: 12px;">TOTAL ALUMNOS</label>
-                                <input asp-for="TotalStudents" type="number" min="1" class="form-control text-center" required />
+                                <input asp-for="TotalStudents" id="txtTotal" type="number" min="1" class="form-control text-center" required />
                             </div>
                             <div class="col-6 mb-2">
                                 <label class="fw-bold text-success" style="font-size: 12px;">APROBADOS</label>
-                                <input asp-for="ApprovedStudents" type="number" min="0" class="form-control text-center text-success fw-bold" required />
+                                <input asp-for="ApprovedStudents" id="txtApproved" type="number" min="0" class="form-control text-center text-success fw-bold" required />
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold text-danger" style="font-size: 12px;">REPROBADOS</label>
-                                <input asp-for="FailedStudents" type="number" min="0" class="form-control text-center text-danger fw-bold" required />
+                                <input asp-for="FailedStudents" id="txtFailed" type="number" min="0" class="form-control text-center text-danger fw-bold" required />
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold text-muted" style="font-size: 12px;">DESERTORES</label>
-                                <input asp-for="DroppedStudents" type="number" min="0" class="form-control text-center fw-bold" required />
+                                <input asp-for="DroppedStudents" id="txtDropped" type="number" min="0" class="form-control text-center fw-bold" required />
                             </div>
+                        </div>
+
+                        <!-- 🟢 ALERTA Y CAMPO DINÁMICO DE ACCIÓN CORRECTIVA (>= 40% REPROBACIÓN) -->
+                        <div id="seccionAccionCorrectiva" class="mb-3 d-none">
+                            <div class="alert alert-warning py-2 px-3 border-start border-4 border-warning mb-2" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                <strong id="lblPorcentajeReprobacion">Reprobación: 0%</strong>
+                                <div style="font-size: 12px;" class="mt-1">
+                                    Por norma institucional, al superar el 40% de reprobación es obligatorio registrar la acción correctiva.
+                                </div>
+                            </div>
+
+                            <label class="fw-bold text-danger" style="font-size: 12px;">ACCIÓN CORRECTIVA A IMPLEMENTAR</label>
+                            <textarea asp-for="Observations" id="txtObservations" class="form-control" rows="3"
+                                      placeholder="Describa la estrategia (ej. asesorías extraordinarias, talleres de reforzamiento, etc.)..."></textarea>
+                            <span asp-validation-for="Observations" class="text-danger small"></span>
                         </div>
 
                         <button type="submit" class="btn-siara-3d w-100 mt-2">GUARDAR RENDIMIENTO</button>
@@ -77,32 +93,86 @@
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-striped align-middle text-center mb-0">
-                        <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
+                        <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 12px; text-transform: uppercase;">
                             <tr>
-                                <th>FASE</th>
-                                <th>TEMA</th>
-                                <th class="text-success">ACREDITACIÓN</th>
-                                <th class="text-danger">REPROBACIÓN</th>
-                                <th class="text-muted">DESERCIÓN</th>
-                                <th>JEFATURA</th>
-                                <th>ACCIONES</th>
+                                <th style="white-space: nowrap; width: 14%;">FASE</th>
+                                <th style="width: 10%;">TEMA</th>
+                                <th style="width: 12%;" class="text-success">ACREDITACIÓN</th>
+                                <th style="width: 12%;" class="text-danger">REPROBACIÓN</th>
+                                <th style="width: 10%;" class="text-muted">DESERCIÓN</th>
+                                <th style="width: 20%;">ACCIÓN CORRECTIVA</th>
+                                <th style="width: 12%;">JEFATURA</th>
+                                <th style="width: 10%;">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (subject.AcademicTrackings == null || !subject.AcademicTrackings.Any())
                             {
-                                <tr><td colspan="7" class="py-4 text-muted fw-bold">SIN REGISTROS AÚN</td></tr>
+                                <tr><td colspan="8" class="py-4 text-muted fw-bold">SIN REGISTROS AÚN</td></tr>
                             }
                             else
                             {
                                 @foreach (var track in subject.AcademicTrackings.OrderBy(t => t.UnitNumber))
                                 {
-                                    <tr style="font-weight: 900; font-size: 14px;">
-                                        <td class="text-primary">@(track.CutoffDate?.Name)</td>
+                                    <tr style="font-weight: 900; font-size: 13px;">
+                                        <td class="text-primary" style="white-space: nowrap;">
+                                            @(track.CutoffDate?.Name ?? "1er Seguimiento")
+                                        </td>
                                         <td>TEMA @track.UnitNumber</td>
                                         <td class="text-success">@track.ApprovalPercentage.ToString("F1")%</td>
                                         <td class="text-danger">@track.FailurePercentage.ToString("F1")%</td>
                                         <td class="text-muted">@track.DropoutPercentage.ToString("F1")%</td>
+
+                                        <!-- 🟢 Acción Correctiva con Modal Desplegable -->
+                                        <td>
+                                            @if (track.FailurePercentage >= 40)
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(track.Observations))
+                                                {
+                                                    <!-- Botón compacto para abrir la acción completa -->
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary fw-bold px-2 py-1"
+                                                            style="font-size: 11px; border-radius: 6px;"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalAccion_@track.Id"
+                                                            title="Ver acción correctiva">
+                                                        <i class="bi bi-eye-fill me-1"></i> Ver Plan
+                                                    </button>
+
+                                                    <!-- Modal con el texto íntegro -->
+                                                    <div class="modal fade" id="modalAccion_@track.Id" tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content text-start border-0 shadow">
+                                                                <div class="modal-header text-white" style="background-color: #112d60;">
+                                                                    <h6 class="modal-title fw-bold">
+                                                                        <i class="bi bi-tools text-warning me-2"></i> Acción Correctiva - Tema @track.UnitNumber
+                                                                    </h6>
+                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                                </div>
+                                                                <div class="modal-body p-3 bg-light">
+                                                                    <div class="p-3 bg-white border rounded shadow-sm">
+                                                                        <span class="text-muted small d-block mb-2">Estrategia registrada para reducir la reprobación (@track.FailurePercentage.ToString("F1")%):</span>
+                                                                        <p class="text-dark m-0" style="white-space: pre-wrap; font-weight: normal; font-size: 13px;">@track.Observations</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer bg-light p-2">
+                                                                    <button type="button" class="btn btn-sm btn-secondary fw-bold px-3" data-bs-dismiss="modal">Cerrar</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger text-wrap" style="font-size: 10px;">SIN ACCIÓN REGISTRADA</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fw-normal" style="font-size: 11px;">N/A (&lt; 40%)</span>
+                                            }
+                                        </td>
+
                                         <td>
                                             @if (track.ApprovalStatus == "Aprobado")
                                             {
@@ -110,12 +180,10 @@
                                             }
                                             else if (track.ApprovalStatus == "Rechazado")
                                             {
-
                                                 <span class="badge bg-danger" title="@track.Feedback">RECHAZADO</span>
                                             }
                                             else
                                             {
-
                                                 <span class="badge bg-warning text-dark">PENDIENTE</span>
                                             }
                                         </td>
@@ -123,7 +191,7 @@
                                             <form asp-action="Delete" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@track.Id" />
                                                 <input type="hidden" name="subjectId" value="@subject.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('¿Eliminar?');">🗑️</button>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('¿Eliminar registro del tema?');">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -136,3 +204,40 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const txtTotal = document.getElementById("txtTotal");
+            const txtFailed = document.getElementById("txtFailed");
+            const contenedorAccion = document.getElementById("seccionAccionCorrectiva");
+            const txtObservations = document.getElementById("txtObservations");
+            const lblPorcentaje = document.getElementById("lblPorcentajeReprobacion");
+
+            function evaluarReprobacion() {
+                const total = parseFloat(txtTotal.value) || 0;
+                const reprobados = parseFloat(txtFailed.value) || 0;
+
+                if (total > 0) {
+                    const porcentajeReprobados = (reprobados / total) * 100;
+
+                    if (porcentajeReprobados >= 40) {
+                        lblPorcentaje.innerText = `Reprobación: ${porcentajeReprobados.toFixed(1)}% (≥ 40%)`;
+                        contenedorAccion.classList.remove("d-none");
+                        txtObservations.setAttribute("required", "required");
+                    } else {
+                        contenedorAccion.classList.add("d-none");
+                        txtObservations.removeAttribute("required");
+                        txtObservations.value = "";
+                    }
+                } else {
+                    contenedorAccion.classList.add("d-none");
+                    txtObservations.removeAttribute("required");
+                }
+            }
+
+            txtTotal.addEventListener("input", evaluarReprobacion);
+            txtFailed.addEventListener("input", evaluarReprobacion);
+        });
+    </script>
+}

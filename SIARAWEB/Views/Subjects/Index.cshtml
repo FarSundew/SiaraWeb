@@ -1,88 +1,242 @@
 ﻿@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
-    ViewData["Title"] = "Gestión de Asignaturas";
+    ViewData["Title"] = "Catálogo de Asignaturas";
+    Layout = null; // Centrado limpio sin duplicar barras de navegación externas
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold" style="color: #112d60;">Catálogo de Asignaturas</h2>
-            <p class="text-muted m-0">Administra las materias y visualiza a los docentes titulares vinculados.</p>
-        </div>
-        <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-            <i class="bi bi-journal-plus me-2"></i> Nueva Asignatura
-        </a>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SIARA</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/estilos.css" />
+    <style>
+        body {
+            background-color: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        .modal-academic-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid #dcdcdc;
+            overflow: visible;
+        }
 
-    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background-color: #112d60; color: #ffffff;">
+        .modal-academic-header {
+            background-color: #0c2340;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 900;
+            padding: 14px 20px;
+            font-size: 1.15rem;
+            letter-spacing: 2px;
+            border-radius: 11px 11px 0 0;
+            text-transform: uppercase;
+        }
+
+        .btn-cerrar-rojo {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background-color: #ffffff;
+            border: 2px solid #d9534f;
+            color: #d9534f;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 16px;
+            z-index: 20;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+            transition: all 0.2s ease;
+        }
+
+            .btn-cerrar-rojo:hover {
+                background-color: #d9534f;
+                color: #ffffff;
+            }
+
+        .academic-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+            .academic-table thead th {
+                background-color: #0c2340;
+                color: #ffffff;
+                font-size: 12px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                text-align: center;
+                vertical-align: middle;
+                padding: 12px 8px;
+                border: 1px solid #ffffff;
+            }
+
+            .academic-table tbody td {
+                border: 1px solid #000000;
+                padding: 12px 10px;
+                font-size: 13px;
+                font-weight: 800;
+                color: #000000;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .academic-table tbody tr:hover {
+                background-color: #f9fbfd;
+            }
+
+        .btn-pill-action {
+            background: linear-gradient(180deg, #5b7f95 0%, #3e5f73 100%);
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 12px;
+            padding: 7px 28px;
+            border-radius: 18px;
+            text-transform: uppercase;
+            border: 1px solid #2d4555;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.25);
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.1s ease, filter 0.2s ease;
+        }
+
+            .btn-pill-action:hover {
+                filter: brightness(1.1);
+                transform: translateY(-1px);
+            }
+
+        .icon-action-btn {
+            color: #000000;
+            font-size: 18px;
+            text-decoration: none;
+            margin: 0 6px;
+            display: inline-block;
+            transition: color 0.15s ease;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+            .icon-action-btn:hover {
+                color: #0c2340;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="modal-academic-container">
+        <!-- Botón de Cerrar (Círculo rojo superior derecho) -->
+        <a asp-controller="Home" asp-action="Index" class="btn-cerrar-rojo" title="Cerrar">&#10005;</a>
+
+        <!-- Encabezado Azul Marino -->
+        <div class="modal-academic-header">
+            ASIGNATURAS
+        </div>
+
+        <!-- Alertas de retroalimentación -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success m-3 mb-0 py-2 text-center fw-bold border-0 shadow-sm">
+                @TempData["Success"]
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger m-3 mb-0 py-2 text-center fw-bold border-0 shadow-sm">
+                @TempData["Error"]
+            </div>
+        }
+
+        <!-- Tabla Estructurada -->
+        <div class="p-4 pb-2 table-responsive">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">CLAVE</th>
+                        <th style="width: 33%;">NOMBRE &#128269;</th>
+                        <th style="width: 15%;">HORAS - SEMANA</th>
+                        <th style="width: 11%;">TEMAS</th>
+                        <th style="width: 16%;">SEMESTRE</th>
+                        <th style="width: 10%;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
                         <tr>
-                            <th class="py-3 px-4">Clave</th>
-                            <th class="py-3 px-4">Nombre de la Asignatura</th>
-                            <th class="py-3 px-4">Departamento</th>
-                            <th class="py-3 px-4">Periodo Escolar</th>
-                            <th class="py-3 px-4">Docente(s) Asignado(s)</th>
-                            <th class="py-3 px-4 text-end">Acciones</th>
+                            <td colspan="6" class="py-4 text-muted fw-bold">
+                                No hay asignaturas registradas en el catálogo maestro.
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (!Model.Any())
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No hay asignaturas registradas actualmente.</td>
-                            </tr>
-                        }
-
+                    }
+                    else
+                    {
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="px-4 fw-bold">
-                                    <span class="badge bg-secondary px-3 py-2">@(string.IsNullOrEmpty(item.Code) ? "S/C" : item.Code)</span>
-                                </td>
-                                <td class="px-4 fw-bold text-dark">@item.Name</td>
-                                <td class="px-4 text-muted">@(item.Departamento?.Name ?? "N/A")</td>
-                                <td class="px-4 text-primary">
-                                    <i class="bi bi-calendar3 me-1"></i> @(item.AcademicPeriod?.Name ?? "N/A")
-                                </td>
-                                <td class="px-4">
-                                    @if (item.DocenteAsignaturas != null && item.DocenteAsignaturas.Any())
-                                    {
-                                        <ul class="list-unstyled m-0">
-                                            @foreach (var da in item.DocenteAsignaturas)
-                                            {
-                                                <li><i class="bi bi-person-badge text-success me-1"></i> @(da.Docente?.FullName ?? "Docente sin nombre")</li>
-                                            }
-                                        </ul>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle"></i> Sin docentes asignados</span>
-                                    }
-                                </td>
-                                <td class="px-4 text-end">
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" onclick="return confirm('¿Estás seguro de eliminar esta asignatura?');">
-                                            <i class="bi bi-trash"></i> Eliminar
-                                        </button>
-                                    </form>
+                                <td>@item.Code</td>
+                                <td style="text-align: left; padding-left: 15px; text-transform: uppercase;">@item.Name</td>
+                                <td>5</td>
+                                <td>6</td>
+                                <td style="text-transform: uppercase;">3ER SEMESTRE</td>
+                                <td>
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <!-- Editar -->
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="icon-action-btn" title="Editar">&#9998;</a>
+
+                                        <!-- Eliminar con confirmación -->
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta asignatura?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="icon-action-btn text-danger" title="Eliminar">&#128465;</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Botones Inferiores de Navegación -->
+        <div class="d-flex justify-content-between align-items-center p-4 pt-2">
+            <a asp-controller="Home" asp-action="Index" class="btn-pill-action">
+                SALIR
+            </a>
+            <div class="d-flex gap-3">
+                <button type="button" class="btn-pill-action" onclick="window.print();">
+                    GUARDAR
+                </button>
+                <a asp-action="Create" class="btn-pill-action">
+                    AGREGAR
+                </a>
             </div>
         </div>
     </div>
-</div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

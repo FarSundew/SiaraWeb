@@ -8,89 +8,226 @@
     var proximoCorte = ViewBag.ProximoCorte as SIARAWEB.Models.CutoffDate;
 }
 
-<div class="container-fluid mt-4">
+<style>
+    .modal-academic-card {
+        background-color: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid #dcdcdc;
+        position: relative;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
 
-    <!-- 🟢 NAVEGACIÓN ENTRE PERIODOS (FLECHAS) -->
-    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; background-color: #112d60; color: white;">
-        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+    .modal-academic-header {
+        background-color: #0c2340;
+        color: #ffffff;
+        text-align: center;
+        padding: 14px 20px;
+        font-weight: 900;
+        font-size: 1.15rem;
+        letter-spacing: 2px;
+        position: relative;
+    }
 
-            <!-- Flecha Izquierda (Periodos más antiguos) -->
-            <div style="width: 150px; text-align: left;">
-                @if (anteriorPeriodo != null)
-                {
-                    <a asp-action="Index" asp-route-periodoId="@anteriorPeriodo.Id" class="btn btn-outline-light btn-sm fw-bold border-0">
-                        <i class="bi bi-chevron-left me-1"></i> Anterior
-                    </a>
-                }
-            </div>
+    .modal-close-btn {
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        background: #ffffff;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d90429;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
 
-            <!-- Centro: Periodo Actual -->
-            <div class="text-center flex-grow-1">
-                <span class="text-uppercase small fw-bold" style="letter-spacing: 1px; color: #f4a915;">PERIODO ESCOLAR ACTUAL</span>
-                <h4 class="m-0 fw-bold">@(periodoActivo?.Name ?? "Sin Periodo Activo")</h4>
-            </div>
+    .academic-table {
+        margin-bottom: 0;
+        border-collapse: collapse;
+        width: 100%;
+    }
 
-            <!-- Flecha Derecha (Periodos más nuevos) -->
-            <div style="width: 150px; text-align: right;">
-                @if (siguientePeriodo != null)
-                {
-                    <a asp-action="Index" asp-route-periodoId="@siguientePeriodo.Id" class="btn btn-outline-light btn-sm fw-bold border-0">
-                        Siguiente <i class="bi bi-chevron-right ms-1"></i>
-                    </a>
-                }
-            </div>
+        .academic-table thead th {
+            background-color: #0c2340;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px 8px;
+            border: 1px solid #ffffff;
+        }
 
+        .academic-table tbody td {
+            border: 1px solid #000000;
+            padding: 12px 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #000000;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .academic-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+    .btn-pill-custom {
+        background: linear-gradient(180deg, #4f7cac 0%, #2c5282 100%);
+        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 8px 30px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        border: 1px solid #1a365d;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        letter-spacing: 1px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+
+        .btn-pill-custom:hover {
+            background: linear-gradient(180deg, #2c5282 0%, #1a365d 100%);
+            transform: translateY(-1px);
+        }
+
+    .action-icon-btn {
+        background: none;
+        border: none;
+        color: #1a202c;
+        font-size: 15px;
+        margin: 0 4px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .action-icon-btn:hover {
+            color: #2b6cb0;
+        }
+</style>
+
+<div class="container py-4">
+
+    <!-- 🟢 NAVEGACIÓN Y PERIODO ESCOLAR -->
+    <div class="d-flex justify-content-between align-items-center mb-3" style="max-width: 1100px; margin: 0 auto;">
+        <div>
+            @if (anteriorPeriodo != null)
+            {
+                <a asp-action="Index" asp-route-periodoId="@anteriorPeriodo.Id" class="btn btn-sm btn-outline-secondary fw-bold">
+                    <i class="bi bi-chevron-left"></i> Periodo Anterior (@anteriorPeriodo.Name)
+                </a>
+            }
+        </div>
+        <div class="text-center">
+            <span class="badge px-3 py-2 fs-6" style="background-color: #f4a915; color: #112d60; font-weight: bold; border-radius: 20px;">
+                <i class="bi bi-calendar-check me-1"></i> @(periodoActivo?.Name ?? "Sin Periodo Activo")
+            </span>
+        </div>
+        <div>
+            @if (siguientePeriodo != null)
+            {
+                <a asp-action="Index" asp-route-periodoId="@siguientePeriodo.Id" class="btn btn-sm btn-outline-secondary fw-bold">
+                    Periodo Siguiente (@siguientePeriodo.Name) <i class="bi bi-chevron-right"></i>
+                </a>
+            }
         </div>
     </div>
 
-    <!-- 🟢 AVISO DE FECHA DE CORTE (Solo para el periodo seleccionado) -->
+    <!-- AVISO DE FECHA DE CORTE ACTIVA -->
     @if (proximoCorte != null)
     {
-        <div class="alert alert-warning shadow-sm border-0 d-flex align-items-center mb-4" style="border-left: 5px solid #ffc107 !important;">
-            <i class="bi bi-clock-history fs-3 me-3 text-warning"></i>
+        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-3" style="max-width: 1100px; margin: 0 auto; border-left: 5px solid #ffc107 !important;">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
             <div>
-                <h6 class="fw-bold mb-1 text-dark">FASE ACTIVA: @proximoCorte.Name.ToUpper()</h6>
-                <p class="m-0 text-muted small">Cierre programado para el <strong>@proximoCorte.DueDate.ToString("dd/MMM/yyyy HH:mm")</strong>.</p>
+                <strong>CORTE PRÓXIMO: @proximoCorte.Name.ToUpper()</strong>
+                <span class="d-block small text-muted">Fecha límite: @proximoCorte.DueDate.ToString("dd/MM/yyyy HH:mm") hrs.</span>
             </div>
         </div>
     }
 
-    <!-- 🟢 MATERIAS DEL PERIODO SELECCIONADO -->
-    <div class="row">
-        @if (!Model.Any())
-        {
-            <div class="col-12">
-                <div class="alert alert-info text-center fw-bold shadow-sm border-0">
-                    No tienes materias asignadas para este periodo escolar.
-                </div>
-            </div>
-        }
-        else
-        {
-            @foreach (var materia in Model)
-            {
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; border-bottom: 4px solid #f4a915 !important;">
-                        <div class="card-body">
-                            <h5 class="fw-bold text-dark mb-1">@materia.Name</h5>
-                            <p class="text-muted small mb-3">Clave: <strong>@materia.Code</strong></p>
+    <!-- 🟢 VENTANA MODAL CONTENEDORA DE ASIGNATURAS -->
+    <div class="modal-academic-card">
+        <!-- Cabecera -->
+        <div class="modal-academic-header">
+            ASIGNATURAS
+            <a asp-controller="Home" asp-action="Index" class="modal-close-btn" title="Cerrar ventana">×</a>
+        </div>
 
-                            <!-- Botones que envían al maestro a subir documentos o calificaciones -->
-                            <div class="d-flex gap-2">
-                                <a asp-controller="Documents" asp-action="Upload" asp-route-id="@materia.Id" class="btn btn-sm btn-outline-primary fw-bold w-100" style="border-radius: 6px;">
-                                    <i class="bi bi-folder-plus"></i> Documentos
-                                </a>
-                                @if (proximoCorte == null || proximoCorte.PhaseType != "Inicial")
-                                {
-                                    <a asp-controller="AcademicTrackings" asp-action="Capture" asp-route-id="@materia.Id" class="btn btn-sm btn-outline-success fw-bold w-100" style="border-radius: 6px;">
-                                        <i class="bi bi-bar-chart"></i> Seguimiento
+        <!-- Tabla -->
+        <div class="table-responsive p-4 pb-2">
+            <table class="academic-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">CLAVE</th>
+                        <th style="width: 35%;">NOMBRE <i class="bi bi-search ms-1" style="font-size: 11px;"></i></th>
+                        <th style="width: 15%;">HORAS - SEMANA</th>
+                        <th style="width: 10%;">TEMAS</th>
+                        <th style="width: 15%;">SEMESTRE</th>
+                        <th style="width: 10%;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="py-4 text-muted">
+                                No se encontraron asignaturas registradas para este periodo.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Code</td>
+                                <td style="text-align: left; padding-left: 15px;">@item.Name</td>
+                                <td>5</td>
+                                <td>6</td>
+                                <td>3ER SEMESTRE</td>
+                                <td>
+                                    <a asp-controller="Documents" asp-action="Upload" asp-route-id="@item.Id" class="action-icon-btn" title="Subir Documentación">
+                                        <i class="bi bi-pencil-fill"></i>
                                     </a>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+                                    <a asp-controller="AcademicTrackings" asp-action="Index" asp-route-subjectId="@item.Id" class="action-icon-btn" title="Seguimiento / Calificaciones">
+                                        <i class="bi bi-bar-chart-fill text-primary"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Barra inferior de acciones -->
+        <div class="d-flex justify-content-between align-items-center p-4 pt-2">
+            <a asp-controller="Home" asp-action="Index" class="btn-pill-custom">
+                SALIR
+            </a>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn-pill-custom" onclick="window.print();">
+                    GUARDAR
+                </button>
+                @if (User.IsInRole("JefeCarrera") || User.IsInRole("Administrador"))
+                {
+                    <a asp-controller="Subjects" asp-action="Create" class="btn-pill-custom">
+                        AGREGAR
+                    </a>
+                }
+            </div>
+        </div>
     </div>
 </div>

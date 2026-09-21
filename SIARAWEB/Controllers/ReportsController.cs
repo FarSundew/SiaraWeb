@@ -1,26 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SIARAWEB.Data; // Ajusta este namespace al de tu proyecto si es distinto
+using SIARAWEB.Data;
 using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
+    [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ReportsController(ApplicationDbContext context)
+        public ReportsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
+        // GET: Reports (Semáforo de Cumplimiento Docente)
+        public async Task<IActionResult> Index(int? periodoId)
         {
-            // 1. Obtenemos todas las materias con sus documentos, fechas de corte y docentes asignados
-            var asignaturas = await _context.Subjects
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return RedirectToAction("Login", "Account");
+
+            // 1. Determinar el periodo seleccionado o el activo por defecto
+            var periodoActivo = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
+                                ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
+
+            int activePeriodId = periodoId ?? periodoActivo?.Id ?? 0;
+
+            // 2. Consulta base filtrada por periodo
+            var query = _context.Subjects
+                .Include(s => s.Departamento)
+                .Include(s => s.AcademicPeriod)
                 .Include(s => s.DocenteAsignaturas!).ThenInclude(da => da.Docente)
                 .Include(s => s.Documents!).ThenInclude(d => d.CutoffDate)
-                .ToListAsync();
+                .Where(s => s.AcademicPeriodId == activePeriodId)
+                .AsQueryable();
+
+            // 🔒 REGLA MULTI-TENANT: Si es Jefe de Carrera, se filtra estrictamente por SU departamento
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
+            {
+                query = query.Where(s => s.DepartamentoId == currentUser.DepartamentoId);
+            }
+
+            var asignaturas = await query.OrderBy(s => s.Name).ToListAsync();
 
             var listaSemaforo = new List<SemaforoViewModel>();
 
@@ -34,7 +60,7 @@ namespace SIARAWEB.Controllers
                     DocenteName = materia.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin asignar"
                 };
 
-                // 2. Función local para evaluar el color del semáforo por cada fase
+                // Función local para evaluar el color del semáforo por cada fase
                 string EvaluarSemaforo(string phaseType)
                 {
                     var docsFase = materia.Documents?.Where(d => d.CutoffDate?.PhaseType == phaseType).ToList();
@@ -46,7 +72,6 @@ namespace SIARAWEB.Controllers
                     return tieneAtraso ? "bg-danger" : "bg-success";
                 }
 
-                // 3. Asignamos los colores evaluando automáticamente las 4 fases
                 item.ColorInicial = EvaluarSemaforo("Inicial");
                 item.ColorSeg1 = EvaluarSemaforo("Seguimiento1");
                 item.ColorSeg2 = EvaluarSemaforo("Seguimiento2");
@@ -55,52 +80,122 @@ namespace SIARAWEB.Controllers
                 listaSemaforo.Add(item);
             }
 
-            return View(listaSemaforo);
-            // Estadísticas simuladas para la Gráfica de Pastel (Rendimiento)
-            ViewBag.Aprobacion = 75;
-            ViewBag.Reprobacion = 15;
-            ViewBag.Desercion = 10;
+            // 3. Estadísticas para Gráficas: Calculadas ÚNICAMENTE sobre las materias y periodo en pantalla
+            var subjectIds = asignaturas.Select(s => s.Id).ToList();
+            var allTrackings = await _context.AcademicTrackings
+                .Where(t => subjectIds.Contains(t.SubjectId))
+                .ToListAsync();
 
-            // Estadísticas REALES calculadas desde tu semáforo para la Gráfica de Barras
+            ViewBag.Aprobacion = allTrackings.Any() ? Math.Round(allTrackings.Average(t => t.ApprovalPercentage), 1) : 0;
+            ViewBag.Reprobacion = allTrackings.Any() ? Math.Round(allTrackings.Average(t => t.FailurePercentage), 1) : 0;
+            ViewBag.Desercion = allTrackings.Any() ? Math.Round(allTrackings.Average(t => t.DropoutPercentage), 1) : 0;
+
             ViewBag.DocsATiempo = listaSemaforo.Count(s => s.ColorInicial == "bg-success");
             ViewBag.DocsDesfasados = listaSemaforo.Count(s => s.ColorInicial == "bg-danger");
             ViewBag.DocsPendientes = listaSemaforo.Count(s => s.ColorInicial == "bg-secondary");
+
+            ViewBag.Periodos = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
+            ViewBag.PeriodoSeleccionado = activePeriodId;
+
+            return View(listaSemaforo);
         }
 
-        // GET: Reports/Details/5
-        public async Task<IActionResult> Details(int id)
+        // GET: Reports/Details/5?faseSeleccionada=Inicial
+        public async Task<IActionResult> Details(int id, string? faseSeleccionada)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+
             var materia = await _context.Subjects
-                .Include(s => s.DocenteAsignaturas!).ThenInclude(da => da.Docente)
-                .Include(s => s.Documents!).ThenInclude(d => d.CutoffDate)
+                .Include(s => s.AcademicPeriod)
+                .Include(s => s.Departamento)
+                .Include(s => s.DocenteAsignaturas!)
+                    .ThenInclude(da => da.Docente)
+                .Include(s => s.Documents!)
+                    .ThenInclude(d => d.CutoffDate)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (materia == null)
+            if (materia == null) return NotFound();
+
+            // 🔒 Validación de seguridad cruzada
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
             {
-                return NotFound();
+                if (materia.DepartamentoId != currentUser?.DepartamentoId)
+                {
+                    return Forbid(); // No puede auditar materias de otra carrera
+                }
             }
+
+            string faseActual = faseSeleccionada ?? "Inicial";
+
+            var documentosPorFase = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                {
+                    "Inicial", new List<string> {
+                        "Instrumentación Didáctica",
+                        "Instrumentos de Evaluación",
+                        "Prácticas de Laboratorio",
+                        "Proyecto Individual",
+                        "Evaluación Diagnóstica"
+                    }
+                },
+                {
+                    "Seguimiento1", new List<string> {
+                        "Avance (apart. 6)",
+                        "Calif. Parc. (Calificaciones Parciales)",
+                        "Instr. Eval. (Instrumentos de Evaluación)",
+                        "Eval. Diagn. (Evaluación Diagnóstica)",
+                        "Avance Proy. Ind. (Proyecto Individual)"
+                    }
+                },
+                {
+                    "Seguimiento2", new List<string> {
+                        "Avance Programático (apart. 6)",
+                        "Instrumentos de Evaluación",
+                        "Reporte de Seguimiento Intermedio"
+                    }
+                },
+                {
+                    "Final", new List<string> {
+                        "Acta de Calificaciones",
+                        "Instrumentos de Evaluación Finales",
+                        "Cierre de Proyecto / Reporte Final"
+                    }
+                }
+            };
+
+            ViewBag.FaseActual = faseActual;
+            ViewBag.DocumentosRequeridos = documentosPorFase.ContainsKey(faseActual)
+                ? documentosPorFase[faseActual]
+                : new List<string>();
 
             return View(materia);
         }
+
+        // POST: Reports/ReviewDocument (Aprobar o Rechazar con Feedback)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "JefeCarrera")] // 🔒 Exclusivo del Jefe de Carrera
         public async Task<IActionResult> ReviewDocument(int documentId, int subjectId, string? feedback, string status)
         {
-            // 1. Buscamos el documento exacto en la base de datos
-            var document = await _context.Documents.FindAsync(documentId);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var document = await _context.Documents
+                .Include(d => d.Subject)
+                .FirstOrDefaultAsync(d => d.Id == documentId);
 
             if (document != null)
             {
-                // 2. Actualizamos el estado (Aprobado o Rechazado)
-                document.ApprovalStatus = status;
+                // 🔒 Seguridad: Verificar que el documento pertenezca a la carrera del usuario
+                if (document.Subject?.DepartamentoId != currentUser?.DepartamentoId && !User.IsInRole("Administrador"))
+                {
+                    return Forbid();
+                }
 
-                // 3. Guardamos la retroalimentación (o un texto vacío si no escribieron nada)
+                document.ApprovalStatus = status;
                 document.Feedback = feedback ?? string.Empty;
 
                 _context.Documents.Update(document);
                 await _context.SaveChangesAsync();
 
-                // Mensaje de éxito que tu vista ya está configurada para mostrar
                 TempData["Success"] = $"El documento fue {status.ToUpper()} con éxito.";
             }
             else
@@ -108,8 +203,105 @@ namespace SIARAWEB.Controllers
                 TempData["Error"] = "Hubo un problema al encontrar el documento.";
             }
 
-            // 4. Redirigimos de vuelta a la misma pantalla de auditoría para ver los cambios
             return RedirectToAction(nameof(Details), new { id = subjectId });
+        }
+
+        // GET: Reports/GeneralReport (Sábana General de Calificaciones)
+        public async Task<IActionResult> GeneralReport(int? periodId, int? cutoffDateId, string? search, bool onlyHighRisk = false)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var currentPeriod = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
+                                ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
+
+            int activePeriodId = periodId ?? currentPeriod?.Id ?? 0;
+
+            var query = _context.AcademicTrackings
+                .Include(t => t.Subject)
+                    .ThenInclude(s => s!.DocenteAsignaturas!)
+                        .ThenInclude(da => da.Docente)
+                .Include(t => t.Subject)
+                    .ThenInclude(s => s!.Departamento)
+                .Include(t => t.CutoffDate)
+                .Where(t => t.Subject != null && t.Subject.AcademicPeriodId == activePeriodId)
+                .AsQueryable();
+
+            // 🔒 REGLA MULTI-TENANT: El Jefe de Carrera solo ve su propio departamento en la sábana
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
+            {
+                query = query.Where(t => t.Subject!.DepartamentoId == currentUser.DepartamentoId);
+            }
+
+            if (cutoffDateId.HasValue && cutoffDateId.Value > 0)
+            {
+                query = query.Where(t => t.CutoffDateId == cutoffDateId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                string cleanSearch = search.Trim().ToLower();
+                query = query.Where(t =>
+                    t.Subject!.Name.ToLower().Contains(cleanSearch) ||
+                    t.Subject.Code.ToLower().Contains(cleanSearch) ||
+                    t.Subject.DocenteAsignaturas.Any(da => da.Docente != null && da.Docente.FullName.ToLower().Contains(cleanSearch)));
+            }
+
+            if (onlyHighRisk)
+            {
+                query = query.Where(t => t.FailurePercentage >= 40.0m);
+            }
+
+            var trackings = await query
+                .OrderBy(t => t.Subject!.Name)
+                .ThenBy(t => t.CutoffDateId)
+                .ThenBy(t => t.UnitNumber)
+                .ToListAsync();
+
+            var rows = trackings.Select(t => new TrackingReportRowItem
+            {
+                TrackingId = t.Id,
+                SubjectId = t.SubjectId,
+                SubjectCode = t.Subject?.Code ?? "-",
+                SubjectName = t.Subject?.Name ?? "-",
+                TeacherName = t.Subject?.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin asignar",
+                CareerName = t.Subject?.Departamento?.Name ?? "General",
+                PhaseName = t.CutoffDate?.Name ?? "Seguimiento",
+                UnitNumber = t.UnitNumber,
+                TotalStudents = t.TotalStudents,
+                ApprovedStudents = t.ApprovedStudents,
+                FailedStudents = t.FailedStudents,
+                DroppedStudents = t.DroppedStudents,
+                ApprovalPercentage = t.ApprovalPercentage,
+                FailurePercentage = t.FailurePercentage,
+                DropoutPercentage = t.DropoutPercentage,
+                CorrectiveAction = t.Observations,
+                ApprovalStatus = t.ApprovalStatus
+            }).ToList();
+
+            var cutoffDatesQuery = _context.CutoffDates
+                .Where(c => c.AcademicPeriodId == activePeriodId && c.PhaseType != "Inicial");
+
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
+            {
+                cutoffDatesQuery = cutoffDatesQuery.Where(c => c.DepartamentoId == currentUser.DepartamentoId || c.DepartamentoId == null);
+            }
+
+            var viewModel = new GeneralTrackingReportViewModel
+            {
+                SelectedPeriodId = activePeriodId,
+                SelectedCutoffDateId = cutoffDateId,
+                SearchTeacherOrSubject = search,
+                OnlyHighRisk = onlyHighRisk,
+                AcademicPeriods = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync(),
+                CutoffDates = await cutoffDatesQuery.ToListAsync(),
+                TrackingRows = rows,
+                TotalGroupsEvaluated = rows.Select(r => r.SubjectId).Distinct().Count(),
+                TotalHighRiskUnits = rows.Count(r => r.IsHighRisk),
+                GlobalApprovalAverage = rows.Any() ? Math.Round(rows.Average(r => r.ApprovalPercentage), 1) : 0,
+                GlobalFailureAverage = rows.Any() ? Math.Round(rows.Average(r => r.FailurePercentage), 1) : 0
+            };
+
+            return View(viewModel);
         }
     }
 }

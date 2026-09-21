@@ -1,0 +1,211 @@
+﻿@model IEnumerable<SIARAWEB.Models.Subject>
+
+@{
+    ViewData["Title"] = "Supervisión Institucional - Subdirección";
+    string faseActual = ViewBag.FaseActual ?? "Inicial";
+    var documentosRequeridos = ViewBag.DocumentosRequeridos as List<string> ?? new List<string>();
+    var periodos = ViewBag.Periodos as List<SIARAWEB.Models.AcademicPeriod> ?? new List<SIARAWEB.Models.AcademicPeriod>();
+    var departamentos = ViewBag.Departamentos as List<SIARAWEB.Models.Departamento> ?? new List<SIARAWEB.Models.Departamento>();
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado Directivo -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin: 0;">
+                <i class="bi bi-compass-fill me-2"></i> MAPA GENERAL DE SUPERVISIÓN INSTITUCIONAL
+            </h3>
+            <p class="text-muted fw-bold mt-1 mb-0">Vista panorámica de cumplimiento documental y auditoría para la Subdirección Académica.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Reports" asp-action="GeneralReport" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
+                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Concentrado Calificaciones
+            </a>
+            <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-secondary fw-bold shadow-sm" style="border-radius: 8px;">
+                <i class="bi bi-traffic-light me-1"></i> Semáforo Global
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros de Departamento y Periodo Escolar -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-light">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <input type="hidden" name="faseSeleccionada" value="@faseActual" />
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                <select name="periodoId" class="form-select form-select-sm fw-bold">
+                    @foreach (var p in periodos)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == (int?)ViewBag.PeriodoSeleccionado)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-bold small text-muted">CARRERA / DEPARTAMENTO ACADÉMICO</label>
+                <select name="departamentoId" class="form-select form-select-sm fw-bold">
+                    <option value="">-- Toda la Institución (Todas las Carreras) --</option>
+                    @foreach (var d in departamentos)
+                    {
+                        <option value="@d.Id" selected="@(d.Id == (int?)ViewBag.DepartamentoSeleccionado)">@d.Name (@d.Code)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-sm btn-primary fw-bold px-4">FILTRAR</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary fw-bold">REINICIAR</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Métricas Consolidadas Institucionales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-primary p-3">
+                <div class="text-muted fw-bold small">TOTAL ASIGNATURAS AUDITADAS</div>
+                <div class="fs-3 fw-bold text-dark">@ViewBag.TotalMaterias</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-success p-3">
+                <div class="text-muted fw-bold small">ARCHIVOS A TIEMPO (@faseActual)</div>
+                <div class="fs-3 fw-bold text-success">@ViewBag.TotalEntregasTiempo</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-danger p-3">
+                <div class="text-muted fw-bold small">ARCHIVOS CON RETRASO (@faseActual)</div>
+                <div class="fs-3 fw-bold text-danger">@ViewBag.TotalEntregasRetraso</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-secondary p-3">
+                <div class="text-muted fw-bold small">NO APLICA (N/A)</div>
+                <div class="fs-3 fw-bold text-secondary">@ViewBag.TotalNoAplica</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación por Fases de Seguimiento -->
+    <div class="nav nav-pills mb-4 p-2 bg-light rounded shadow-sm d-flex justify-content-center gap-3">
+        <a asp-action="Index" asp-route-periodoId="@ViewBag.PeriodoSeleccionado" asp-route-departamentoId="@ViewBag.DepartamentoSeleccionado" asp-route-faseSeleccionada="Inicial"
+           class="btn fw-bold @(faseActual == "Inicial" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-file-earmark-text"></i> Doc. Iniciales
+        </a>
+        <a asp-action="Index" asp-route-periodoId="@ViewBag.PeriodoSeleccionado" asp-route-departamentoId="@ViewBag.DepartamentoSeleccionado" asp-route-faseSeleccionada="Seguimiento1"
+           class="btn fw-bold @(faseActual == "Seguimiento1" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-1-circle"></i> 1er Seguimiento
+        </a>
+        <a asp-action="Index" asp-route-periodoId="@ViewBag.PeriodoSeleccionado" asp-route-departamentoId="@ViewBag.DepartamentoSeleccionado" asp-route-faseSeleccionada="Seguimiento2"
+           class="btn fw-bold @(faseActual == "Seguimiento2" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-2-circle"></i> 2do Seguimiento
+        </a>
+        <a asp-action="Index" asp-route-periodoId="@ViewBag.PeriodoSeleccionado" asp-route-departamentoId="@ViewBag.DepartamentoSeleccionado" asp-route-faseSeleccionada="Final"
+           class="btn fw-bold @(faseActual == "Final" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-check2-circle"></i> Reporte Final
+        </a>
+    </div>
+
+    <!-- Matriz Sábana de Cumplimiento Documental -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60; text-transform: uppercase;">
+            <i class="bi bi-table me-2"></i> AUDITORÍA DE EVIDENCIAS EN: @(faseActual == "Inicial" ? "DOCUMENTOS INICIALES" : faseActual)
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 12px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th style="width: 12%;">CARRERA</th>
+                            <th style="width: 14%;">MATERIA</th>
+                            <th style="width: 14%;">DOCENTE</th>
+                            @foreach (var docName in documentosRequeridos)
+                            {
+                                <th>@docName.ToUpper()</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="@(3 + documentosRequeridos.Count)" class="py-4 text-muted fw-bold">
+                                    No se encontraron asignaturas bajo el filtro seleccionado.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var materia in Model)
+                            {
+                                var docente = materia.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin asignar";
+                                <tr>
+                                    <td class="fw-bold text-start ps-2">
+                                        <span class="badge bg-secondary">@(materia.Departamento?.Code ?? "GEN")</span>
+                                    </td>
+                                    <td class="text-start fw-bold">
+                                        <span class="d-block text-dark">@materia.Name</span>
+                                        <small class="text-muted">@materia.Code</small>
+                                    </td>
+                                    <td class="text-start text-muted fw-bold">@docente</td>
+
+                                    <!-- Celda para cada documento del corte -->
+                                    @foreach (var docName in documentosRequeridos)
+                                    {
+                                        var docSubido = materia.Documents?.FirstOrDefault(d =>
+                                        string.Equals(d.DocumentType?.Trim(), docName.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                                        (d.CutoffDate?.PhaseType == faseActual || string.Equals(d.CutoffDate?.Name?.Trim(), faseActual.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+                                        <td>
+                                            @if (docSubido == null)
+                                            {
+                                                <span class="badge bg-secondary" title="No entregado">PENDIENTE</span>
+                                            }
+                                            else if (docSubido.FilePath == "N/A")
+                                            {
+                                                <span class="badge bg-secondary" title="No aplica">N/A</span>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex flex-column align-items-center gap-1">
+                                                    @if (docSubido.IsOnTime)
+                                                    {
+                                                        <span class="badge bg-success" style="font-size: 10px;">A TIEMPO</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger" style="font-size: 10px;">CON RETRASO</span>
+                                                    }
+
+                                                    <a href="@docSubido.FilePath" target="_blank" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" style="font-size: 11px;" title="Ver archivo PDF">
+                                                        <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                                                    </a>
+
+                                                    @if (docSubido.ApprovalStatus == "Aprobado")
+                                                    {
+                                                        <span class="text-success fw-bold" style="font-size: 10px;"><i class="bi bi-check-circle-fill"></i> Aprobado</span>
+                                                    }
+                                                    else if (docSubido.ApprovalStatus == "Rechazado")
+                                                    {
+                                                        <span class="text-danger fw-bold" style="font-size: 10px;" title="@docSubido.Feedback"><i class="bi bi-x-circle-fill"></i> Rechazado</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-warning text-dark fw-bold" style="font-size: 10px;"><i class="bi bi-clock"></i> En revisión</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

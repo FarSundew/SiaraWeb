@@ -1,28 +1,42 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIARAWEB.Models
 {
     public class CutoffDate
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public int AcademicPeriodId { get; set; }
-        public AcademicPeriod? AcademicPeriod { get; set; }
+        [Required(ErrorMessage = "El nombre del corte es obligatorio.")]
+        [StringLength(150)]
+        [Display(Name = "Nombre de la Fecha de Corte")]
+        public string Name { get; set; } = string.Empty; // Ej. "Primer Seguimiento"
 
-        [Required(ErrorMessage = "Debes seleccionar la etapa del semestre.")]
-        [Display(Name = "Clasificación de la Fase")]
-        public string PhaseType { get; set; } = string.Empty; // Opciones: "Inicial", "Seguimiento1", "Seguimiento2", "Final"
-
-        [Required(ErrorMessage = "El nombre es obligatorio.")]
-        [Display(Name = "Nombre Descriptivo del Corte")]
-        public string Name { get; set; } = string.Empty; // Ej. "Entrega de Documentos Iniciales" o "Corte 1er Parcial"
-
+        [Required]
         [Display(Name = "Fecha de Inicio")]
-        [DataType(DataType.DateTime)]
         public DateTime StartDate { get; set; }
 
-        [Display(Name = "Fecha Límite (Cierre)")]
-        [DataType(DataType.DateTime)]
+        [Required]
+        [Display(Name = "Fecha Límite")]
         public DateTime DueDate { get; set; }
+
+        [Required]
+        [Display(Name = "Tipo de Fase")]
+        public string PhaseType { get; set; } = "Inicial"; // "Inicial", "Seguimiento1", "Seguimiento2", "Final"
+
+        // Relación con Periodo Académico
+        [Required]
+        public int AcademicPeriodId { get; set; }
+        [ForeignKey("AcademicPeriodId")]
+        public virtual AcademicPeriod? AcademicPeriod { get; set; }
+
+        // 🟢 FASE 4: Llave foránea hacia Departamento para fechas flexibles por academia
+        [Display(Name = "Departamento / Carrera")]
+        public int? DepartamentoId { get; set; }
+        [ForeignKey("DepartamentoId")]
+        public virtual Departamento? Departamento { get; set; }
     }
 }

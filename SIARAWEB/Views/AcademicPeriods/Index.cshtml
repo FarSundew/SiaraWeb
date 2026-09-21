@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Periodos Escolares";
+    bool esAdmin = User.IsInRole("Administrador");
 }
 
 <div class="container-fluid">
@@ -10,9 +11,13 @@
             <h2 class="fw-bold" style="color: #112d60;">Gestión de Periodos Escolares</h2>
             <p class="text-muted m-0">Administración de semestres activos, fechas de inicio/cierre e historial académico.</p>
         </div>
-        <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-            <i class="bi bi-calendar-plus-fill me-2"></i> Aperturar Nuevo Periodo
-        </a>
+
+        @if (esAdmin)
+        {
+            <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                <i class="bi bi-calendar-plus-fill me-2"></i> Aperturar Nuevo Periodo
+            </a>
+        }
     </div>
 
     @if (TempData["Success"] != null)
@@ -66,21 +71,45 @@
                             </div>
                         </div>
 
-                        <div class="pt-2 border-top">
-                            <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="w-100">
-                                @if (item.IsActive)
-                                {
-                                    <button type="submit" class="btn btn-outline-secondary w-100 py-2" style="border-radius: 8px;" onclick="return confirm('¿Archivar este periodo? Al concluir el periodo, los docentes ya no podrán subir más entregas.');">
-                                        <i class="bi bi-archive me-2"></i> Concluir / Archivar Semestre
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-outline-success w-100 py-2" style="border-radius: 8px;" onclick="return confirm('¿Reabrir este periodo escolar?');">
-                                        <i class="bi bi-arrow-counterclockwise me-2"></i> Reabrir Periodo Escolar
-                                    </button>
-                                }
-                            </form>
+                        <!-- 🟢 ACCIONES CONDICIONADAS SEGÚN ROL -->
+                        <div class="pt-3 border-top">
+                            @if (esAdmin)
+                            {
+                                <div class="d-flex flex-column gap-2">
+                                    <!-- Botón para Concluir / Reabrir Semestre -->
+                                    <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="w-100 m-0">
+                                        @Html.AntiForgeryToken()
+                                        @if (item.IsActive)
+                                        {
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Archivar este periodo? Al concluir el periodo, los docentes ya no podrán subir más entregas.');">
+                                                <i class="bi bi-archive me-2"></i> Concluir / Archivar Semestre
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-outline-success btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Reabrir este periodo escolar?');">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i> Reabrir Periodo Escolar
+                                            </button>
+                                        }
+                                    </form>
+
+                                    <!-- Botón de Borrado Definitivo -->
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="w-100 m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Deseas eliminar este periodo escolar de forma permanente? Se podrían ver afectadas materias y registros asociados.');">
+                                            <i class="bi bi-trash me-1"></i> Eliminar Periodo
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center">
+                                    <span class="badge bg-light text-muted border py-2 w-100">
+                                        <i class="bi bi-eye me-1"></i> Solo Lectura / Consulta Histórica
+                                    </span>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>

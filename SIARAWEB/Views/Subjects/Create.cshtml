@@ -37,9 +37,9 @@
 
                         <div class="form-floating mb-3">
                             <select asp-for="AcademicPeriodId" class="form-select" asp-items="ViewBag.AcademicPeriods" required>
-                                <option value="">-- Seleccione el Periodo --</option>
+                                <option value="">-- Selecciona el Periodo --</option>
                             </select>
-                            <label style="padding-left: 25px;">Periodo Académico Activo</label>
+                            <label asp-for="AcademicPeriodId">Periodo Escolar</label>
                             <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
                         </div>
 

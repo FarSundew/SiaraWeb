@@ -25,6 +25,7 @@ namespace SIARAWEB.Data
         public DbSet<Document> Documents { get; set; }
         public DbSet<Departamento> Departamentos { get; set; }
         public DbSet<TrackingDeadline> TrackingDeadline { get; set; } = default!;
+        public DbSet<FinalSubjectGrade> FinalSubjectGrades { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

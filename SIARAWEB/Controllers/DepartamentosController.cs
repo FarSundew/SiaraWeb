@@ -9,7 +9,7 @@ using SIARAWEB.Models;
 namespace SIARAWEB.Controllers
 {
     // 🔒 SOLO EL JEFE GENERAL PUEDE GESTIONAR DEPARTAMENTOS
-    [Authorize(Roles = "JefeGeneral")]
+    [Authorize(Roles = "Administrador,JefeGeneral")]
     public class DepartamentosController : Controller
     {
         private readonly ApplicationDbContext _context;

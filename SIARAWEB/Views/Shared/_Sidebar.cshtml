@@ -1,5 +1,4 @@
 ﻿<div class="sidebar-sticky" style="padding-top: 30px;">
-
     <h6 class="text-center mb-4" style="color: #ffffff; font-weight: 900; letter-spacing: 1.5px;">MENÚ PRINCIPAL</h6>
     <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
 
@@ -11,15 +10,20 @@
             </a>
         </li>
 
-        @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
+        <!-- 👨‍🏫 DOCENTES (Y Jefes de Carrera que dan clases) -->
+        @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
-                <a class="nav-link text-white" asp-controller="MisAsignaturas" asp-action="Index">
-                    <i class="bi bi-journal-bookmark me-2"></i> MIS ASIGNATURAS
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="Documents" asp-action="Index">
+                    📖 DOCUMENTOS
+                </a>
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicTrackings" asp-action="Index">
+                    📖 SEGUIMIENTO
                 </a>
             </li>
         }
 
+        <!-- 👔 JEFE DE CARRERA -->
         @if (User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
@@ -27,41 +31,50 @@
                     📚 ASIGNATURAS
                 </a>
             </li>
-
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Docentes" asp-action="Index">
-                    👨‍🏫 DOCENTES
+                    👨‍🏫 PLANTILLA DOCENTE
                 </a>
             </li>
-
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="Index">
                     🚥 SEMÁFORO ENTREGAS
                 </a>
             </li>
-        }
-
-        @if (User.IsInRole("JefeGeneral"))
-        {
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicPeriods" asp-action="Index">
-                    📅 PERIODOS ESCOLARES
-                </a>
-            </li>
-
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="CutoffDates" asp-action="Index">
                     ⏳ FECHAS DE CORTE
                 </a>
             </li>
+        }
 
+        <!-- 👑 JEFE GENERAL / SUBDIRECTOR -->
+        @if (User.IsInRole("JefeGeneral"))
+        {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Departamentos" asp-action="Index">
-                    🏢 DEPARTAMENTOS Y CARRERAS
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="DashboardGeneral" asp-action="Index">
+                    🧭 MAPA INSTITUCIONAL
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="GeneralReport">
+                    📑 SÁBANA DE RENDIMIENTO
+                </a>
+            </li>
+            <!-- 🟢 NUEVO: Supervisión por Carreras y consulta de sus Fechas de Corte -->
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="SubdirectorCarreras" asp-action="Index">
+                    🏛️ CARRERAS Y CORTES
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicPeriods" asp-action="Index">
+                    📅 PERIODOS ESCOLARES
                 </a>
             </li>
         }
 
+        <!-- 🛠️ ADMINISTRADOR -->
         @if (User.IsInRole("Administrador"))
         {
             <li class="nav-item">
@@ -69,12 +82,22 @@
                     👥 GESTIÓN DE USUARIOS
                 </a>
             </li>
-
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" href="#">
-                    🛠️ CONFIGURAR SISTEMA
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="Departamentos" asp-action="Index">
+                    🏢 DEPARTAMENTOS Y CARRERAS
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicPeriods" asp-action="Index">
+                    📅 PERIODOS ESCOLARES
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="Backup" asp-action="Index">
+                    💾 RESPALDO BD
+                </a>
+            </li>
+
         }
 
     </ul>

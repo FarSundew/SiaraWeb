@@ -52,9 +52,15 @@
                             </div>
                         </div>
 
-                        <div class="pt-2">
+                        <!-- Botones de Acción de la Materia -->
+                        <div class="pt-2 d-flex flex-column gap-2">
                             <a asp-action="Capture" asp-route-id="@subject?.Id" class="btn w-100 py-2 fw-bold text-white" style="background-color: #112d60; border-radius: 8px;">
                                 <i class="bi bi-pencil-square me-2"></i> Capturar Calificaciones
+                            </a>
+
+                            <!-- 🟢 NUEVO BOTÓN: Acceso directo al Reporte Final y Cierre de Asignatura -->
+                            <a asp-controller="FinalReport" asp-action="SubjectSummary" asp-route-id="@subject?.Id" class="btn btn-outline-primary w-100 py-2 fw-bold" style="border-radius: 8px;">
+                                <i class="bi bi-mortarboard-fill me-2"></i> Reporte Final de Cierre
                             </a>
                         </div>
                     </div>

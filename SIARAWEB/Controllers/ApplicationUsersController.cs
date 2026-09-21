@@ -29,16 +29,21 @@ namespace SIARAWEB.Controllers
         // GET: ApplicationUsers (Lista de todos los usuarios)
         public async Task<IActionResult> Index()
         {
-            // Solo mostramos usuarios activos (opcional, puedes mostrar todos)
-            var users = await _userManager.Users.ToListAsync();
+            // Incluye el departamento de adscripción base
+            var users = await _userManager.Users
+                .Include(u => u.Departamento)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
             return View(users);
         }
 
         // GET: ApplicationUsers/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            // Llenamos un ViewBag con los roles disponibles para el select (dropdown)
-            ViewBag.Roles = new SelectList(_roleManager.Roles.Select(r => r.Name).ToList());
+            ViewBag.Roles = new SelectList(await _roleManager.Roles.Select(r => r.Name).ToListAsync());
+            ViewBag.Departamentos = new SelectList(await _context.Departamentos.OrderBy(d => d.Name).ToListAsync(), "Id", "Name");
+
             return View();
         }
 
@@ -47,17 +52,22 @@ namespace SIARAWEB.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ApplicationUser user, string role, string password)
         {
-            // Forzamos campos obligatorios que Identity requiere
             user.UserName = user.Email;
-            user.EmailConfirmed = true; // Para que puedan entrar directamente
+            user.EmailConfirmed = true;
 
-            // Limpiamos los errores del ModelState de campos que no aplican aquí
+            // Limpieza de validaciones de campos fuera del modelo directo
             ModelState.Remove("password");
             ModelState.Remove("role");
 
             if (ModelState.IsValid)
             {
-                // 1. Crear el usuario con la contraseña elegida
+                if (!string.IsNullOrWhiteSpace(user.RFC))
+                    user.RFC = user.RFC.Trim().ToUpper();
+
+                if (!string.IsNullOrWhiteSpace(user.CURP))
+                    user.CURP = user.CURP.Trim().ToUpper();
+
+                // 1. Crear el usuario con la contraseña indicada
                 var result = await _userManager.CreateAsync(user, password);
 
                 if (result.Succeeded)
@@ -68,65 +78,38 @@ namespace SIARAWEB.Controllers
                         await _userManager.AddToRoleAsync(user, role);
                     }
 
-                    TempData["Success"] = "Usuario creado exitosamente.";
+                    TempData["Success"] = $"Usuario {user.FullName} registrado con éxito.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Si falla (ej. contraseña muy débil o correo duplicado), mostramos errores
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
-            ViewBag.Roles = new SelectList(_roleManager.Roles.Select(r => r.Name).ToList(), role);
+            ViewBag.Roles = new SelectList(await _roleManager.Roles.Select(r => r.Name).ToListAsync(), role);
+            ViewBag.Departamentos = new SelectList(await _context.Departamentos.OrderBy(d => d.Name).ToListAsync(), "Id", "Name", user.DepartamentoId);
+
             return View(user);
         }
 
-        // POST: ApplicationUsers/LockAccount (Para "eliminar" o bloquear a un maestro sin borrar su historial)
-        [HttpPost]
-        public async Task<IActionResult> LockAccount(string id)
-        {
-
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                user.IsActive = false; // Desactivación lógica
-                user.LockoutEnd = DateTimeOffset.MaxValue; // Bloqueo de acceso de Identity
-                await _userManager.UpdateAsync(user);
-                TempData["Success"] = $"La cuenta de {user.FullName} ha sido bloqueada.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-        // POST: ApplicationUsers/UnlockAccount (Para desbloquear la cuenta de un usuario)
-        [HttpPost]
-        public async Task<IActionResult> UnlockAccount(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                user.IsActive = true;                           // Reactivación lógica
-                user.LockoutEnd = null;                          // Elimina la fecha de bloqueo en Identity
-                await _userManager.ResetAccessFailedCountAsync(user); // Reinicia los intentos fallidos de contraseña
-
-                await _userManager.UpdateAsync(user);
-                TempData["Success"] = $"La cuenta de {user.FullName} ha sido desbloqueada exitosamente.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
         // GET: ApplicationUsers/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
 
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userManager.Users
+                .Include(u => u.Departamento)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
             if (user == null) return NotFound();
 
-            // Obtener el rol actual del usuario
             var userRoles = await _userManager.GetRolesAsync(user);
             var currentRole = userRoles.FirstOrDefault();
 
-            ViewBag.Roles = new SelectList(_roleManager.Roles.Select(r => r.Name).ToList(), currentRole);
+            ViewBag.Roles = new SelectList(await _roleManager.Roles.Select(r => r.Name).ToListAsync(), currentRole);
+            ViewBag.Departamentos = new SelectList(await _context.Departamentos.OrderBy(d => d.Name).ToListAsync(), "Id", "Name", user.DepartamentoId);
 
             return View(user);
         }
@@ -143,12 +126,13 @@ namespace SIARAWEB.Controllers
 
             if (ModelState.IsValid)
             {
-                // 1. Actualizar datos personales
+                // 1. Actualizar datos personales y adscripción base
                 user.FullName = model.FullName;
-                user.RFC = model.RFC?.ToUpper();
-                user.CURP = model.CURP?.ToUpper();
+                user.RFC = model.RFC?.Trim().ToUpper();
+                user.CURP = model.CURP?.Trim().ToUpper();
                 user.Email = model.Email;
                 user.UserName = model.Email;
+                user.DepartamentoId = model.DepartamentoId; // 🟢 Guarda el departamento seleccionado
 
                 var updateResult = await _userManager.UpdateAsync(user);
 
@@ -173,8 +157,44 @@ namespace SIARAWEB.Controllers
                 }
             }
 
-            ViewBag.Roles = new SelectList(_roleManager.Roles.Select(r => r.Name).ToList(), role);
+            ViewBag.Roles = new SelectList(await _roleManager.Roles.Select(r => r.Name).ToListAsync(), role);
+            ViewBag.Departamentos = new SelectList(await _context.Departamentos.OrderBy(d => d.Name).ToListAsync(), "Id", "Name", model.DepartamentoId);
+
             return View(model);
+        }
+
+        // POST: ApplicationUsers/LockAccount (Inhabilitación lógica respetando historial)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LockAccount(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                user.IsActive = false;
+                user.LockoutEnd = DateTimeOffset.MaxValue;
+                await _userManager.UpdateAsync(user);
+                TempData["Success"] = $"La cuenta de {user.FullName} ha sido bloqueada.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: ApplicationUsers/UnlockAccount (Reactivación de cuenta)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnlockAccount(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                user.IsActive = true;
+                user.LockoutEnd = null;
+                await _userManager.ResetAccessFailedCountAsync(user);
+
+                await _userManager.UpdateAsync(user);
+                TempData["Success"] = $"La cuenta de {user.FullName} ha sido desbloqueada exitosamente.";
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 }

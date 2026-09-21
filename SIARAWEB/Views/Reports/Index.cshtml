@@ -12,8 +12,14 @@
             </h3>
             <p class="text-muted fw-bold mt-1 mb-0">Monitoreo automático de entregas y rendimiento académico.</p>
         </div>
-        <!-- Botones para exportar (preparados para el RF12) -->
+        <!-- Botones de Acción y Exportación -->
         <div class="d-flex gap-2">
+            <!-- 🟢 BOTÓN DE ACCESO A LA SÁBANA GENERAL DE RENDIMIENTO -->
+            <a asp-action="GeneralReport" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
+                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Sábana de Rendimiento
+            </a>
+
+            <!-- Botones para exportar (preparados para el RF12) -->
             <button class="btn btn-danger fw-bold shadow-sm" style="border-radius: 8px;">
                 <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
             </button>

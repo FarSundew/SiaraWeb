@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SIARAWEB.Models
 {
@@ -11,6 +12,7 @@ namespace SIARAWEB.Models
 
         // Relación con Departamento
         public int? DepartamentoId { get; set; }
+        [ForeignKey("DepartamentoId")]
         public Departamento? Departamento { get; set; }
 
         // 🟢 ESTA LÍNEA SOLUCIONA EL TERCER ERROR:

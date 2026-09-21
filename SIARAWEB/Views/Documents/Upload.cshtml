@@ -3,18 +3,107 @@
 @{
     ViewData["Title"] = "Subir Documentos";
     var faseActiva = ViewBag.FaseActiva as SIARAWEB.Models.CutoffDate;
-    var documentosRequeridos = ViewBag.DocumentosRequeridos as List<string>;
+    string faseActual = ViewBag.FaseActual ?? "Inicial";
+    bool esSoloLectura = ViewBag.EsSoloLectura ?? false;
 
-    string faseActual = ViewBag.FaseActual;
-    bool esSoloLectura = ViewBag.EsSoloLectura;
+    // Catálogo de evidencias por cada fase académica
+    var documentosPorFase = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+    {
+        {
+            "Inicial", new List<string> {
+                "Instrumentación Didáctica",
+                "Instrumentos de Evaluación",
+                "Prácticas de Laboratorio",
+                "Proyecto Individual",
+                "Evaluación Diagnóstica"
+            }
+        },
+        {
+            "Seguimiento1", new List<string> {
+                "Avance (apart. 6)",
+                "Calif. Parc. (Calificaciones Parciales)",
+                "Instr. Eval. (Instrumentos de Evaluación)",
+                "Eval. Diagn. (Evaluación Diagnóstica)",
+                "Avance Proy. Ind. (Proyecto Individual)"
+            }
+        },
+        {
+            "Seguimiento2", new List<string> {
+                "Avance Programático (apart. 6)",
+                "Instrumentos de Evaluación",
+                "Reporte de Seguimiento Intermedio"
+            }
+        },
+        {
+            "Final", new List<string> {
+                "Acta de Calificaciones",
+                "Instrumentos de Evaluación Finales",
+                "Cierre de Proyecto / Reporte Final"
+            }
+        }
+    };
+
+    var documentosRequeridos = (ViewBag.DocumentosRequeridos as List<string>)
+                               ?? (documentosPorFase.ContainsKey(faseActual)
+                                   ? documentosPorFase[faseActual]
+                                   : new List<string>());
+
+    // 🟢 CÁLCULO DINÁMICO DE CUMPLIMIENTO (0% - 100%)
+    int totalRequeridos = documentosRequeridos.Count;
+    int entregadosCount = 0;
+
+    if (totalRequeridos > 0 && Model.Documents != null)
+    {
+        entregadosCount = documentosRequeridos.Count(docName =>
+            Model.Documents.Any(d =>
+                string.Equals(d.DocumentType?.Trim(), docName.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                (d.CutoffDate?.PhaseType == faseActual || string.Equals(d.CutoffDate?.Name?.Trim(), faseActual.Trim(), StringComparison.OrdinalIgnoreCase))));
+    }
+
+    int porcentajeCumplimiento = totalRequeridos > 0 ? (int)Math.Round(((double)entregadosCount / totalRequeridos) * 100) : 0;
 }
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase;">
             <i class="bi bi-folder-fill me-2"></i> GESTIÓN DOCUMENTAL - @Model.Name
         </h3>
         <a asp-controller="MisAsignaturas" asp-action="Index" class="btn btn-outline-secondary fw-bold">Regresar</a>
+    </div>
+
+    <!-- 🟢 PANEL DE PROGRESO DE CUMPLIMIENTO DE LA FASE -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <span class="fw-bold text-dark" style="font-size: 14px;">
+                    <i class="bi bi-pie-chart-fill text-primary me-2"></i>Avance Documental Fase: @(faseActual == "Inicial" ? "Documentos Iniciales" : faseActual)
+                </span>
+                <span class="badge @(porcentajeCumplimiento == 100 ? "bg-success" : "bg-primary") ms-2">
+                    @entregadosCount de @totalRequeridos entregados
+                </span>
+            </div>
+            <div>
+                @if (porcentajeCumplimiento == 100)
+                {
+                    <span class="badge bg-success py-2 px-3 fw-bold" style="font-size: 13px;">
+                        <i class="bi bi-check-all me-1"></i> FASE 100% CUMPLIDA
+                    </span>
+                }
+                else
+                {
+                    <span class="fw-bold text-primary" style="font-size: 15px;">@porcentajeCumplimiento%</span>
+                }
+            </div>
+        </div>
+        <div class="progress" style="height: 12px; border-radius: 6px;">
+            <div class="progress-bar progress-bar-striped @(porcentajeCumplimiento == 100 ? "bg-success" : "bg-primary") progress-bar-animated"
+                 role="progressbar"
+                 style="width: @porcentajeCumplimiento%;"
+                 aria-valuenow="@porcentajeCumplimiento"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+            </div>
+        </div>
     </div>
 
     <!-- 🟢 MENÚ DE NAVEGACIÓN ENTRE FASES -->
@@ -70,57 +159,77 @@
                 <table class="table table-bordered table-hover align-middle mb-0 text-center">
                     <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
                         <tr>
-                            <th style="width: 25%;">DOCUMENTO REQUERIDO</th>
-                            <th style="width: 30%;">ACCIÓN / CARGA</th>
-                            <th style="width: 15%;">ESTATUS ENTREGA</th>
-                            <th style="width: 15%;">JEFATURA</th>
-                            <th style="width: 15%;">ARCHIVO</th>
+                            <th style="width: 20%;">DOCUMENTO REQUERIDO</th>
+                            <th style="width: 32%;">ACCIÓN / CARGA</th>
+                            <th style="width: 18%;">ESTATUS ENTREGA</th>
+                            <th style="width: 20%;">JEFATURA</th>
+                            <th style="width: 10%;">ARCHIVO</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var docName in documentosRequeridos)
                         {
-                            // 🟢 BÚSQUEDA EXACTA IGNORANDO MAYÚSCULAS/MINÚSCULAS Y ESPACIOS
                             var docSubido = Model.Documents?.FirstOrDefault(d =>
-                            d.DocumentType.ToLower().Trim() == docName.ToLower().Trim() &&
-                            d.CutoffDate?.PhaseType == faseActual);
+                            string.Equals(d.DocumentType?.Trim(), docName.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                            (d.CutoffDate?.PhaseType == faseActual || string.Equals(d.CutoffDate?.Name?.Trim(), faseActual.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+                            string normalizado = docName.ToLowerInvariant();
+                            bool permiteNoAplica = normalizado.Contains("proyecto") ||
+                            normalizado.Contains("proy") ||
+                            normalizado.Contains("práctica") ||
+                            normalizado.Contains("practica") ||
+                            normalizado.Contains("laboratorio");
 
                             <tr>
-                                <td style="font-weight: 900; font-size: 14px; text-transform: uppercase;">@docName</td>
+                                <td style="font-weight: 900; font-size: 14px; text-transform: uppercase;">
+                                    @docName
+                                </td>
 
-                                <!-- 🟢 SECCIÓN DE CARGA -->
+                                <!-- 🟢 SECCIÓN DE CARGA (Permite primera entrega y corrección tras rechazo) -->
                                 <td>
-                                    @if (docSubido == null)
+                                    @if (docSubido == null || docSubido.ApprovalStatus == "Rechazado")
                                     {
                                         if (esSoloLectura)
                                         {
-                                            <span class="text-muted fw-bold"><i class="bi bi-dash-circle"></i> No entregado a tiempo</span>
+                                            <span class="text-muted fw-bold"><i class="bi bi-dash-circle"></i> Periodo cerrado</span>
                                         }
                                         else
                                         {
-                                            <form asp-action="UploadFile" method="post" enctype="multipart/form-data" class="d-flex align-items-center justify-content-center gap-2">
+                                            <form asp-action="UploadFile" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-2 p-2">
                                                 <input type="hidden" name="subjectId" value="@Model.Id" />
                                                 <input type="hidden" name="documentType" value="@docName" />
                                                 <input type="hidden" name="cutoffDateId" value="@(faseActiva?.Id ?? 0)" />
 
-                                                <input type="file" name="file" class="form-control form-control-sm w-auto" accept=".pdf" required />
-                                                <button type="submit" class="btn btn-sm btn-primary fw-bold">SUBIR</button>
+                                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                                    <input type="file" name="file" class="form-control form-control-sm w-auto" accept=".pdf" required />
 
-                                                <!-- Opción N/A para proyectos y prácticas -->
-                                                @if (docName.ToLower().Contains("proyecto") || docName.ToLower().Contains("práctica"))
-                                                {
-                                                    <button type="submit" name="isNotApplicable" value="true" class="btn btn-sm btn-secondary fw-bold" formnovalidate>N/A</button>
-                                                }
+                                                    @if (docSubido != null && docSubido.ApprovalStatus == "Rechazado")
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-warning fw-bold text-dark" title="Reenviar archivo corregido">CORREGIR</button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit" class="btn btn-sm btn-primary fw-bold">SUBIR</button>
+                                                    }
+
+                                                    @if (permiteNoAplica && docSubido == null)
+                                                    {
+                                                        <button type="submit" name="isNotApplicable" value="true" class="btn btn-sm btn-secondary fw-bold" formnovalidate title="Marcar como No Aplica">N/A</button>
+                                                    }
+                                                </div>
+
+                                                <input type="text" name="teacherObservations" class="form-control form-control-sm"
+                                                       placeholder="Nota de entrega o corrección..." style="font-size: 11px;" />
                                             </form>
                                         }
                                     }
                                     else
                                     {
-                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Completado</span>
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Entregado</span>
                                     }
                                 </td>
 
-                                <!-- 🟢 ESTATUS DE TIEMPO -->
+                                <!-- 🟢 ESTATUS DE TIEMPO CON HISTORIAL DE CORRECCIÓN -->
                                 <td>
                                     @if (docSubido != null)
                                     {
@@ -128,68 +237,89 @@
                                         {
                                             <span class="badge bg-secondary">NO APLICA</span>
                                         }
-                                        else if (docSubido.IsOnTime)
-                                        {
-
-                                            <span class="badge bg-success">A TIEMPO</span>
-                                        }
                                         else
                                         {
+                                            if (docSubido.IsOnTime)
+                                            {
+                                                <span class="badge bg-success">A TIEMPO</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">CON RETRASO</span>
+                                            }
 
-                                            <span class="badge bg-danger">CON RETRASO</span>
+                                            <!-- 🟢 BITÁCORA DE HISTORIAL (1.ª Entrega vs Corrección) -->
+                                            <div class="mt-1" style="font-size: 11px; line-height: 1.2;">
+                                                <span class="text-muted d-block">
+                                                    1.ª Entrega: @docSubido.UploadedAt.ToString("dd/MM/yyyy HH:mm")
+                                                </span>
+                                                @if (docSubido.CorrectionSubmissionDate.HasValue)
+                                                {
+                                                    <span class="text-primary fw-bold d-block">
+                                                        Corrección: @docSubido.CorrectionSubmissionDate.Value.ToString("dd/MM/yyyy HH:mm")
+                                                    </span>
+                                                }
+                                            </div>
                                         }
                                     }
                                     else
                                     {
-
                                         <span class="badge bg-warning text-dark">PENDIENTE</span>
                                     }
                                 </td>
 
-                                <!-- 🟢 APROBACIÓN DE JEFATURA -->
+                                <!-- 🟢 APROBACIÓN DE JEFATURA CON FEEDBACK VISIBLE -->
                                 <td>
                                     @if (docSubido != null)
                                     {
                                         if (docSubido.ApprovalStatus == "Aprobado")
                                         {
-                                            <span class="badge bg-success">APROBADO</span>
+                                            <span class="badge bg-success fs-6"><i class="bi bi-check-circle-fill me-1"></i>APROBADO</span>
                                         }
                                         else if (docSubido.ApprovalStatus == "Rechazado")
                                         {
+                                            <span class="badge bg-danger fs-6"><i class="bi bi-x-circle-fill me-1"></i>RECHAZADO</span>
 
-                                            <span class="badge bg-danger">RECHAZADO</span>
+                                            <!-- 🟢 CAJA DE RETROALIMENTACIÓN / MOTIVO DE RECHAZO -->
+                                            @if (!string.IsNullOrWhiteSpace(docSubido.Feedback))
+                                            {
+                                                <div class="alert alert-danger text-start p-2 mt-2 mb-0 shadow-sm border-start border-4 border-danger" style="font-size: 12px;">
+                                                    <strong><i class="bi bi-chat-left-dots-fill me-1"></i>Observación de Jefatura:</strong>
+                                                    <div class="mt-1 text-dark fw-normal">@docSubido.Feedback</div>
+                                                </div>
+                                            }
                                         }
                                         else
                                         {
-
-                                            <span class="badge bg-warning text-dark">EN REVISIÓN</span>
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>EN REVISIÓN</span>
                                         }
                                     }
                                     else
                                     {
-
                                         <span class="text-muted">-</span>
                                     }
                                 </td>
 
-                                <!-- 🟢 SECCIÓN DE VER Y ELIMINAR (Protegido por Solo Lectura) -->
-                                <td class="d-flex justify-content-center gap-2 align-items-center border-bottom-0">
-                                    @if (docSubido != null && docSubido.FilePath != "N/A")
-                                    {
-                                        <a href="@docSubido.FilePath" target="_blank" class="btn btn-sm btn-outline-primary fw-bold" title="Ver PDF">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-
-                                        <!-- Ocultamos el botón de borrar si es Solo Lectura o si ya fue Aprobado -->
-                                        @if (!esSoloLectura && docSubido.ApprovalStatus != "Aprobado")
+                                <!-- 🟢 SECCIÓN DE ACCIONES (VER Y ELIMINAR) -->
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2 align-items-center">
+                                        @if (docSubido != null && docSubido.FilePath != "N/A")
                                         {
-                                            <form asp-action="DeleteDocument" method="post" onsubmit="return confirm('¿Estás seguro de eliminar este archivo?');">
+                                            <a href="@docSubido.FilePath" target="_blank" class="btn btn-sm btn-outline-primary fw-bold" title="Ver PDF">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        }
+
+                                        <!-- Solo se permite borrar si NO ha sido revisado (sigue Pendiente) -->
+                                        @if (docSubido != null && !esSoloLectura && docSubido.ApprovalStatus == "Pendiente")
+                                        {
+                                            <form asp-action="DeleteDocument" method="post" onsubmit="return confirm('¿Estás seguro de eliminar este archivo?');" class="m-0">
                                                 <input type="hidden" name="id" value="@docSubido.Id" />
                                                 <input type="hidden" name="subjectId" value="@Model.Id" />
                                                 <button type="submit" class="btn btn-sm btn-danger fw-bold" title="Eliminar"><i class="bi bi-trash"></i></button>
                                             </form>
                                         }
-                                    }
+                                    </div>
                                 </td>
                             </tr>
                         }

@@ -1,0 +1,150 @@
+﻿@model IEnumerable<SIARAWEB.Models.Subject>
+
+@{
+    var depto = ViewBag.Departamento as SIARAWEB.Models.Departamento;
+    var fechas = ViewBag.FechasCorte as List<SIARAWEB.Models.CutoffDate> ?? new List<SIARAWEB.Models.CutoffDate>();
+    var periodos = ViewBag.Periodos as List<SIARAWEB.Models.AcademicPeriod> ?? new List<SIARAWEB.Models.AcademicPeriod>();
+    int periodoActivo = ViewBag.PeriodoSeleccionado;
+    ViewData["Title"] = "Detalle de Carrera: " + depto?.Name;
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin: 0;">
+                <i class="bi bi-mortarboard me-2"></i> @depto?.Name (@depto?.Code)
+            </h3>
+            <p class="text-muted fw-bold mt-1 mb-0">Auditoría departamental de calendarios de entrega y plantilla de asignaturas.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Regresar a Carreras
+        </a>
+    </div>
+
+    <!-- Filtro de Periodo -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-light">
+        <form asp-action="Details" method="get" class="row g-2 align-items-center">
+            <input type="hidden" name="id" value="@depto?.Id" />
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                <select name="periodoId" class="form-select form-select-sm fw-bold" onchange="this.form.submit()">
+                    @foreach (var p in periodos)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == periodoActivo)">@p.Name</option>
+                    }
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- 🟢 BLOQUE DE FECHAS DE CORTE DE ESTA CARRERA -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60;">
+            <i class="bi bi-calendar-range-fill me-2"></i> CALENDARIO DE FECHAS DE CORTE APLICABLES
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th>FASE ACADÉMICA</th>
+                            <th>NOMBRE DEL CORTE</th>
+                            <th>APERTURA</th>
+                            <th>FECHA LÍMITE (DUE DATE)</th>
+                            <th>ALCANCE / APLICACIÓN</th>
+                            <th>ESTADO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!fechas.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="py-3 text-muted fw-bold">No se han definido fechas de corte para este periodo.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var f in fechas)
+                            {
+                                bool esPersonalizada = f.DepartamentoId == depto?.Id;
+                                bool cerrada = DateTime.Now > f.DueDate;
+                                <tr>
+                                    <td class="fw-bold text-primary">@f.PhaseType</td>
+                                    <td class="fw-bold">@f.Name</td>
+                                    <td>@f.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-danger">@f.DueDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (esPersonalizada)
+                                        {
+                                            <span class="badge bg-warning text-dark border"><i class="bi bi-star-fill me-1"></i>Específica de Carrera</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-muted border">General / Institucional</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (cerrada)
+                                        {
+                                            <span class="badge bg-secondary">Cerrada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Vigente</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 BLOQUE DE MATERIAS DE ESTA CARRERA -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60;">
+            <i class="bi bi-book-half me-2"></i> ASIGNATURAS VINCULADAS AL PERIODO
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th style="width: 15%;">CLAVE</th>
+                            <th style="width: 40%;" class="text-start ps-3">NOMBRE DE LA MATERIA</th>
+                            <th style="width: 30%;" class="text-start">DOCENTE TITULAR</th>
+                            <th style="width: 15%;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="py-3 text-muted fw-bold">No hay asignaturas registradas para este periodo.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var sub in Model)
+                            {
+                                var doc = sub.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin asignar";
+                                <tr>
+                                    <td class="fw-bold">@sub.Code</td>
+                                    <td class="text-start ps-3 fw-bold">@sub.Name</td>
+                                    <td class="text-start text-muted fw-bold">@doc</td>
+                                    <td>
+                                        <a asp-controller="Reports" asp-action="Details" asp-route-id="@sub.Id" class="btn btn-sm btn-outline-primary fw-bold py-1">
+                                            <i class="bi bi-eye"></i> Auditar
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

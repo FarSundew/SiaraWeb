@@ -1,124 +1,255 @@
 ﻿@model SIARAWEB.Models.Subject
 
 @{
-    ViewData["Title"] = "Auditoría de Entregas";
-    var docente = Model.DocenteAsignaturas?.FirstOrDefault()?.Docente;
+    ViewData["Title"] = "Auditoría de Documentos";
+    string faseActual = ViewBag.FaseActual ?? "Inicial";
+    var documentosRequeridos = ViewBag.DocumentosRequeridos as List<string> ?? new List<string>();
+    var docenteAsignado = Model.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin docente asignado";
 }
 
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
 <div class="container-fluid mt-4">
+    <!-- Encabezado con datos de la materia -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
-                REVISIÓN DOCUMENTAL - @Model.Code
+                <i class="bi bi-shield-check me-2"></i> REVISIÓN DOCUMENTAL - @Model.Code
             </h3>
-            <p class="text-muted fw-bold mt-1">Docente: @(docente?.FullName ?? "No asignado") | @Model.Name</p>
+            <p class="text-muted fw-bold mt-1 mb-0">
+                Materia: <span class="text-dark">@Model.Name</span> | Docente: <span class="text-dark">@docenteAsignado</span> | Periodo: <span class="text-dark">@(Model.AcademicPeriod?.Name ?? "-")</span>
+            </p>
         </div>
-        <a asp-action="Index" class="btn btn-secondary fw-bold" style="border-radius: 8px;">
-            <i class="bi bi-arrow-left me-1"></i> VOLVER AL SEMÁFORO
+        <a asp-action="Index" class="btn btn-outline-secondary fw-bold px-3">
+            <i class="bi bi-arrow-left me-1"></i> Regresar al Semáforo
         </a>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success fw-bold">
+        <div class="alert alert-success fw-bold text-center shadow-sm">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
         </div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger fw-bold text-center shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        </div>
+    }
 
+    <!-- 🟢 NAVEGACIÓN ENTRE FASES (PESTAÑAS DE SEGUIMIENTO) -->
+    <div class="nav nav-pills mb-4 p-2 bg-light rounded shadow-sm d-flex justify-content-center gap-3">
+        <a asp-action="Details" asp-route-id="@Model.Id" asp-route-faseSeleccionada="Inicial"
+           class="btn fw-bold @(faseActual == "Inicial" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-file-earmark-text"></i> Doc. Iniciales
+        </a>
+
+        <a asp-action="Details" asp-route-id="@Model.Id" asp-route-faseSeleccionada="Seguimiento1"
+           class="btn fw-bold @(faseActual == "Seguimiento1" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-1-circle"></i> 1er Seguimiento
+        </a>
+
+        <a asp-action="Details" asp-route-id="@Model.Id" asp-route-faseSeleccionada="Seguimiento2"
+           class="btn fw-bold @(faseActual == "Seguimiento2" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-2-circle"></i> 2do Seguimiento
+        </a>
+
+        <a asp-action="Details" asp-route-id="@Model.Id" asp-route-faseSeleccionada="Final"
+           class="btn fw-bold @(faseActual == "Final" ? "btn-primary" : "btn-outline-primary")">
+            <i class="bi bi-check2-circle"></i> Reporte Final
+        </a>
+    </div>
+
+    <!-- TABLA DE DOCUMENTOS DEL CORTE -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header" style="background-color: #112d60; color: white; font-weight: 900; padding: 15px;">
-            <i class="bi bi-file-earmark-pdf me-2"></i> DOCUMENTOS ENTREGADOS POR EL DOCENTE
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60; text-transform: uppercase;">
+            <i class="bi bi-folder-check me-2"></i> EVIDENCIAS EXIGIDAS: @(faseActual == "Inicial" ? "DOCUMENTOS INICIALES" : faseActual)
         </div>
         <div class="card-body p-0">
-            <table class="table table-bordered table-hover align-middle mb-0 text-center">
-                <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
-                    <tr>
-                        <th style="padding: 15px;">DOCUMENTO</th>
-                        <th>FASE</th>
-                        <th>FECHA ENTREGA</th>
-                        <th>ESTADO ACTUAL</th>
-                        <th>ARCHIVO</th>
-                        <th style="width: 35%;">ACCIÓN DE JEFATURA (AUDITORÍA)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Documents == null || !Model.Documents.Any())
-                    {
-                        <tr><td colspan="6" class="py-4 fw-bold text-muted">El docente aún no ha subido documentos.</td></tr>
-                    }
-                    else
-                    {
-                        @foreach (var doc in Model.Documents.OrderBy(d => d.UploadedAt))
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th style="width: 25%;">DOCUMENTO REQUERIDO</th>
+                            <th style="width: 20%;">ESTATUS / PUNTUALIDAD</th>
+                            <th style="width: 15%;">HISTORIAL DE ENTREGA</th>
+                            <th style="width: 15%;">ESTADO DE REVISIÓN</th>
+                            <th style="width: 10%;">EVIDENCIA</th>
+                            <th style="width: 15%;">ACCIONES JEFATURA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!documentosRequeridos.Any())
                         {
                             <tr>
-                                <td class="fw-bold text-dark">@doc.DocumentType</td>
-                                <td class="text-primary fw-bold">@(doc.CutoffDate?.Name ?? "Inicial")</td>
-                                <td>
-                                    @doc.UploadedAt.ToString("dd/MMM/yyyy")<br />
-                                    @if (doc.FilePath == "N/A")
-                                    {
-                                        <span class="badge bg-secondary">NO APLICA</span>
-                                    }
-                                    else if (doc.IsOnTime)
-                                    {
-
-                                        <span class="badge bg-success">A TIEMPO</span>
-                                    }
-                                    else
-                                    {
-
-                                        <span class="badge bg-danger">CON RETRASO</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (doc.ApprovalStatus == "Aprobado")
-                                    {
-                                        <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> APROBADO</span>
-                                    }
-                                    else if (doc.ApprovalStatus == "Rechazado")
-                                    {
-
-                                        <span class="badge bg-danger fs-6"><i class="bi bi-x-circle"></i> RECHAZADO</span>
-                                    }
-                                    else
-                                    {
-
-                                        <span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split"></i> PENDIENTE</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (doc.FilePath != "N/A")
-                                    {
-                                        <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-primary fw-bold">
-                                            <i class="bi bi-eye"></i> VER PDF
-                                        </a>
-                                    }
-                                </td>
-                                <td class="text-start p-3 bg-light">
-                                    @if (doc.FilePath != "N/A")
-                                    {
-                                        <form asp-action="ReviewDocument" method="post" class="d-flex flex-column gap-2">
-                                            <input type="hidden" name="documentId" value="@doc.Id" />
-                                            <input type="hidden" name="subjectId" value="@Model.Id" />
-
-                                            <input type="text" name="feedback" class="form-control form-control-sm" placeholder="Motivo de rechazo o comentario..." value="@doc.Feedback" />
-
-                                            <div class="d-flex gap-2 mt-1">
-                                                <button type="submit" name="status" value="Aprobado" class="btn btn-sm btn-success fw-bold flex-fill">
-                                                    <i class="bi bi-check-lg"></i> APROBAR
-                                                </button>
-                                                <button type="submit" name="status" value="Rechazado" class="btn btn-sm btn-danger fw-bold flex-fill">
-                                                    <i class="bi bi-x-lg"></i> RECHAZAR
-                                                </button>
-                                            </div>
-                                        </form>
-                                    }
-                                </td>
+                                <td colspan="6" class="py-4 text-muted fw-bold">Esta fase no tiene evidencias PDF asignadas.</td>
                             </tr>
                         }
-                    }
-                </tbody>
-            </table>
+                        else
+                        {
+                            @foreach (var docName in documentosRequeridos)
+                            {
+                                var docSubido = Model.Documents?.FirstOrDefault(d =>
+                                string.Equals(d.DocumentType?.Trim(), docName.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                                (d.CutoffDate?.PhaseType == faseActual || string.Equals(d.CutoffDate?.Name?.Trim(), faseActual.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+                                <tr>
+                                    <td class="fw-bold text-start ps-3" style="text-transform: uppercase;">
+                                        @docName
+                                    </td>
+
+                                    <!-- Estatus de Entrega -->
+                                    <td>
+                                        @if (docSubido == null)
+                                        {
+                                            <span class="badge bg-secondary">NO ENTREGADO</span>
+                                        }
+                                        else if (docSubido.FilePath == "N/A")
+                                        {
+                                            <span class="badge bg-secondary">NO APLICA (N/A)</span>
+                                        }
+                                        else if (docSubido.IsOnTime)
+                                        {
+                                            <span class="badge bg-success">A TIEMPO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">CON RETRASO</span>
+                                        }
+                                    </td>
+
+                                    <!-- Historial de Fechas (1.ª Entrega y Corrección) -->
+                                    <td>
+                                        @if (docSubido != null && docSubido.FilePath != "N/A")
+                                        {
+                                            <div style="font-size: 11px; line-height: 1.3;">
+                                                <span class="text-muted d-block">
+                                                    1.ª: @docSubido.UploadedAt.ToString("dd/MM/yyyy HH:mm")
+                                                </span>
+                                                @if (docSubido.CorrectionSubmissionDate.HasValue)
+                                                {
+                                                    <span class="text-primary fw-bold d-block">
+                                                        Corr: @docSubido.CorrectionSubmissionDate.Value.ToString("dd/MM/yyyy HH:mm")
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+
+                                    <!-- Estatus de Aprobación -->
+                                    <td>
+                                        @if (docSubido != null)
+                                        {
+                                            if (docSubido.ApprovalStatus == "Aprobado")
+                                            {
+                                                <span class="badge bg-success">APROBADO</span>
+                                            }
+                                            else if (docSubido.ApprovalStatus == "Rechazado")
+                                            {
+                                                <span class="badge bg-danger" title="@docSubido.Feedback">RECHAZADO</span>
+                                                @if (!string.IsNullOrWhiteSpace(docSubido.Feedback))
+                                                {
+                                                    <div class="text-truncate small text-danger mt-1" style="max-width: 140px;" title="@docSubido.Feedback">
+                                                        <i class="bi bi-info-circle me-1"></i>@docSubido.Feedback
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">PENDIENTE</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+
+                                    <!-- Botón Ver PDF -->
+                                    <td>
+                                        @if (docSubido != null && docSubido.FilePath != "N/A")
+                                        {
+                                            <a href="@docSubido.FilePath" target="_blank" class="btn btn-sm btn-outline-primary fw-bold" title="Abrir archivo PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+
+                                    <!-- Acciones de Revisión -->
+                                    <td>
+                                        @if (docSubido != null && docSubido.FilePath != "N/A")
+                                        {
+                                            @if (User.IsInRole("JefeCarrera"))
+                                            {
+                                                <!-- 🟢 El Jefe de Carrera tiene el control para dictaminar -->
+                                                <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalReview_@docSubido.Id">
+                                                    <i class="bi bi-check2-square"></i> Dictaminar
+                                                </button>
+
+                                                <!-- Modal de Dictamen -->
+                                                <div class="modal fade" id="modalReview_@docSubido.Id" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content text-start">
+                                                            <form asp-action="ReviewDocument" method="post">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="documentId" value="@docSubido.Id" />
+                                                                <input type="hidden" name="subjectId" value="@Model.Id" />
+
+                                                                <div class="modal-header" style="background-color: #112d60; color: white;">
+                                                                    <h6 class="modal-title fw-bold">REVISIÓN: @docName</h6>
+                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <div class="mb-3">
+                                                                        <label class="fw-bold small text-muted">RESOLUCIÓN</label>
+                                                                        <select name="status" class="form-select fw-bold" required>
+                                                                            <option value="Aprobado" selected="@(docSubido.ApprovalStatus == "Aprobado")">APROBAR EVIDENCIA</option>
+                                                                            <option value="Rechazado" selected="@(docSubido.ApprovalStatus == "Rechazado")">RECHAZAR CON OBSERVACIONES</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label class="fw-bold small text-muted">RETROALIMENTACIÓN / OBSERVACIONES</label>
+                                                                        <textarea name="feedback" class="form-control" rows="3" placeholder="Detalle observaciones si rechaza el documento...">@docSubido.Feedback</textarea>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-sm btn-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                                                                    <button type="submit" class="btn btn-sm btn-success fw-bold">Guardar Resolución</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <!-- 🟢 Modo Solo Lectura para Subdirección / Jefe General -->
+                                                <span class="badge bg-light text-muted border">
+                                                    <i class="bi bi-eye"></i> Solo Lectura
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

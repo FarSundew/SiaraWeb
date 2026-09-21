@@ -1,0 +1,189 @@
+﻿@model SIARAWEB.Models.GeneralTrackingReportViewModel
+
+@{
+    ViewData["Title"] = "Sábana General de Rendimiento Académico";
+}
+
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/estilos.css" />
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i> CONCENTRADO GENERAL DE RENDIMIENTO
+            </h3>
+            <p class="text-muted fw-bold mt-1">Sábana institucional de calificaciones, indicadores de reprobación y acciones correctivas.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary fw-bold">
+                <i class="bi bi-traffic-light me-1"></i> Ver Semáforo
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de KPIs Superiores -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-primary p-3">
+                <div class="text-muted fw-bold small">GRUPOS EVALUADOS</div>
+                <div class="fs-3 fw-bold text-dark">@Model.TotalGroupsEvaluated</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-success p-3">
+                <div class="text-muted fw-bold small">PROMEDIO ACREDITACIÓN</div>
+                <div class="fs-3 fw-bold text-success">@Model.GlobalApprovalAverage%</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-danger p-3">
+                <div class="text-muted fw-bold small">PROMEDIO REPROBACIÓN</div>
+                <div class="fs-3 fw-bold text-danger">@Model.GlobalFailureAverage%</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 border-start border-4 border-warning p-3">
+                <div class="text-muted fw-bold small">UNIDADES EN RIESGO (≥ 40%)</div>
+                <div class="fs-3 fw-bold text-warning">@Model.TotalHighRiskUnits</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="card shadow-sm border-0 mb-4 p-3 bg-light">
+        <form asp-action="GeneralReport" method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                <select name="periodId" class="form-select form-select-sm fw-bold">
+                    @foreach (var p in Model.AcademicPeriods)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == Model.SelectedPeriodId)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">FASE DE CORTE</label>
+                <select name="cutoffDateId" class="form-select form-select-sm fw-bold">
+                    <option value="">-- Todas las fases --</option>
+                    @foreach (var c in Model.CutoffDates)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.SelectedCutoffDateId)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">BUSCAR (DOCENTE / MATERIA)</label>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Ej. Cálculo, Juan Pérez..." value="@Model.SearchTeacherOrSubject" />
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <div class="form-check me-2">
+                    <input class="form-check-input" type="checkbox" name="onlyHighRisk" value="true" id="checkRisk" @(Model.OnlyHighRisk ? "checked" : "") />
+                    <label class="form-check-label fw-bold text-danger small" for="checkRisk">
+                        Solo Reprobación ≥ 40%
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">FILTRAR</button>
+                <a asp-action="GeneralReport" class="btn btn-sm btn-outline-secondary fw-bold">LIMPIAR</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla Sábana de Datos -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60;">
+            <i class="bi bi-table me-2"></i> REGISTRO CONSOLIDADO POR MATERIA Y UNIDAD
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th style="width: 10%;">CLAVE / MATERIA</th>
+                            <th style="width: 14%;">DOCENTE</th>
+                            <th style="width: 9%;">FASE</th>
+                            <th style="width: 6%;">TEMA</th>
+                            <th style="width: 6%;">TOTAL</th>
+                            <th style="width: 7%;" class="text-success">APROB.</th>
+                            <th style="width: 7%;" class="text-danger">REPROB.</th>
+                            <th style="width: 6%;" class="text-muted">DESER.</th>
+                            <th style="width: 25%;" class="text-start">ACCIÓN CORRECTIVA (≥ 40% REPROBACIÓN)</th>
+                            <th style="width: 10%;">JEFATURA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.TrackingRows == null || !Model.TrackingRows.Any())
+                        {
+                            <tr>
+                                <td colspan="10" class="py-4 text-muted fw-bold">No se encontraron registros bajo los filtros seleccionados.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var row in Model.TrackingRows)
+                            {
+                                <tr class="@(row.IsHighRisk ? "table-danger bg-opacity-10" : "")">
+                                    <td class="fw-bold text-start">
+                                        <span class="badge bg-light text-dark border">@row.SubjectCode</span>
+                                        <div class="text-truncate" style="max-width: 180px;" title="@row.SubjectName">@row.SubjectName</div>
+                                    </td>
+                                    <td class="text-start fw-bold text-muted">@row.TeacherName</td>
+                                    <td class="fw-bold text-primary">@row.PhaseName</td>
+                                    <td><span class="badge bg-secondary">T-@row.UnitNumber</span></td>
+                                    <td class="fw-bold">@row.TotalStudents</td>
+                                    <td class="fw-bold text-success">@row.ApprovalPercentage.ToString("F1")%</td>
+                                    <td class="fw-bold text-danger">
+                                        @row.FailurePercentage.ToString("F1")%
+                                        @if (row.IsHighRisk)
+                                        {
+                                            <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Supera el 40% de reprobación"></i>
+                                        }
+                                    </td>
+                                    <td class="fw-bold text-muted">@row.DropoutPercentage.ToString("F1")%</td>
+                                    
+                                    <!-- Columna de Acción Correctiva -->
+                                    <td class="text-start">
+                                        @if (row.IsHighRisk)
+                                        {
+                                            if (!string.IsNullOrWhiteSpace(row.CorrectiveAction))
+                                            {
+                                                <div class="alert alert-warning p-1 mb-0 border-start border-3 border-warning" style="font-size: 11px;">
+                                                    <i class="bi bi-tools me-1"></i><strong>Estrategia:</strong> @row.CorrectiveAction
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">SIN ACCIÓN REGISTRADA</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">No requerida (&lt; 40%)</span>
+                                        }
+                                    </td>
+
+                                    <!-- Estado de Auditoría -->
+                                    <td>
+                                        @if (row.ApprovalStatus == "Aprobado")
+                                        {
+                                            <span class="badge bg-success">APROBADO</span>
+                                        }
+                                        else if (row.ApprovalStatus == "Rechazado")
+                                        {
+                                            <span class="badge bg-danger">RECHAZADO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">PENDIENTE</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

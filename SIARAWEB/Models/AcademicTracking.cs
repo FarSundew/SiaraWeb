@@ -52,5 +52,7 @@ namespace SIARAWEB.Models
         // Agrega estas propiedades a tu modelo AcademicTracking
         public string ApprovalStatus { get; set; } = "Pendiente";
         public string? Feedback { get; set; }
+        public string? AccionCorrectiva { get; set; } // Campo opcional por defecto, se vuelve obligatorio en UI si reprobación >= 40%
+
     }
 }
