@@ -1,0 +1,93 @@
+﻿@model IEnumerable<SIARAWEB.Models.Departamento>
+
+@{
+    ViewData["Title"] = "Catálogo de Departamentos";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Catálogo de Departamentos y Carreras</h2>
+            <p class="text-muted m-0">Administración de programas educativos y asignación de Jefes de Carrera.</p>
+        </div>
+        @if (User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                <i class="bi bi-building-add me-2"></i> Nuevo Departamento
+            </a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #112d60; color: #ffffff;">
+                        <tr>
+                            <th class="py-3 px-4">Clave / Sigla</th>
+                            <th class="py-3 px-4">Nombre del Departamento</th>
+                            <th class="py-3 px-4">Jefe(a) de Carrera Asignado</th>
+                            <th class="py-3 px-4 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Aún no hay departamentos registrados.</td>
+                            </tr>
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="px-4 fw-bold">
+                                    <span class="badge bg-secondary px-3 py-2" style="font-size: 13px;">
+                                        @(string.IsNullOrEmpty(item.Code) ? "S/C" : item.Code)
+                                    </span>
+                                </td>
+                                <td class="px-4 fw-bold text-dark">@item.Name</td>
+                                <td class="px-4">
+                                    @if (item.HeadOfDepartment != null)
+                                    {
+                                        <span class="text-dark fw-semibold">
+                                            <i class="bi bi-person-badge text-primary me-2"></i>@item.HeadOfDepartment.FullName
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger fw-semibold">
+                                            <i class="bi bi-exclamation-triangle me-1"></i> Sin asignar
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-4 text-end">
+                                    @if (User.IsInRole("Administrador"))
+                                    {
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" onclick="return confirm('¿Estás seguro de eliminar este departamento?');">
+                                                <i class="bi bi-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-muted border"><i class="bi bi-eye"></i> Solo Lectura</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

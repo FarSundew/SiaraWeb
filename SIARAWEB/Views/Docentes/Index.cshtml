@@ -1,97 +1,211 @@
 ﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<SIARAWEB.Models.ApplicationUser> UserManager
 
 @{
-    ViewData["Title"] = "Catálogo de Docentes";
-    Layout = "_Layout";
+    ViewData["Title"] = "Directorio de Docentes";
+    int miDeptoId = ViewBag.MiDepartamentoId ?? 0;
+    bool esJefeCarrera = User.IsInRole("JefeCarrera");
 }
 
-<!-- Se sobreescriben estilos de bootstrap para este contenedor según tu diseño -->
-<style>
-    .container {
-        max-width: 100% !important;
-        padding: 0 !important;
-    }
-
-    main {
-        padding-bottom: 0 !important;
-    }
-</style>
-
-<!-- Se manda llamar tu hoja de estilos personalizada donde están tus clases 3D -->
-<link rel="stylesheet" href="~/css/estilos.css" />
-
-<div style="background-color: #f4f6f9; padding-top: 25px; padding-bottom: 40px; min-height: 100vh; width: 100%;">
-
-    <!-- Tarjeta principal centrada -->
-    <div style="margin: 0 40px; background-color: #f2f3f5; border: 2px solid #ccc; border-radius: 15px; position: relative; padding-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-
-        <!-- Botón circular rojo para salir/cerrar -->
-        <a asp-controller="Home" asp-action="Index" class="btn-cerrar-rojo">&#10005;</a>
-
-        <!-- Encabezado Institucional -->
-        <div style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px; border-radius: 13px 13px 0 0; font-size: 20px; margin-bottom: 25px; text-transform: uppercase;">
-            CATÁLOGO DE DOCENTES
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Directorio de Docentes</h2>
+            <p class="text-muted m-0">Consulta la plantilla docente, asignaciones y comisiones de auditoría auxiliar.</p>
         </div>
+    </div>
 
-        <!-- Tabla de Datos -->
-        <div style="padding: 0 30px;">
-            <table class="tabla-dashboard" style="width: 100%; text-align: center;">
-                <thead>
-                    <tr>
-                        <th style="width: 25%; text-align: left;">NOMBRE COMPLETO &#128269;</th>
-                        <th style="width: 20%;">DEPARTAMENTO</th>
-                        <th style="width: 15%;">RFC</th>
-                        <th style="width: 25%;">CORREO INSTITUCIONAL</th>
-                        <th style="width: 15%;">ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tarjetas Informativas de Métricas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
+                        <i class="bi bi-people-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Total Docentes Visibles</h6>
+                        <h3 class="fw-bold m-0" style="color: #112d60;">@Model.Count()</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3 bg-success">
+                        <i class="bi bi-journal-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Con Asignaturas</h6>
+                        <h3 class="fw-bold m-0 text-success">@Model.Count(d => d.DocenteAsignaturas != null && d.DocenteAsignaturas.Any())</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3" style="border-radius: 12px; border-left: 5px solid #f4a915 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 text-white me-3" style="background-color: #f4a915;">
+                        <i class="bi bi-exclamation-triangle-fill fs-4" style="color: #112d60;"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-0">Sin Asignaturas</h6>
+                        <h3 class="fw-bold m-0" style="color: #112d60;">@Model.Count(d => d.DocenteAsignaturas == null || !d.DocenteAsignaturas.Any())</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Principal de Docentes -->
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #112d60; color: #ffffff;">
+                        <tr>
+                            <th class="py-3 px-4">Docente</th>
+                            <th class="py-3 px-4">Correo Institucional</th>
+                            <th class="py-3 px-4 text-center">Asignaturas</th>
+                            @if (esJefeCarrera)
+                            {
+                                <th class="py-3 px-4 text-center">Rol Auxiliar</th>
+                            }
+                            <th class="py-3 px-4 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
                         {
                             <tr>
-                                <td style="font-size: 14px; text-transform: uppercase; font-weight: 900; text-align: left;">@item.Name</td>
-                                <!-- ⚠️ Mostramos el nombre del departamento o un texto por defecto si está vacío -->
-                                <td style="font-size: 14px; font-weight: 900;">
-                                    @(item.DepartamentoId != null ? item.Departamento.Nombre : "Sin Asignar")
-                                </td>
-                                <td style="font-size: 14px; font-weight: 900;">@item.Rfc</td>
-                                <td style="font-size: 14px; font-weight: 900;">@item.Email</td>
-                                <td>
-                                    <!-- Botones de íconos idénticos al diseño de Asignaturas -->
-                                    <div style="display: flex; justify-content: center; gap: 15px;">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Editar">
-                                            &#9998;
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" style="color: black; text-decoration: none; font-size: 20px;" title="Eliminar">
-                                            &#128465;
-                                        </a>
-                                    </div>
+                                <td colspan="@(esJefeCarrera ? 5 : 4)" class="text-center py-4 text-muted">
+                                    No se encontraron docentes registrados.
                                 </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" style="padding: 30px; color: #666; font-size: 16px; font-weight: bold;">
-                                No hay docentes registrados.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
 
-        <!-- Botones inferiores SIARA 3D -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 25px 30px 0 30px;">
-            <a asp-controller="Home" asp-action="Index" class="btn-siara-3d" style="text-decoration: none;">SALIR</a>
+                        @foreach (var docente in Model)
+                        {
+                            int cantidadMaterias = docente.DocenteAsignaturas?.Count ?? 0;
+                            bool esDeMiCarrera = docente.DepartamentoId == miDeptoId;
+                            bool esRevisor = await UserManager.IsInRoleAsync(docente, "JefeCarrera");
 
-            <div style="display: flex; gap: 15px;">
-                <a asp-action="Create" class="btn-siara-3d" style="text-decoration: none;">AGREGAR</a>
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-3 text-white fw-bold d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px; background-color: @(esDeMiCarrera ? "#112d60" : "#6c757d"); border-radius: 50%; font-size: 14px;">
+                                            @(string.IsNullOrEmpty(docente.FullName) ? "D" : docente.FullName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block">@(string.IsNullOrEmpty(docente.FullName) ? docente.UserName : docente.FullName)</span>
+                                            @if (esDeMiCarrera)
+                                            {
+                                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 11px;">
+                                                    Adscrito a la Academia
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 11px;">
+                                                    Docente de Apoyo (@(docente.Departamento?.Code ?? "Otra Carrera"))
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-4 text-muted">
+                                    <i class="bi bi-envelope me-1"></i>@docente.Email
+                                </td>
+
+                                <td class="px-4 text-center">
+                                    @if (cantidadMaterias > 0)
+                                    {
+                                        <span class="badge bg-success bg-opacity-15 text-success px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                            <i class="bi bi-book me-1"></i> @cantidadMaterias materia(s)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-15 text-dark px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                            Sin materias
+                                        </span>
+                                    }
+                                </td>
+
+                                <!-- COLUMNA ROL AUXILIAR (Solo visible para Jefe de Carrera) -->
+                                @if (esJefeCarrera)
+                                {
+                                    <td class="px-4 text-center">
+                                        @if (esDeMiCarrera)
+                                        {
+                                            @if (esRevisor)
+                                            {
+                                                <div class="d-flex flex-column align-items-center gap-1">
+                                                    <span class="badge bg-info text-dark px-2 py-1" style="font-size: 11px;">
+                                                        <i class="bi bi-shield-check me-1"></i>Revisor Auxiliar
+                                                    </span>
+                                                    <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="docenteId" value="@docente.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold"
+                                                                onclick="return confirm('¿Deseas revocar los permisos de revisión a este docente?');"
+                                                                style="font-size: 11px; border-radius: 6px;">
+                                                            Revocar
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="docenteId" value="@docente.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold"
+                                                            onclick="return confirm('¿Deseas comisionar a este docente como revisor auxiliar? Podrá dictaminar evidencias de la carrera.');"
+                                                            style="font-size: 11px; border-radius: 6px;">
+                                                        <i class="bi bi-person-plus me-1"></i>Comisionar
+                                                    </button>
+                                                </form>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-muted border py-1 px-2" style="font-size: 11px;" title="Solo puedes comisionar a docentes adscritos a tu academia">
+                                                <i class="bi bi-slash-circle me-1"></i>No elegible
+                                            </span>
+                                        }
+                                    </td>
+                                }
+
+                                <td class="px-4 text-end">
+                                    <a asp-action="Details" asp-route-id="@docente.Id" class="btn btn-sm text-white px-3 py-1" style="background-color: #112d60; border-radius: 8px;">
+                                        <i class="bi bi-eye me-1"></i> Ver Carga
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
 </div>

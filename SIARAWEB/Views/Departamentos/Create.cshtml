@@ -1,0 +1,54 @@
+﻿@model SIARAWEB.Models.Departamento
+
+@{
+    ViewData["Title"] = "Nuevo Departamento";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <h5 class="m-0 fw-bold"><i class="bi bi-building-add me-2"></i> Alta de Departamento o Carrera</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Code" class="form-control" placeholder="Ej. ISC" style="text-transform: uppercase;" required />
+                            <label asp-for="Code">Clave o Sigla (Ej. ISC, IGE, IC)</label>
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Name" class="form-control" placeholder="Nombre completo" required />
+                            <label asp-for="Name">Nombre Completo del Departamento</label>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <select asp-for="HeadOfDepartmentId" class="form-select" asp-items="ViewBag.Jefes">
+                                <option value="">-- Dejar sin asignar temporalmente --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Seleccionar Jefe(a) de Carrera</label>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                                <i class="bi bi-save me-2"></i> Registrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

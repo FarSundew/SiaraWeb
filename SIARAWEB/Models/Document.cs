@@ -7,26 +7,35 @@ namespace SIARAWEB.Models
     public class Document
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        // Llave foránea hacia la Asignatura
-        [Required(ErrorMessage = "La asignatura es obligatoria")]
         public int SubjectId { get; set; }
-
         [ForeignKey("SubjectId")]
-        public Subject? Subject { get; set; } // El "?" soluciona la advertencia de NULL
+        public virtual Subject? Subject { get; set; }
 
-        // Tipo de Documento (Instrumentación, Práctica, etc.)
-        [Required(ErrorMessage = "El tipo de documento es obligatorio")]
-        public string Type { get; set; } = string.Empty; // "= string.Empty" soluciona la advertencia de NULL
+        public int CutoffDateId { get; set; }
+        [ForeignKey("CutoffDateId")]
+        public virtual CutoffDate? CutoffDate { get; set; }
 
-        // Ruta física donde se guardará el PDF
-        public string? FilePath { get; set; } // El "?" permite que esté nulo antes de subirlo
+        [Required]
+        [StringLength(150)]
+        public string DocumentType { get; set; } = string.Empty; // Instrumentación, Actas, Prácticas, etc.
 
-        // Fecha exacta de la subida
-        public DateTime UploadedAt { get; set; }
+        [Required]
+        public string FilePath { get; set; } = string.Empty;
 
-        // ¿Se entregó antes de la fecha de corte configurada por el Administrador?
-        public bool IsOnTime { get; set; }
+        // 🟢 Se CONSERVA: Fecha original de primera entrega (determina IsOnTime)
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
+
+        // 🟢 NUEVO CAMPO: Solo se llena cuando el docente sube una corrección
+        public DateTime? CorrectionSubmissionDate { get; set; }
+
+        public bool IsOnTime { get; set; } // Calculado: UploadedAt <= CutoffDate.DueDate
+        public string Status { get; set; } = "EnTiempo"; // "EnTiempo", "Atrasado", "N/A"
+
+        // Sistema de revisión por Jefatura
+        public string ApprovalStatus { get; set; } = "Pendiente"; // "Pendiente", "Aprobado", "Rechazado"
+        public string? Feedback { get; set; }
     }
 }

@@ -1,0 +1,119 @@
+﻿@model IEnumerable<SIARAWEB.Models.AcademicPeriod>
+
+@{
+    ViewData["Title"] = "Periodos Escolares";
+    bool esAdmin = User.IsInRole("Administrador");
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">Gestión de Periodos Escolares</h2>
+            <p class="text-muted m-0">Administración de semestres activos, fechas de inicio/cierre e historial académico.</p>
+        </div>
+
+        @if (esAdmin)
+        {
+            <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                <i class="bi bi-calendar-plus-fill me-2"></i> Aperturar Nuevo Periodo
+            </a>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+                <p class="fs-5">No hay periodos escolares registrados aún.</p>
+            </div>
+        }
+
+        @foreach (var item in Model)
+        {
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0" style="border-radius: 12px; overflow: hidden; border-top: 5px solid @(item.IsActive ? "#28a745" : "#6c757d") !important;">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold m-0" style="color: #112d60;">@item.Name</h5>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
+                                        <i class="bi bi-play-circle-fill me-1"></i> En Curso
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2">
+                                        <i class="bi bi-archive-fill me-1"></i> Concluido
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="p-3 mb-3 bg-light rounded-3" style="font-size: 14px;">
+                                <div class="d-flex align-items-center mb-2 text-muted">
+                                    <i class="bi bi-calendar-check text-primary me-2 fs-5"></i>
+                                    <span><strong>Inicio:</strong> @item.StartDate.ToString("dd 'de' MMMM 'de' yyyy")</span>
+                                </div>
+                                <div class="d-flex align-items-center text-muted">
+                                    <i class="bi bi-calendar-x text-danger me-2 fs-5"></i>
+                                    <span><strong>Cierre:</strong> @item.EndDate.ToString("dd 'de' MMMM 'de' yyyy")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 🟢 ACCIONES CONDICIONADAS SEGÚN ROL -->
+                        <div class="pt-3 border-top">
+                            @if (esAdmin)
+                            {
+                                <div class="d-flex flex-column gap-2">
+                                    <!-- Botón para Concluir / Reabrir Semestre -->
+                                    <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="w-100 m-0">
+                                        @Html.AntiForgeryToken()
+                                        @if (item.IsActive)
+                                        {
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Archivar este periodo? Al concluir el periodo, los docentes ya no podrán subir más entregas.');">
+                                                <i class="bi bi-archive me-2"></i> Concluir / Archivar Semestre
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-outline-success btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Reabrir este periodo escolar?');">
+                                                <i class="bi bi-arrow-counterclockwise me-2"></i> Reabrir Periodo Escolar
+                                            </button>
+                                        }
+                                    </form>
+
+                                    <!-- Botón de Borrado Definitivo -->
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="w-100 m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Deseas eliminar este periodo escolar de forma permanente? Se podrían ver afectadas materias y registros asociados.');">
+                                            <i class="bi bi-trash me-1"></i> Eliminar Periodo
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center">
+                                    <span class="badge bg-light text-muted border py-2 w-100">
+                                        <i class="bi bi-eye me-1"></i> Solo Lectura / Consulta Histórica
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

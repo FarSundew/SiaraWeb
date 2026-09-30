@@ -1,164 +1,69 @@
-﻿@model IEnumerable<SIARAWEB.Models.Document>
+﻿@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
-    ViewData["Title"] = "Monitoreo de Documentos";
-    Layout = "_Layout";
-    // Identificamos la fase activa
-    var faseActual = ViewBag.FechaCorte != null ? ViewBag.FechaCorte.Phase : "Documentos Iniciales";
+    ViewData["Title"] = "Mis Documentos";
 }
 
-<div class="container-fluid mt-4">
-    <!-- Título -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 style="color: #112d60; font-weight: 900;">MONITOREO DE DOCUMENTOS</h2>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #112d60;">📄 Repositorio de Documentos</h2>
+            <p class="text-muted m-0">Sube tu instrumentación didáctica y evidencias por cada asignatura asignada.</p>
+        </div>
     </div>
 
-    <!-- ⚠️ RECORDATORIO DE FECHA DE CORTE ⚠️ -->
-    @if (ViewBag.FechaCorte != null)
+    @if (TempData["Success"] != null)
     {
-        <div class="alert shadow-sm d-flex align-items-center justify-content-between" style="background-color: #f8d7da; border-left: 6px solid #d9534f; border-radius: 8px;">
-            <div>
-                <h5 style="margin: 0; color: #721c24; font-weight: bold;">
-                    ⏱️ FECHA LÍMITE: @ViewBag.FechaCorte.CutoffDate.ToString("dd/MM/yyyy")
-                </h5>
-                <p style="margin: 5px 0 0 0; color: #721c24; font-size: 15px;">
-                    Fase activa: <strong>@faseActual</strong>. Sube tus archivos pendientes antes de esta fecha.
-                </p>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <!-- ⚠️ AQUÍ ESTÁ EL CAMBIO CLAVE: Si NO es administrador, asume que es Docente -->
-    @if (!User.IsInRole("Administrador"))
-    {
-        var misMaterias = ViewBag.MisMaterias as IEnumerable<SIARAWEB.Models.Subject>;
-
-        <div class="card shadow-sm" style="border-radius: 10px; border-top: 4px solid #112d60;">
-            <div class="card-header bg-white">
-                <h4 class="mb-0 text-center" style="color: #112d60; font-weight: bold;">
-                    PANEL DE ENTREGAS: @faseActual.ToUpper()
-                </h4>
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-folder-x display-4 d-block mb-3"></i>
+                <p class="fs-5">No tienes asignaturas asignadas en este periodo escolar.</p>
+                <small>Si crees que esto es un error, contacta a tu Jefe de Carrera.</small>
             </div>
-            <div class="card-body table-responsive">
-                <table class="table table-bordered text-center align-middle">
-                    <thead style="background-color: #f4a915; color: #112d60;">
-                        <tr>
-                            <th class="align-middle">ASIGNATURA</th>
-                            <!-- DIBUJAMOS LAS COLUMNAS DEPENDIENDO DE LA FASE ACTIVA -->
-                            @if (faseActual == "Primer Seguimiento")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Calif. Parcial</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Eval. Diagnóstica</th>
-                                <th>Avance Proy. Ind.</th>
-                            }
-                            else if (faseActual == "Segundo Seguimiento")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Calif. Parcial</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Avance Proy. Ind.</th>
-                            }
-                            else if (faseActual == "Reporte Final")
-                            {
-                                <th>Avance (Apartado 6)</th>
-                                <th>Acta Calificaciones</th>
-                                <th>Instr. Evaluación</th>
-                                <th>Reporte Final</th>
-                                <th>Cierre Proy. Ind.</th>
-                            }
-                            else // Documentos Iniciales
-                            {
-                                <th>Instrumentación Didáctica</th>
-                                <th>Instrumento de Evaluación</th>
-                                <th>Práctica de Laboratorio</th>
-                                <th>Proyecto Individual</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (misMaterias != null)
-                        {
-                            foreach (var materia in misMaterias)
-                            {
-                                <tr>
-                                    <td class="fw-bold" style="color: #112d60; text-align: left;">@materia.Name</td>
+        }
 
-                                    <!-- Lógica para pintar las celdas y botones -->
-                                    @{
-                                        var tiposRequeridos = new List<string>();
-                                        if (faseActual == "Primer Seguimiento") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Calificación Parcial", "Instrumento de Evaluación", "Evaluación Diagnóstica", "Avance Proyecto Individual" }); }
-                                        else if (faseActual == "Segundo Seguimiento") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Calificación Parcial", "Instrumento de Evaluación", "Avance Proyecto Individual" }); }
-                                        else if (faseActual == "Reporte Final") { tiposRequeridos.AddRange(new[] { "Avance Apartado 6", "Acta de Calificaciones", "Instrumento de Evaluación", "Reporte Final", "Cierre Proyecto Individual" }); }
-                                        else { tiposRequeridos.AddRange(new[] { "Instrumentación Didáctica", "Instrumento de Evaluación", "Práctica de Laboratorio", "Proyecto Individual" }); }
-                                    }
+        @foreach (var subject in Model)
+        {
+            // Lógica rápida para saber si ya entregó documentos
+            int totalDocumentos = subject?.Documents?.Count ?? 0;
 
-                                    @foreach (var tipo in tiposRequeridos)
-                                    {
-                                        // Buscamos si el archivo de esta materia y de este tipo ya fue subido
-                                        var docSubido = Model.FirstOrDefault(d => d.SubjectId == materia.Id && d.Type == tipo);
-                                        <td>
-                                            @if (docSubido != null)
-                                            {
-                                                <span class="badge bg-success d-block mb-1">Entregado</span>
-                                                <small class="text-muted" style="font-size: 0.75rem;">@docSubido.UploadedAt.ToString("dd/MM/yy HH:mm")</small>
-                                            }
-                                            else
-                                            {
-                                                <a asp-action="Create" asp-route-subjectId="@materia.Id" asp-route-tipo="@tipo" class="btn btn-sm btn-outline-danger fw-bold">☁️ Subir</a>
-                                            }
-                                        </td>
-                                    }
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0" style="border-radius: 12px; border-top: 5px solid #112d60 !important;">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold m-0" style="color: #112d60;">@subject?.Name</h5>
+                            </div>
+                            <p class="text-muted mb-3"><i class="bi bi-upc-scan me-1"></i> Clave: <strong>@subject?.Code</strong></p>
+
+                            <div class="p-3 mb-3 bg-light rounded-3">
+                                <div class="d-flex align-items-center text-muted mb-2" style="font-size: 14px;">
+                                    <i class="bi bi-calendar3 text-primary me-2 fs-5"></i>
+                                    <span>Periodo: <strong>@subject?.AcademicPeriod?.Name</strong></span>
+                                </div>
+                                <div class="d-flex align-items-center text-muted" style="font-size: 14px;">
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2 fs-5"></i>
+                                    <span>Archivos subidos: <strong>@totalDocumentos</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <a asp-action="Upload" asp-route-id="@subject.Id" class="btn w-100 py-2 fw-bold text-white" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important;">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Documentos
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    }
-    else
-    {
-        <!-- VISTA DEL ADMINISTRADOR -->
-        <div class="card shadow-sm" style="border-radius: 10px; border-top: 4px solid #112d60;">
-            <div class="card-body table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>Asignatura</th>
-                            <th>Tipo de Documento</th>
-                            <th>Fecha de Subida</th>
-                            <th>Estado de Entrega</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="fw-bold">@Html.DisplayFor(modelItem => item.Subject.Name)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Type)</td>
-                                <td>@item.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    @if (item.IsOnTime)
-                                    {
-                                        <span class="badge bg-success">EN TIEMPO Y FORMA</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">FUERA DE TIEMPO ⚠</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Ver</a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Borrar</a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
+        }
+    </div>
 </div>

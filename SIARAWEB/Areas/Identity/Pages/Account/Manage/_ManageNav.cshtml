@@ -3,14 +3,35 @@
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
-    @if (hasExternalLogins)
-    {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
-    }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
-</ul>
+
+<div class="list-group list-group-flush">
+    <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4 @ManageNavPages.IndexNavClass(ViewContext)"
+       id="profile" asp-page="./Index">
+        <i class="bi bi-person-vcard fs-5"></i>
+        <span>Mi Perfil</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4 @ManageNavPages.EmailNavClass(ViewContext)"
+       id="email" asp-page="./Email">
+        <i class="bi bi-envelope fs-5"></i>
+        <span>Correo Electrónico</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4 @ManageNavPages.ChangePasswordNavClass(ViewContext)"
+       id="change-password" asp-page="./ChangePassword">
+        <i class="bi bi-shield-lock fs-5"></i>
+        <span>Contraseña</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4 @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)"
+       id="two-factor" asp-page="./TwoFactorAuthentication">
+        <i class="bi bi-phone-vibrate fs-5"></i>
+        <span>Autenticación 2FA</span>
+    </a>
+
+    <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 px-4 @ManageNavPages.PersonalDataNavClass(ViewContext)"
+       id="personal-data" asp-page="./PersonalData">
+        <i class="bi bi-file-earmark-person fs-5"></i>
+        <span>Datos Personales</span>
+    </a>
+</div>

@@ -1,24 +1,67 @@
 ﻿@{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout != null)
     {
         Layout = parentLayout.ToString();
     }
     else
     {
-        Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+        Layout = "/Views/Shared/_Layout.cshtml";
     }
 }
 
-<h1>Manage your account</h1>
+<style>
+    /* Estilos personalizados para las pestañas activas de Ajustes */
+    .manage-nav .list-group-item {
+        border: none;
+        color: #4b5563;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+    }
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <partial name="_ManageNav" />
+        .manage-nav .list-group-item:hover {
+            background-color: #f8fafc;
+            color: #112d60;
+        }
+
+        .manage-nav .list-group-item.active {
+            background-color: #f1f5f9;
+            color: #112d60;
+            font-weight: 700;
+            border-left-color: #f4a915; /* Línea dorada en la pestaña activa */
+        }
+</style>
+
+<div class="container-fluid p-0">
+
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; background: linear-gradient(135deg, #112d60 0%, #1b396a 100%);">
+        <div class="card-body p-4 text-white d-flex align-items-center gap-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width: 55px; height: 55px; background-color: #f4a915; color: #112d60; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="bi bi-gear-fill"></i>
+            </div>
+            <div>
+                <h4 class="m-0 fw-bold">Ajustes de Cuenta y Configuración</h4>
+                <p class="m-0 text-white-50" style="font-size: 0.88rem;">
+                    Gestiona tu información personal, contraseña y opciones de seguridad.
+                </p>
+            </div>
         </div>
-        <div class="col-md-9">
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-4">
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header bg-white py-3 px-4 border-bottom">
+                    <span class="text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">Opciones</span>
+                </div>
+                <div class="card-body p-0 manage-nav">
+                    <partial name="_ManageNav" />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
             @RenderBody()
         </div>
     </div>
@@ -27,4 +70,3 @@
 @section Scripts {
     @RenderSection("Scripts", required: false)
 }
-
