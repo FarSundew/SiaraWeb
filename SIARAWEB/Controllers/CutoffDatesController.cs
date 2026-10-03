@@ -35,7 +35,6 @@ namespace SIARAWEB.Controllers
                 .Where(c => c.AcademicPeriodId == selectedPeriodId)
                 .AsQueryable();
 
-            // Si es Jefe de Carrera, se filtra por su propio departamento
             if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
             {
                 query = query.Where(c => c.DepartamentoId == currentUser.DepartamentoId || c.DepartamentoId == null);
@@ -83,7 +82,6 @@ namespace SIARAWEB.Controllers
         {
             var currentUser = await _userManager.GetUserAsync(User);
 
-            // Si es jefe de carrera, forzar su propio departamento
             if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
             {
                 cutoffDate.DepartamentoId = currentUser?.DepartamentoId;
@@ -94,6 +92,73 @@ namespace SIARAWEB.Controllers
                 _context.CutoffDates.Add(cutoffDate);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = $"Fecha de corte '{cutoffDate.Name}' creada exitosamente.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.AcademicPeriodId = new SelectList(_context.AcademicPeriods, "Id", "Name", cutoffDate.AcademicPeriodId);
+            ViewBag.DepartamentoId = new SelectList(_context.Departamentos, "Id", "Name", cutoffDate.DepartamentoId);
+            return View(cutoffDate);
+        }
+
+        // GET: CutoffDates/Edit/5
+        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            // Leer directamente sin tracking para eliminar efectos secundarios de EF
+            var cutoffDate = await _context.CutoffDates
+                .AsNoTracking()
+                .Include(c => c.AcademicPeriod)
+                .Include(c => c.Departamento)
+                .FirstOrDefaultAsync(c => c.Id == id.Value);
+
+            if (cutoffDate == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
+            {
+                if (cutoffDate.DepartamentoId.HasValue && cutoffDate.DepartamentoId != currentUser?.DepartamentoId)
+                {
+                    return Forbid();
+                }
+            }
+
+            ViewBag.AcademicPeriodId = new SelectList(_context.AcademicPeriods.OrderByDescending(p => p.Id), "Id", "Name", cutoffDate.AcademicPeriodId);
+            ViewBag.DepartamentoId = new SelectList(_context.Departamentos.OrderBy(d => d.Name), "Id", "Name", cutoffDate.DepartamentoId);
+
+            // Eliminar cualquier entrada previa en ModelState que pueda forzar valores vacíos en los tag-helpers
+            ModelState.Remove("Name");
+            ModelState.Remove("StartDate");
+            ModelState.Remove("DueDate");
+            // Medida extra por si persiste: limpiar todo ModelState
+            // ModelState.Clear();
+
+            return View(cutoffDate);
+        }
+
+        // POST: CutoffDates/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        public async Task<IActionResult> Edit(int id, CutoffDate cutoffDate)
+        {
+            if (id != cutoffDate.Id) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(cutoffDate);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"La fecha de corte '{cutoffDate.Name}' se actualizó correctamente.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!_context.CutoffDates.Any(e => e.Id == cutoffDate.Id)) return NotFound();
+                    else throw;
+                }
                 return RedirectToAction(nameof(Index));
             }
 
