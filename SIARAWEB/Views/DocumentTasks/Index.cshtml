@@ -1,0 +1,185 @@
+@model IEnumerable<SIARAWEB.Models.DocumentTask>
+
+@{
+    ViewData["Title"] = "Buzones de Entrega (Tareas)";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado Principal -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-clipboard-check me-2"></i> GESTIÓN DE TAREAS Y BUZONES
+            </h3>
+            <p class="text-muted fw-bold mb-0">
+                Supervisa y programa las entregas documentales y de calificaciones del semestre.
+            </p>
+        </div>
+        @if (User.IsInRole("JefeCarrera") || User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn text-white fw-bold px-4 py-2 shadow-sm" style="background-color: #112d60; border-radius: 8px;">
+                <i class="bi bi-plus-circle me-2" style="color: #f4a915;"></i> Publicar Nueva Tarea
+            </a>
+        }
+    </div>
+
+    <!-- Alertas TempData -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabla / Listado de Tareas -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header py-3 px-4" style="background-color: #112d60; color: white;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold" style="font-size: 16px; text-transform: uppercase;">
+                    <i class="bi bi-collection me-2"></i> Tareas y Requerimientos Activos
+                </h5>
+                <span class="badge bg-light text-dark fw-bold px-3 py-1">
+                    @Model.Count() Tarea(s) registrada(s)
+                </span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-folder2-open display-4 d-block mb-3 opacity-50"></i>
+                    <h5 class="fw-bold">No hay tareas o buzones programados</h5>
+                    <p class="small">Haz clic en <strong>"Publicar Nueva Tarea"</strong> para definir la primera entrega del ciclo.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center" style="font-size: 14px;">
+                        <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                            <tr>
+                                <th class="text-start ps-4" style="width: 28%;">TÍTULO Y DESCRIPCIÓN</th>
+                                <th style="width: 16%;">PERIODO / CARRERA</th>
+                                <th style="width: 14%;">FASE ACADÉMICA</th>
+                                <th style="width: 18%;">FECHA LÍMITE (DUEDATE)</th>
+                                <th style="width: 12%;">ESTADO</th>
+                                <th style="width: 12%;">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                bool estaVencida = DateTime.Now > item.DueDate;
+                                string badgeFase = item.PhaseType switch
+                                {
+                                    "Inicial" => "bg-primary",
+                                    "Seguimiento1" => "bg-info text-dark",
+                                    "Seguimiento2" => "bg-warning text-dark",
+                                    "Final" => "bg-success",
+                                    _ => "bg-secondary"
+                                };
+
+                                string etiquetaFase = item.PhaseType switch
+                                {
+                                    "Inicial" => "Doc. Iniciales",
+                                    "Seguimiento1" => "1er Seguimiento",
+                                    "Seguimiento2" => "2do Seguimiento",
+                                    "Final" => "Reporte Final",
+                                    _ => item.PhaseType
+                                };
+
+                                <tr>
+                                    <!-- Título y Descripción -->
+                                    <td class="text-start ps-4">
+                                        <div class="fw-bold text-dark" style="font-size: 15px;">
+                                            @item.Title
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                                        {
+                                            <small class="text-muted text-truncate d-block" style="max-width: 320px;" title="@item.Description">
+                                                @item.Description
+                                            </small>
+                                        }
+                                    </td>
+
+                                    <!-- Periodo y Departamento -->
+                                    <td>
+                                        <span class="fw-bold text-dark d-block">
+                                            @(item.AcademicPeriod?.Name ?? "General")
+                                        </span>
+                                        <small class="text-muted">
+                                            @(item.Departamento?.Code ?? item.Departamento?.Name ?? "Todos")
+                                        </small>
+                                    </td>
+
+                                    <!-- Fase -->
+                                    <td>
+                                        <span class="badge @badgeFase py-2 px-3 fw-bold rounded-pill">
+                                            @etiquetaFase
+                                        </span>
+                                    </td>
+
+                                    <!-- Fecha Límite -->
+                                    <td>
+                                        <div class="fw-bold @(estaVencida ? "text-danger" : "text-dark")">
+                                            <i class="bi bi-clock me-1"></i> @item.DueDate.ToString("dd/MMM/yyyy HH:mm") hrs
+                                        </div>
+                                        <small class="@(estaVencida ? "text-danger fw-bold" : "text-muted")">
+                                            @(estaVencida ? "Vencida" : "Abierta para entrega")
+                                        </small>
+                                    </td>
+
+                                    <!-- Estado -->
+                                    <td>
+                                        @if (estaVencida)
+                                        {
+                                            <span class="badge bg-secondary py-1 px-2">Cerrada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success py-1 px-2">
+                                                ?? En Curso
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <!-- Acciones -->
+                                    <td>
+                                        <!-- Ver Detalles -->
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        <!-- Revisar / Calificar Tarea -->
+                                        <a asp-action="Review" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary fw-bold" title="Mesa de Dictamen">
+                                            <i class="bi bi-ui-checks"></i> Revisar
+                                        </a>
+
+                                        @if (User.IsInRole("JefeCarrera") || User.IsInRole("Administrador"))
+                                        {
+                                            <!-- Modificar -->
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            <!-- Eliminar -->
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta tarea? Solo se eliminará si no tiene entregas registradas.');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

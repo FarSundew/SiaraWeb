@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
@@ -55,7 +55,7 @@ namespace SIARAWEB.Controllers
 
             // Filtrar materias por el periodo seleccionado
             var materiasPeriodo = departamento.Subjects?
-                .Where(s => s.AcademicPeriodId == selectedPeriodId)
+                .Where(s => s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == selectedPeriodId))
                 .ToList() ?? new List<Subject>();
 
             return View(materiasPeriodo);

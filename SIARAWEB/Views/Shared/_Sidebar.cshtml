@@ -1,4 +1,4 @@
-﻿<div class="sidebar-sticky" style="padding-top: 30px;">
+<div class="sidebar-sticky" style="padding-top: 30px;">
     <h6 class="text-center mb-4" style="color: #ffffff; font-weight: 900; letter-spacing: 1.5px;">MENÚ PRINCIPAL</h6>
     <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
 
@@ -14,12 +14,10 @@
         @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Documents" asp-action="Index">
-                    📖 DOCUMENTOS
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="DocenteTasks">
+                    <i class="bi bi-clipboard-check me-2"></i> MIS TAREAS / ENTREGAS
                 </a>
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicTrackings" asp-action="Index">
-                    📖 SEGUIMIENTO
-                </a>
+
             </li>
         }
 
@@ -42,10 +40,11 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="CutoffDates" asp-action="Index">
-                    ⏳ FECHAS DE CORTE
+                <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="Index">
+                    ⏳ BUZONES / TAREAS
                 </a>
             </li>
+
         }
 
         <!-- 👑 JEFE GENERAL / SUBDIRECTOR -->
@@ -56,22 +55,8 @@
                     🧭 MAPA INSTITUCIONAL
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="GeneralReport">
-                    📑 SÁBANA DE RENDIMIENTO
-                </a>
-            </li>
-            <!-- 🟢 NUEVO: Supervisión por Carreras y consulta de sus Fechas de Corte -->
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="SubdirectorCarreras" asp-action="Index">
-                    🏛️ CARRERAS Y CORTES
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicPeriods" asp-action="Index">
-                    📅 PERIODOS ESCOLARES
-                </a>
-            </li>
+            
+
         }
 
         <!-- 🛠️ ADMINISTRADOR -->
@@ -87,11 +72,7 @@
                     🏢 DEPARTAMENTOS Y CARRERAS
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="AcademicPeriods" asp-action="Index">
-                    📅 PERIODOS ESCOLARES
-                </a>
-            </li>
+
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Backup" asp-action="Index">
                     💾 RESPALDO BD
@@ -117,3 +98,4 @@
             color: #112d60 !important;
         }
 </style>
+

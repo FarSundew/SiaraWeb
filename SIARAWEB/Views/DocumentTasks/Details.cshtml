@@ -1,0 +1,62 @@
+@model SIARAWEB.Models.DocumentTask
+
+@{
+    ViewData["Title"] = "Detalle de Tarea";
+    bool estaVencida = DateTime.Now > Model.DueDate;
+}
+
+<div class="container py-4" style="max-width: 800px;">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header text-white py-3 px-4 d-flex justify-content-between align-items-center" style="background-color: #112d60; border-radius: 12px 12px 0 0;">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i> DETALLES DE LA TAREA</h5>
+            <span class="badge @(estaVencida ? "bg-secondary" : "bg-success")">
+                @(estaVencida ? "Cerrada" : "Abierta")
+            </span>
+        </div>
+        <div class="card-body p-4">
+            <h4 class="fw-bold text-dark mb-1">@Model.Title</h4>
+            <p class="text-muted mb-4">@(!string.IsNullOrWhiteSpace(Model.Description) ? Model.Description : "Sin observaciones adicionales.")</p>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block fw-bold">PERIODO ESCOLAR</small>
+                        <span class="fw-bold fs-6 text-dark">@(Model.AcademicPeriod?.Name ?? "-")</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block fw-bold">DEPARTAMENTO / CARRERA</small>
+                        <span class="fw-bold fs-6 text-dark">@(Model.Departamento?.Name ?? "General")</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block fw-bold">FASE ACADÉMICA</small>
+                        <span class="fw-bold fs-6 text-primary">@Model.PhaseType</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block fw-bold">FECHA LÍMITE (DUEDATE)</small>
+                        <span class="fw-bold fs-6 @(estaVencida ? "text-danger" : "text-success")">
+                            @Model.DueDate.ToString("dd/MMM/yyyy HH:mm") hrs
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Regresar</a>
+                <div class="d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning fw-bold px-3">
+                        <i class="bi bi-pencil-square me-1"></i> Modificar
+                    </a>
+                    <a asp-action="Review" asp-route-id="@Model.Id" class="btn text-white fw-bold px-4" style="background-color: #112d60;">
+                        <i class="bi bi-ui-checks me-1"></i> Ir al Panel de Revisión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,172 +1,264 @@
-﻿@model IEnumerable<SIARAWEB.Models.SemaforoViewModel>
+@model SIARAWEB.Models.AnalyticsDashboardViewModel
 
 @{
-    ViewData["Title"] = "Semáforo de Cumplimiento";
+    ViewData["Title"] = "Panel de Auditoría y Reportes";
 }
 
 <div class="container-fluid mt-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin: 0;">
                 <i class="bi bi-bar-chart-line-fill me-2"></i> PANEL DE AUDITORÍA Y REPORTES
             </h3>
-            <p class="text-muted fw-bold mt-1 mb-0">Monitoreo automático de entregas y rendimiento académico.</p>
+            <p class="text-muted fw-bold mt-1 mb-0">Tablero Analítico Unificado: Semáforo y Sábana de Rendimiento.</p>
         </div>
-        <!-- Botones de Acción y Exportación -->
         <div class="d-flex gap-2">
-            <!-- 🟢 BOTÓN DE ACCESO A LA SÁBANA GENERAL DE RENDIMIENTO -->
-            <a asp-action="GeneralReport" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
-                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Sábana de Rendimiento
-            </a>
-
-            <!-- Botones para exportar (preparados para el RF12) -->
-            <button class="btn btn-danger fw-bold shadow-sm" style="border-radius: 8px;">
-                <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
-            </button>
-            <button class="btn btn-success fw-bold shadow-sm" style="border-radius: 8px;">
-                <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
-            </button>
+            <button class="btn btn-danger fw-bold shadow-sm rounded-3"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+            <button class="btn btn-success fw-bold shadow-sm rounded-3"><i class="bi bi-file-earmark-excel-fill"></i> Excel</button>
         </div>
     </div>
 
-    <!-- Contenedor de Gráficas Estadísticas -->
-    <div class="row mb-5">
-        <!-- Gráfica de Pastel (Índices Académicos) -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
-                <div class="card-header text-white fw-bold text-center p-3" style="background-color: #112d60;">
-                    <i class="bi bi-pie-chart-fill me-2"></i> RENDIMIENTO ACADÉMICO GLOBAL
+    <!-- Barra de Filtros Global -->
+    <div class="card shadow-sm border-0 mb-4 bg-light rounded-4 p-3">
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                <select name="periodoId" class="form-select form-select-sm fw-bold">
+                    @foreach (var p in Model.AcademicPeriods)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == Model.ActivePeriodId)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            @if (User.IsInRole("Administrador") || User.IsInRole("JefeGeneral"))
+            {
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">DEPARTAMENTO</label>
+                    <select name="departamentoId" class="form-select form-select-sm fw-bold">
+                        <option value="">-- Todos --</option>
+                        @foreach (var d in Model.Departamentos)
+                        {
+                            <option value="@d.Id" selected="@(d.Id == Model.SelectedDepartamentoId)">@d.Name</option>
+                        }
+                    </select>
                 </div>
-                <div class="card-body d-flex justify-content-center align-items-center bg-light">
-                    <canvas id="pastelChart" style="max-height: 260px;"></canvas>
+            }
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">BUSCAR MATERIA / DOCENTE</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control fw-bold" placeholder="Buscar..." value="@Model.SearchQuery" />
+                </div>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary fw-bold w-100 shadow-sm"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm"><i class="bi bi-eraser-fill"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <ul class="nav nav-pills mb-4 fw-bold gap-2" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 shadow-sm" id="kpi-tab" data-bs-toggle="pill" data-bs-target="#kpi" type="button" role="tab"><i class="bi bi-speedometer2 me-1"></i> Resumen Global (KPIs)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 shadow-sm" id="semaforo-tab" data-bs-toggle="pill" data-bs-target="#semaforo" type="button" role="tab"><i class="bi bi-traffic-light me-1"></i> Semáforo (Docentes)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 shadow-sm" id="sabana-tab" data-bs-toggle="pill" data-bs-target="#sabana" type="button" role="tab"><i class="bi bi-grid-3x3-gap-fill me-1"></i> Sábana (Estudiantes)</button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="reportTabsContent">
+        
+        <!-- TAB 1: RESUMEN GLOBAL (KPIs) -->
+        <div class="tab-pane fade show active" id="kpi" role="tabpanel">
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-primary h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">TOTAL ASIGNATURAS</div>
+                        <div class="fs-2 fw-bold text-dark">@Model.TotalAsignaturas</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-success h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">PROMEDIO ACREDITACIÓN</div>
+                        <div class="fs-2 fw-bold text-success">@Model.PromedioAprobacion%</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-danger h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">PROMEDIO REPROBACIÓN</div>
+                        <div class="fs-2 fw-bold text-danger">@Model.PromedioReprobacion%</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 border-start border-4 border-warning h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">ALERTAS DE RIESGO (≥40%)</div>
+                        <div class="fs-2 fw-bold text-warning">@Model.AlertasRiesgo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas Modernas -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-header bg-white fw-bold py-3"><i class="bi bi-bar-chart-fill text-primary me-2"></i> Cumplimiento de Entregas</div>
+                        <div class="card-body">
+                            <canvas id="entregasChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-header bg-white fw-bold py-3"><i class="bi bi-pie-chart-fill text-success me-2"></i> Rendimiento Académico</div>
+                        <div class="card-body d-flex justify-content-center">
+                            <canvas id="rendimientoChart" height="250"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Gráfica de Barras (Cumplimiento Docente) -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
-                <div class="card-header text-white fw-bold text-center p-3" style="background-color: #112d60;">
-                    <i class="bi bi-bar-chart-fill me-2"></i> ESTADO DE ENTREGAS DOCENTES
+        <!-- TAB 2: SEMÁFORO -->
+        <div class="tab-pane fade" id="semaforo" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-traffic-light me-2"></i> SEMÁFORO DE ENTREGAS
                 </div>
-                <div class="card-body bg-light">
-                    <canvas id="barrasChart" style="max-height: 260px;"></canvas>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center mb-0" style="font-size: 13px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-4">ASIGNATURA</th>
+                                <th class="text-start">DOCENTE</th>
+                                <th>INICIAL</th>
+                                <th>1ER SEGUIMIENTO</th>
+                                <th>2DO SEGUIMIENTO</th>
+                                <th>FINAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.SemaforoRows.Any())
+                            {
+                                <tr><td colspan="6" class="text-muted fw-bold py-4">No hay datos registrados.</td></tr>
+                            }
+                            @foreach (var row in Model.SemaforoRows)
+                            {
+                                <tr>
+                                    <td class="text-start fw-bold ps-4 text-primary">@row.SubjectCode - @row.SubjectName</td>
+                                    <td class="text-start text-muted fw-bold">@row.DocenteName</td>
+                                    <td><span class="badge @row.ColorInicial shadow-sm">@(row.ColorInicial == "bg-success" ? "A TIEMPO" : (row.ColorInicial == "bg-danger" ? "DESFASADO" : "PENDIENTE"))</span></td>
+                                    <td><span class="badge @row.ColorSeg1 shadow-sm">@(row.ColorSeg1 == "bg-success" ? "A TIEMPO" : (row.ColorSeg1 == "bg-danger" ? "DESFASADO" : "PENDIENTE"))</span></td>
+                                    <td><span class="badge @row.ColorSeg2 shadow-sm">@(row.ColorSeg2 == "bg-success" ? "A TIEMPO" : (row.ColorSeg2 == "bg-danger" ? "DESFASADO" : "PENDIENTE"))</span></td>
+                                    <td><span class="badge @row.ColorFinal shadow-sm">@(row.ColorFinal == "bg-success" ? "A TIEMPO" : (row.ColorFinal == "bg-danger" ? "DESFASADO" : "PENDIENTE"))</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="d-flex gap-4 justify-content-end mt-3 text-muted fw-bold small">
+                <div><span class="badge bg-success rounded-circle p-1 me-1"> </span> A Tiempo</div>
+                <div><span class="badge bg-danger rounded-circle p-1 me-1"> </span> Desfasado</div>
+                <div><span class="badge bg-secondary rounded-circle p-1 me-1"> </span> Pendiente</div>
+            </div>
+        </div>
+
+        <!-- TAB 3: SÁBANA -->
+        <div class="tab-pane fade" id="sabana" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i> SÁBANA CONSOLIDADA DE RENDIMIENTO
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle text-center mb-0" style="font-size: 13px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-3" style="width:15%">MATERIA</th>
+                                <th class="text-start" style="width:15%">DOCENTE</th>
+                                <th>FASE</th>
+                                <th>TEMA</th>
+                                <th class="text-success">APROB.</th>
+                                <th class="text-danger">REPROB.</th>
+                                <th class="text-start" style="width:25%">ACCIÓN CORRECTIVA</th>
+                                <th>AUDITORÍA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.SabanaRows.Any())
+                            {
+                                <tr><td colspan="8" class="text-muted fw-bold py-4">No hay datos registrados.</td></tr>
+                            }
+                            @foreach (var row in Model.SabanaRows)
+                            {
+                                <tr class="@(row.IsHighRisk ? "table-danger bg-opacity-10" : "")">
+                                    <td class="text-start fw-bold ps-3">
+                                        <span class="badge bg-light text-dark border">@row.SubjectCode</span><br />
+                                        <span class="text-truncate d-inline-block" style="max-width:180px;" title="@row.SubjectName">@row.SubjectName</span>
+                                    </td>
+                                    <td class="text-start text-muted fw-bold">@row.TeacherName</td>
+                                    <td class="text-primary fw-bold">@row.PhaseName</td>
+                                    <td><span class="badge bg-secondary">T-@row.UnitNumber</span></td>
+                                    <td class="text-success fw-bold">@row.ApprovalPercentage.ToString("0.0")%</td>
+                                    <td class="text-danger fw-bold">
+                                        @row.FailurePercentage.ToString("0.0")%
+                                        @if(row.IsHighRisk) { <i class="bi bi-exclamation-triangle-fill text-warning" title="Alerta: >= 40%"></i> }
+                                    </td>
+                                    <td class="text-start text-muted small">
+                                        @(string.IsNullOrWhiteSpace(row.CorrectiveAction) ? (row.IsHighRisk ? "⚠️ SIN ACCIÓN" : "-") : row.CorrectiveAction)
+                                    </td>
+                                    <td>
+                                        @if (row.ApprovalStatus == "Aprobado") { <span class="badge bg-success">Aprobado</span> }
+                                        else if (row.ApprovalStatus == "Rechazado") { <span class="badge bg-danger">Rechazado</span> }
+                                        else { <span class="badge bg-warning text-dark">Pendiente</span> }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Tabla del Semáforo -->
-    <div class="card shadow-sm border-0 mb-3" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header text-white fw-bold p-3" style="background-color: #112d60; text-transform: uppercase;">
-            <i class="bi bi-traffic-light me-2"></i> SEMÁFORO DE CUMPLIMIENTO DOCENTE
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
-                    <tr>
-                        <th class="text-start p-3">ASIGNATURA</th>
-                        <th class="text-start">DOCENTE</th>
-                        <th>DOC. INICIALES</th>
-                        <th>1ER SEGUIMIENTO</th>
-                        <th>2DO SEGUIMIENTO</th>
-                        <th>REPORTE FINAL</th>
-                        <th>AUDITAR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td class="text-start fw-bold p-3">@item.SubjectCode - @item.SubjectName</td>
-                            <td class="text-start text-muted fw-bold">@item.DocenteName</td>
-
-                            <!-- Indicadores del Semáforo con display: inline-block para que se vean -->
-                            <td><span class="badge rounded-circle @item.ColorInicial shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorSeg1 shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorSeg2 shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorFinal shadow-sm" style="width: 22px; height: 22px; display: inline-block;" title="Reporte Final"></span></td>
-
-                            <td>
-                                <!-- Botón Detalles (Lupa) -->
-                                <a asp-action="Details" asp-route-id="@item.SubjectId" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 6px;">
-                                    <i class="bi bi-search"></i> Detalles
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                    @if (!Model.Any())
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center p-4 text-muted fw-bold">
-                                <i class="bi bi-info-circle-fill me-2 fs-5"></i><br />No hay asignaturas registradas para auditar en este periodo.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Leyenda de colores -->
-    <div class="mt-3 d-flex gap-4 fw-bold text-muted justify-content-end p-2" style="font-size: 13px;">
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-success me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Entregado a Tiempo</div>
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-danger me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Entrega Desfasada</div>
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-secondary me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Pendiente / Sin entrega</div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- Importar Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
-        // 1. Dibujar Gráfica de Pastel (Aprobación / Reprobación)
-        const ctxPastel = document.getElementById('pastelChart').getContext('2d');
-        new Chart(ctxPastel, {
-            type: 'pie',
-            data: {
-                labels: ['Aprobación', 'Reprobación', 'Deserción'],
-                datasets: [{
-                    data: [@(ViewBag.Aprobacion ?? 0), @(ViewBag.Reprobacion ?? 0), @(ViewBag.Desercion ?? 0)],
-                    backgroundColor: ['#198754', '#dc3545', '#6c757d'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
-
-        // 2. Dibujar Gráfica de Barras (Entregas Docentes)
-        const ctxBarras = document.getElementById('barrasChart').getContext('2d');
-        new Chart(ctxBarras, {
+        // Gráfica de Entregas (Barras)
+        new Chart(document.getElementById('entregasChart'), {
             type: 'bar',
             data: {
-                labels: ['A Tiempo', 'Desfasado', 'Pendiente'],
+                labels: ['A Tiempo', 'Desfasadas', 'Pendientes'],
                 datasets: [{
                     label: 'Cantidad de Materias',
-                    data: [@(ViewBag.DocsATiempo ?? 0), @(ViewBag.DocsDesfasados ?? 0), @(ViewBag.DocsPendientes ?? 0)],
+                    data: [@Model.EntregasATiempo, @Model.EntregasDesfasadas, @Model.EntregasPendientes],
                     backgroundColor: ['#198754', '#dc3545', '#adb5bd'],
                     borderRadius: 6
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+
+        // Gráfica de Rendimiento (Pastel)
+        new Chart(document.getElementById('rendimientoChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Aprobación', 'Reprobación'],
+                datasets: [{
+                    data: [@Model.PromedioAprobacion, @Model.PromedioReprobacion],
+                    backgroundColor: ['#198754', '#dc3545'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
         });
     </script>
 }
+

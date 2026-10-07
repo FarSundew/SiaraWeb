@@ -1,4 +1,4 @@
-锘縰sing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,7 +8,7 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
-    // 馃煝 Autorizamos tanto a Docentes puros como a Jefes de Carrera que imparten clases
+    // ?? Autorizamos tanto a Docentes puros como a Jefes de Carrera que imparten clases
     [Authorize(Roles = "Docente,JefeCarrera")]
     public class DocumentsController : Controller
     {
@@ -32,7 +32,7 @@ namespace SIARAWEB.Controllers
 
             var misAsignaturas = await _context.DocenteAsignaturas
                 .Include(da => da.Subject)
-                    .ThenInclude(s => s!.AcademicPeriod)
+
                 .Include(da => da.Subject)
                     .ThenInclude(s => s!.Documents)
                 .Where(da => da.DocenteId == currentUser.Id)
@@ -43,98 +43,81 @@ namespace SIARAWEB.Controllers
         }
 
         // GET: Documents/Upload/5
-        public async Task<IActionResult> Upload(int id, string? faseSeleccionada)
+        public async Task<IActionResult> Upload(int id, int taskId)
         {
             var subject = await _context.Subjects
-                .Include(s => s.AcademicPeriod)
-                .Include(s => s.Documents!)
-                    .ThenInclude(d => d.CutoffDate)
+                .Include(s => s.Documents)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (subject == null) return NotFound();
 
-            // 1. Buscamos la fecha activa dando prioridad a la de su departamento
-            var faseActiva = await _context.CutoffDates
-                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId &&
-                           (c.DepartamentoId == subject.DepartamentoId || c.DepartamentoId == null) &&
-                            c.DueDate >= DateTime.Now)
-                .OrderByDescending(c => c.DepartamentoId) // Prioriza la del departamento sobre la general
-                .ThenBy(c => c.DueDate)
-                .FirstOrDefaultAsync();
+            var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == taskId);
+            if (task == null) return NotFound("La tarea/buz髇 no existe.");
 
-            // 2. Definimos qu茅 fase quiere ver el maestro
-            string faseActual = faseSeleccionada ?? faseActiva?.PhaseType ?? "Inicial";
-
-            // 3. L贸gica de solo lectura
-            bool esSoloLectura = faseActiva == null || faseActiva.PhaseType != faseActual;
-
-            // 4. Cargamos los documentos correctos seg煤n la pesta帽a
             var documentosRequeridos = new List<string>();
-            switch (faseActual)
+            switch (task.PhaseType)
             {
                 case "Inicial":
                     documentosRequeridos = new List<string> {
-                        "Instrumentaci贸n Did谩ctica",
-                        "Instrumentos de Evaluaci贸n",
-                        "Pr谩cticas de Laboratorio",
+                        "Instrumentaci髇 Did醕tica",
+                        "Instrumentos de Evaluaci髇",
+                        "Pr醕ticas de Laboratorio",
                         "Proyecto Individual",
-                        "Evaluaci贸n Diagn贸stica"
+                        "Evaluaci髇 Diagn髎tica"
                     };
                     break;
                 case "Seguimiento1":
                     documentosRequeridos = new List<string> {
                         "Avance (apart. 6)",
                         "Calif. Parc. (Calificaciones Parciales)",
-                        "Instr. Eval. (Instrumentos de Evaluaci贸n)",
-                        "Eval. Diagn. (Evaluaci贸n Diagn贸stica)",
+                        "Instr. Eval. (Instrumentos de Evaluaci髇)",
+                        "Eval. Diagn. (Evaluaci髇 Diagn髎tica)",
                         "Avance Proy. Ind. (Proyecto Individual)"
                     };
                     break;
                 case "Seguimiento2":
                     documentosRequeridos = new List<string> {
-                        "Avance Program谩tico (apart. 6)",
-                        "Instrumentos de Evaluaci贸n",
+                        "Avance Program醫ico (apart. 6)",
+                        "Instrumentos de Evaluaci髇",
                         "Reporte de Seguimiento Intermedio"
                     };
                     break;
                 case "Final":
                     documentosRequeridos = new List<string> {
                         "Acta de Calificaciones",
-                        "Instrumentos de Evaluaci贸n Finales",
+                        "Instrumentos de Evaluaci髇 Finales",
                         "Cierre de Proyecto / Reporte Final"
                     };
                     break;
             }
 
-            ViewBag.FaseActiva = faseActiva;
-            ViewBag.FaseActual = faseActual;
-            ViewBag.EsSoloLectura = esSoloLectura;
+            ViewBag.Task = task;
             ViewBag.DocumentosRequeridos = documentosRequeridos;
 
             return View(subject);
         }
 
-        // POST: Documents/UploadFile
+        // POST: Documents/UploadTaskDocument
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UploadFile(int subjectId, int cutoffDateId, string documentType, IFormFile? file, bool isNotApplicable = false)
+        public async Task<IActionResult> UploadTaskDocument(int subjectId, int documentTaskId, string documentType, IFormFile? file, bool isNotApplicable = false)
         {
-            if (cutoffDateId == 0)
+            if (documentTaskId == 0)
             {
-                TempData["Error"] = "Error cr铆tico: No hay una Fase activa para vincular este documento.";
-                return RedirectToAction(nameof(Upload), new { id = subjectId });
+                TempData["Error"] = "Error cr韙ico: No hay una Fase activa para vincular este documento.";
+                return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
-            var cutoffDate = await _context.CutoffDates.FindAsync(cutoffDateId);
-            if (cutoffDate == null) return NotFound();
+            var task = await _context.DocumentTasks.FindAsync(documentTaskId);
+            if (task == null) return NotFound();
 
             // Buscar si ya existe un registro previo de este documento para el mismo corte
             var existingDoc = await _context.Documents.FirstOrDefaultAsync(d =>
                 d.SubjectId == subjectId &&
-                d.CutoffDateId == cutoffDateId &&
+                d.DocumentTaskId == documentTaskId &&
                 d.DocumentType.ToLower().Trim() == documentType.ToLower().Trim());
 
-            // 馃煝 Caso 1: Marcado como No Aplica (N/A)
+            // ?? Caso 1: Marcado como No Aplica (N/A)
             if (isNotApplicable)
             {
                 if (existingDoc == null)
@@ -142,7 +125,7 @@ namespace SIARAWEB.Controllers
                     var naDoc = new Document
                     {
                         SubjectId = subjectId,
-                        CutoffDateId = cutoffDateId,
+                        DocumentTaskId = documentTaskId,
                         DocumentType = documentType,
                         FilePath = "N/A",
                         UploadedAt = DateTime.Now,
@@ -159,25 +142,26 @@ namespace SIARAWEB.Controllers
                     existingDoc.CorrectionSubmissionDate = DateTime.Now;
                     existingDoc.ApprovalStatus = "Aprobado";
                     existingDoc.Feedback = null;
+                    _context.Documents.Update(existingDoc);
                 }
 
                 await _context.SaveChangesAsync();
                 TempData["Success"] = $"El documento '{documentType}' fue marcado como No Aplica.";
-                return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = cutoffDate.PhaseType });
+                return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
-            // 馃煝 Caso 2: Carga de archivo PDF
+            // ?? Caso 2: Carga de archivo PDF
             if (file == null || file.Length == 0)
             {
-                TempData["Error"] = "Por favor, selecciona un archivo PDF v谩lido.";
-                return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = cutoffDate.PhaseType });
+                TempData["Error"] = "Por favor, selecciona un archivo PDF v醠ido.";
+                return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (extension != ".pdf")
             {
                 TempData["Error"] = "Solo se admiten documentos en formato PDF (.pdf).";
-                return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = cutoffDate.PhaseType });
+                return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
             string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "documentos");
@@ -196,13 +180,13 @@ namespace SIARAWEB.Controllers
 
             if (existingDoc == null)
             {
-                // 馃敼 Primera entrega: Eval煤a puntualidad contra la fecha l铆mite del corte
-                bool entregadoATiempo = fechaActual <= cutoffDate.DueDate;
+                // ?? Primera entrega: Eval鷄 puntualidad contra la fecha l韒ite del corte
+                bool entregadoATiempo = fechaActual <= task.DueDate;
 
                 var nuevoDocumento = new Document
                 {
                     SubjectId = subjectId,
-                    CutoffDateId = cutoffDateId,
+                    DocumentTaskId = documentTaskId,
                     DocumentType = documentType,
                     FilePath = dbRelativePath,
                     UploadedAt = fechaActual,
@@ -213,12 +197,12 @@ namespace SIARAWEB.Controllers
 
                 _context.Documents.Add(nuevoDocumento);
                 TempData["Success"] = entregadoATiempo
-                    ? $"Archivo '{documentType}' subido a tiempo con 茅xito."
+                    ? $"Archivo '{documentType}' subido a tiempo con 閤ito."
                     : $"Archivo '{documentType}' subido con retraso.";
             }
             else
             {
-                // 馃敼 Re-subida / Correcci贸n: Se elimina el archivo PDF f铆sico anterior si exist铆a
+                // ?? Re-subida / Correcci髇: Se elimina el archivo PDF f韘ico anterior si exist韆
                 if (existingDoc.FilePath != "N/A")
                 {
                     var oldPhysicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingDoc.FilePath.TrimStart('/'));
@@ -228,17 +212,18 @@ namespace SIARAWEB.Controllers
                     }
                 }
 
-                // Se actualiza la ruta y la fecha de correcci贸n SIN penalizar UploadedAt ni IsOnTime
+                // Se actualiza la ruta y la fecha de correcci髇 SIN penalizar UploadedAt ni IsOnTime
                 existingDoc.FilePath = dbRelativePath;
                 existingDoc.CorrectionSubmissionDate = fechaActual;
                 existingDoc.ApprovalStatus = "Pendiente";
                 existingDoc.Feedback = null;
+                    _context.Documents.Update(existingDoc);
 
-                TempData["Success"] = $"Correcci贸n de '{documentType}' enviada para nueva revisi贸n.";
+                TempData["Success"] = $"Correcci髇 de '{documentType}' enviada para nueva revisi髇.";
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = cutoffDate.PhaseType });
+            return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
         }
 
         // POST: Documents/DeleteDocument
@@ -247,14 +232,14 @@ namespace SIARAWEB.Controllers
         public async Task<IActionResult> DeleteDocument(int id, int subjectId)
         {
             var doc = await _context.Documents
-                .Include(d => d.CutoffDate)
+                .Include(d => d.DocumentTask)
                 .FirstOrDefaultAsync(d => d.Id == id);
 
-            string? faseRetorno = doc?.CutoffDate?.PhaseType;
+            string? faseRetorno = doc?.DocumentTask?.PhaseType;
 
             if (doc != null)
             {
-                // 1. Eliminar el archivo f铆sico del servidor (si no es N/A)
+                // 1. Eliminar el archivo f韘ico del servidor (si no es N/A)
                 if (doc.FilePath != "N/A")
                 {
                     var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
@@ -268,22 +253,22 @@ namespace SIARAWEB.Controllers
                 _context.Documents.Remove(doc);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "ARCHIVO ELIMINADO CON 脡XITO";
+                TempData["Success"] = "ARCHIVO ELIMINADO CON 蒟ITO";
             }
 
-            return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = faseRetorno });
+            return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = doc?.DocumentTaskId ?? 0 });
         }
 
         // POST: Documents/SetNotApplicable
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetNotApplicable(int subjectId, int cutoffDateId, string documentType)
+        public async Task<IActionResult> SetNotApplicable(int subjectId, int documentTaskId, string documentType)
         {
-            var cutoff = await _context.CutoffDates.FindAsync(cutoffDateId);
+            var task = await _context.DocumentTasks.FindAsync(documentTaskId);
 
             var documentoExistente = await _context.Documents
                 .FirstOrDefaultAsync(d => d.SubjectId == subjectId &&
-                                          d.CutoffDateId == cutoffDateId &&
+                                          d.DocumentTaskId == documentTaskId &&
                                           d.DocumentType.ToLower().Trim() == documentType.ToLower().Trim());
 
             if (documentoExistente != null)
@@ -299,7 +284,7 @@ namespace SIARAWEB.Controllers
                 var nuevoDocumento = new Document
                 {
                     SubjectId = subjectId,
-                    CutoffDateId = cutoffDateId,
+                    DocumentTaskId = documentTaskId,
                     DocumentType = documentType,
                     FilePath = "N/A",
                     UploadedAt = DateTime.Now,
@@ -312,7 +297,7 @@ namespace SIARAWEB.Controllers
 
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Se ha registrado que '{documentType}' no aplica para esta materia.";
-            return RedirectToAction(nameof(Upload), new { id = subjectId, faseSeleccionada = cutoff?.PhaseType });
+            return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
         }
     }
 }

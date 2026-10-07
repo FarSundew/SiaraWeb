@@ -1,0 +1,84 @@
+@model SIARAWEB.Models.DocumentTask
+
+@{
+    ViewData["Title"] = "Publicar Nueva Tarea";
+}
+
+<div class="container py-4" style="max-width: 750px;">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-radius: 12px 12px 0 0;">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-plus me-2"></i> Publicar Nueva Tarea / Buzón</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">TÍTULO DE LA ENTREGA</label>
+                    <input type="text" name="title" class="form-control form-control-lg" placeholder="Ej. 1er Seguimiento - Instrumentación y Reportes" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">SEMESTRE</label>
+                        <select name="semestre" id="selectSemestre" class="form-select" required>
+                            <option value="Enero - Junio">Enero - Junio</option>
+                            <option value="Julio - Diciembre">Julio - Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">AÑO</label>
+                        <select name="anio" id="selectAnio" class="form-select" required>
+                            <option value="2026" selected>2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="alert alert-light border d-flex align-items-center mb-3 py-2">
+                    <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                    <div>Periodo Escolar Resultante: <strong id="lblPeriodo" class="text-primary">Enero - Junio 2026</strong></div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">FASE ACADÉMICA</label>
+                        <select name="phaseType" class="form-select" required>
+                            <option value="Inicial">Documentos Iniciales</option>
+                            <option value="Seguimiento1">1er Seguimiento</option>
+                            <option value="Seguimiento2">2do Seguimiento</option>
+                            <option value="Final">Reporte Final</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">FECHA Y HORA LÍMITE (DUEDATE)</label>
+                        <input type="datetime-local" name="dueDate" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small">INSTRUCCIONES / OBSERVACIONES</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Indicar detalles para los docentes..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancelar</a>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #f4a915; color: #112d60 !important;">Publicar Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const selSemestre = document.getElementById('selectSemestre');
+    const selAnio = document.getElementById('selectAnio');
+    const lblPeriodo = document.getElementById('lblPeriodo');
+
+    function refrescarEtiqueta() {
+        lblPeriodo.textContent = `${selSemestre.value} ${selAnio.value}`;
+    }
+    selSemestre.addEventListener('change', refrescarEtiqueta);
+    selAnio.addEventListener('change', refrescarEtiqueta);
+</script>

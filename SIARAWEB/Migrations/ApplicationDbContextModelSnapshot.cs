@@ -212,9 +212,6 @@ namespace SIARAWEB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AccionCorrectiva")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("ApprovalPercentage")
                         .HasColumnType("decimal(5,2)");
 
@@ -228,7 +225,10 @@ namespace SIARAWEB.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CutoffDateId")
+                    b.Property<int?>("CutoffDateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocumentTaskId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("DropoutPercentage")
@@ -261,6 +261,8 @@ namespace SIARAWEB.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CutoffDateId");
+
+                    b.HasIndex("DocumentTaskId");
 
                     b.HasIndex("SubjectId");
 
@@ -336,6 +338,8 @@ namespace SIARAWEB.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DepartamentoId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -414,9 +418,7 @@ namespace SIARAWEB.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HeadOfDepartmentId")
-                        .IsUnique()
-                        .HasFilter("[HeadOfDepartmentId] IS NOT NULL");
+                    b.HasIndex("HeadOfDepartmentId");
 
                     b.ToTable("Departamentos");
                 });
@@ -432,17 +434,18 @@ namespace SIARAWEB.Migrations
                     b.Property<int?>("AcademicPeriodId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AcademicPeriodId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Group")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DocenteId", "SubjectId");
 
                     b.HasIndex("AcademicPeriodId");
+
+                    b.HasIndex("AcademicPeriodId1");
 
                     b.HasIndex("SubjectId");
 
@@ -464,7 +467,10 @@ namespace SIARAWEB.Migrations
                     b.Property<DateTime?>("CorrectionSubmissionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CutoffDateId")
+                    b.Property<int?>("CutoffDateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DocumentTaskId")
                         .HasColumnType("int");
 
                     b.Property<string>("DocumentType")
@@ -496,9 +502,56 @@ namespace SIARAWEB.Migrations
 
                     b.HasIndex("CutoffDateId");
 
+                    b.HasIndex("DocumentTaskId");
+
                     b.HasIndex("SubjectId");
 
                     b.ToTable("Documents");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.DocumentTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AcademicPeriodId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DepartamentoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhaseType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicPeriodId");
+
+                    b.HasIndex("DepartamentoId");
+
+                    b.ToTable("DocumentTasks");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.FinalSubjectGrade", b =>
@@ -561,7 +614,7 @@ namespace SIARAWEB.Migrations
                     b.ToTable("FinalSubjectGrades");
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
+            modelBuilder.Entity("SIARAWEB.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -569,8 +622,44 @@ namespace SIARAWEB.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AcademicPeriodId")
+                    b.Property<string>("ActionUrl")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -584,8 +673,6 @@ namespace SIARAWEB.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AcademicPeriodId");
 
                     b.HasIndex("DepartamentoId");
 
@@ -668,8 +755,12 @@ namespace SIARAWEB.Migrations
                     b.HasOne("SIARAWEB.Models.CutoffDate", "CutoffDate")
                         .WithMany()
                         .HasForeignKey("CutoffDateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SIARAWEB.Models.DocumentTask", "DocumentTask")
+                        .WithMany("AcademicTrackings")
+                        .HasForeignKey("DocumentTaskId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SIARAWEB.Models.Subject", "Subject")
                         .WithMany("AcademicTrackings")
@@ -679,7 +770,19 @@ namespace SIARAWEB.Migrations
 
                     b.Navigation("CutoffDate");
 
+                    b.Navigation("DocumentTask");
+
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("SIARAWEB.Models.Departamento", "Departamento")
+                        .WithMany()
+                        .HasForeignKey("DepartamentoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Departamento");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.CutoffDate", b =>
@@ -706,8 +809,9 @@ namespace SIARAWEB.Migrations
             modelBuilder.Entity("SIARAWEB.Models.Departamento", b =>
                 {
                     b.HasOne("SIARAWEB.Models.ApplicationUser", "HeadOfDepartment")
-                        .WithOne("Departamento")
-                        .HasForeignKey("SIARAWEB.Models.Departamento", "HeadOfDepartmentId");
+                        .WithMany()
+                        .HasForeignKey("HeadOfDepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("HeadOfDepartment");
                 });
@@ -716,7 +820,12 @@ namespace SIARAWEB.Migrations
                 {
                     b.HasOne("SIARAWEB.Models.AcademicPeriod", "AcademicPeriod")
                         .WithMany()
-                        .HasForeignKey("AcademicPeriodId");
+                        .HasForeignKey("AcademicPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SIARAWEB.Models.AcademicPeriod", null)
+                        .WithMany("DocenteAsignaturas")
+                        .HasForeignKey("AcademicPeriodId1");
 
                     b.HasOne("SIARAWEB.Models.ApplicationUser", "Docente")
                         .WithMany("DocenteAsignaturas")
@@ -742,8 +851,12 @@ namespace SIARAWEB.Migrations
                     b.HasOne("SIARAWEB.Models.CutoffDate", "CutoffDate")
                         .WithMany()
                         .HasForeignKey("CutoffDateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SIARAWEB.Models.DocumentTask", "DocumentTask")
+                        .WithMany("Documents")
+                        .HasForeignKey("DocumentTaskId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SIARAWEB.Models.Subject", "Subject")
                         .WithMany("Documents")
@@ -753,7 +866,28 @@ namespace SIARAWEB.Migrations
 
                     b.Navigation("CutoffDate");
 
+                    b.Navigation("DocumentTask");
+
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.DocumentTask", b =>
+                {
+                    b.HasOne("SIARAWEB.Models.AcademicPeriod", "AcademicPeriod")
+                        .WithMany()
+                        .HasForeignKey("AcademicPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SIARAWEB.Models.Departamento", "Departamento")
+                        .WithMany()
+                        .HasForeignKey("DepartamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicPeriod");
+
+                    b.Navigation("Departamento");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.FinalSubjectGrade", b =>
@@ -775,21 +909,24 @@ namespace SIARAWEB.Migrations
                     b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
+            modelBuilder.Entity("SIARAWEB.Models.Notification", b =>
                 {
-                    b.HasOne("SIARAWEB.Models.AcademicPeriod", "AcademicPeriod")
-                        .WithMany("Subjects")
-                        .HasForeignKey("AcademicPeriodId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("SIARAWEB.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.Subject", b =>
+                {
                     b.HasOne("SIARAWEB.Models.Departamento", "Departamento")
                         .WithMany("Subjects")
                         .HasForeignKey("DepartamentoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("AcademicPeriod");
 
                     b.Navigation("Departamento");
                 });
@@ -798,19 +935,24 @@ namespace SIARAWEB.Migrations
                 {
                     b.Navigation("CutoffDates");
 
-                    b.Navigation("Subjects");
+                    b.Navigation("DocenteAsignaturas");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("Departamento");
-
                     b.Navigation("DocenteAsignaturas");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.Departamento", b =>
                 {
                     b.Navigation("Subjects");
+                });
+
+            modelBuilder.Entity("SIARAWEB.Models.DocumentTask", b =>
+                {
+                    b.Navigation("AcademicTrackings");
+
+                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("SIARAWEB.Models.Subject", b =>

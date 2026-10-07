@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +24,7 @@ namespace SIARAWEB.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
 
-            // 1. Periodo Académico Activo
+            // 1. Periodo Acad?mico Activo
             var activePeriod = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
                                ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
 
@@ -32,7 +32,7 @@ namespace SIARAWEB.Controllers
             ViewBag.ActivePeriodName = activePeriod?.Name ?? "Sin Periodo Activo";
             ViewBag.UserFullName = string.IsNullOrEmpty(currentUser.FullName) ? currentUser.UserName : currentUser.FullName;
 
-            // 2. Métricas para Docente (o Jefe de Carrera que imparte cátedra)
+            // 2. M?tricas para Docente (o Jefe de Carrera que imparte c?tedra)
             if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
             {
                 var mySubjects = await _context.DocenteAsignaturas
@@ -42,7 +42,7 @@ namespace SIARAWEB.Controllers
                         .ThenInclude(s => s!.AcademicTrackings)
                     .Where(da => da.DocenteId == currentUser.Id &&
                                  da.Subject != null &&
-                                 da.Subject.AcademicPeriodId == activePeriodId)
+                                 da.AcademicPeriodId == activePeriodId)
                     .Select(da => da.Subject!)
                     .ToListAsync();
 
@@ -58,7 +58,7 @@ namespace SIARAWEB.Controllers
                     : 0;
             }
 
-            // 3. Indicadores de Dirección Académica (Jefe de Carrera vs. Jefe General)
+            // 3. Indicadores de Direcci?n Acad?mica (Jefe de Carrera vs. Jefe General)
             if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
             {
                 bool esJefeCarrera = User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador");
@@ -66,7 +66,7 @@ namespace SIARAWEB.Controllers
 
                 if (esJefeCarrera)
                 {
-                    // 🔒 CONSULTAS LIMITADAS A SU CARRERA
+                    // ?? CONSULTAS LIMITADAS A SU CARRERA
                     var depto = await _context.Departamentos.FindAsync(deptoId);
                     ViewBag.NombreCarrera = depto?.Code ?? depto?.Name ?? "Mi Carrera";
 
@@ -77,25 +77,25 @@ namespace SIARAWEB.Controllers
                                    (u.DepartamentoId == deptoId ||
                                     u.DocenteAsignaturas!.Any(da => da.Subject != null &&
                                                                    da.Subject.DepartamentoId == deptoId &&
-                                                                   da.Subject.AcademicPeriodId == activePeriodId)))
+                                                                   da.AcademicPeriodId == activePeriodId)))
                         .CountAsync();
                     ViewBag.TotalDocentes = totalDocentesCarrera;
 
                     // Asignaturas de su carrera en el periodo activo
                     var totalAsignaturasCarrera = await _context.Subjects
-                        .Where(s => s.DepartamentoId == deptoId && s.AcademicPeriodId == activePeriodId)
+                        .Where(s => s.DepartamentoId == deptoId && s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .CountAsync();
                     ViewBag.TotalAsignaturas = totalAsignaturasCarrera;
 
                     // Carreras a su cargo
                     ViewBag.TotalDepartamentos = 1;
 
-                    // Acreditación promedio de su carrera en el periodo activo
+                    // Acreditaci?n promedio de su carrera en el periodo activo
                     var trackingsCarrera = await _context.AcademicTrackings
                         .Include(t => t.Subject)
                         .Where(t => t.Subject != null &&
                                     t.Subject.DepartamentoId == deptoId &&
-                                    t.Subject.AcademicPeriodId == activePeriodId)
+                                    t.Subject.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .ToListAsync();
 
                     ViewBag.GlobalApproval = trackingsCarrera.Any()
@@ -104,17 +104,17 @@ namespace SIARAWEB.Controllers
                 }
                 else
                 {
-                    // 🌐 CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
+                    // ?? CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
                     ViewBag.NombreCarrera = "Todas las Carreras";
                     ViewBag.TotalDocentes = (await _userManager.GetUsersInRoleAsync("Docente")).Count;
                     ViewBag.TotalAsignaturas = await _context.Subjects
-                        .Where(s => s.AcademicPeriodId == activePeriodId)
+                        .Where(s => s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .CountAsync();
                     ViewBag.TotalDepartamentos = await _context.Departamentos.CountAsync();
 
                     var totalTrackings = await _context.AcademicTrackings
                         .Include(t => t.Subject)
-                        .Where(t => t.Subject != null && t.Subject.AcademicPeriodId == activePeriodId)
+                        .Where(t => t.Subject != null && t.Subject.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .ToListAsync();
 
                     ViewBag.GlobalApproval = totalTrackings.Any()
@@ -123,13 +123,28 @@ namespace SIARAWEB.Controllers
                 }
             }
 
-            // 4. Métricas para Administrador (TI)
+            // 4. M?tricas para Administrador (TI)
             if (User.IsInRole("Administrador"))
             {
                 ViewBag.TotalUsers = await _context.Users.CountAsync();
-            }
+            }            return View();
+        }
 
-            return View();
+        [Authorize]
+        public async Task<IActionResult> MarkNotificationRead(int id, string returnUrl)
+        {
+            var notif = await _context.Notifications.FindAsync(id);
+            if (notif != null && notif.UserId == _userManager.GetUserId(User))
+            {
+                notif.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index");
         }
     }
 }
+

@@ -1,4 +1,4 @@
-锘縰sing Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
@@ -27,24 +27,24 @@ namespace SIARAWEB.Controllers
             int activePeriodId = periodoId ?? periodoActivo?.Id ?? 0;
             string faseActual = faseSeleccionada ?? "Inicial";
 
-            // 2. Cat谩logo de evidencias por cada fase acad茅mica
+            // 2. Cat醠ogo de evidencias por cada fase acad閙ica
             var documentosPorFase = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Inicial", new List<string> { "Instrumentaci贸n Did谩ctica", "Instrumentos de Evaluaci贸n", "Pr谩cticas de Laboratorio", "Proyecto Individual", "Evaluaci贸n Diagn贸stica" } },
-                { "Seguimiento1", new List<string> { "Avance (apart. 6)", "Calif. Parc. (Calificaciones Parciales)", "Instr. Eval. (Instrumentos de Evaluaci贸n)", "Eval. Diagn. (Evaluaci贸n Diagn贸stica)", "Avance Proy. Ind. (Proyecto Individual)" } },
-                { "Seguimiento2", new List<string> { "Avance Program谩tico (apart. 6)", "Instrumentos de Evaluaci贸n", "Reporte de Seguimiento Intermedio" } },
-                { "Final", new List<string> { "Acta de Calificaciones", "Instrumentos de Evaluaci贸n Finales", "Cierre de Proyecto / Reporte Final" } }
+                { "Inicial", new List<string> { "Instrumentaci髇 Did醕tica", "Instrumentos de Evaluaci髇", "Pr醕ticas de Laboratorio", "Proyecto Individual", "Evaluaci髇 Diagn髎tica" } },
+                { "Seguimiento1", new List<string> { "Avance (apart. 6)", "Calif. Parc. (Calificaciones Parciales)", "Instr. Eval. (Instrumentos de Evaluaci髇)", "Eval. Diagn. (Evaluaci髇 Diagn髎tica)", "Avance Proy. Ind. (Proyecto Individual)" } },
+                { "Seguimiento2", new List<string> { "Avance Program醫ico (apart. 6)", "Instrumentos de Evaluaci髇", "Reporte de Seguimiento Intermedio" } },
+                { "Final", new List<string> { "Acta de Calificaciones", "Instrumentos de Evaluaci髇 Finales", "Cierre de Proyecto / Reporte Final" } }
             };
 
             // 3. Consulta global filtrable
             var query = _context.Subjects
                 .Include(s => s.Departamento)
-                .Include(s => s.AcademicPeriod)
+                
                 .Include(s => s.DocenteAsignaturas!)
                     .ThenInclude(da => da.Docente)
                 .Include(s => s.Documents!)
                     .ThenInclude(d => d.CutoffDate)
-                .Where(s => s.AcademicPeriodId == activePeriodId)
+                .Where(s => s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                 .AsQueryable();
 
             if (departamentoId.HasValue && departamentoId.Value > 0)
@@ -54,7 +54,7 @@ namespace SIARAWEB.Controllers
 
             var asignaturas = await query.OrderBy(s => s.Departamento!.Name).ThenBy(s => s.Name).ToListAsync();
 
-            // 4. Cat谩logos para los selectores
+            // 4. Cat醠ogos para los selectores
             ViewBag.Periodos = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
             ViewBag.Departamentos = await _context.Departamentos.OrderBy(d => d.Name).ToListAsync();
             ViewBag.PeriodoSeleccionado = activePeriodId;
@@ -62,7 +62,7 @@ namespace SIARAWEB.Controllers
             ViewBag.FaseActual = faseActual;
             ViewBag.DocumentosRequeridos = documentosPorFase.ContainsKey(faseActual) ? documentosPorFase[faseActual] : new List<string>();
 
-            // 5. M茅tricas institucionales de cumplimiento para la fase actual
+            // 5. M閠ricas institucionales de cumplimiento para la fase actual
             var docsFaseActual = asignaturas.SelectMany(s => s.Documents ?? new List<Document>())
                 .Where(d => d.CutoffDate?.PhaseType == faseActual || string.Equals(d.CutoffDate?.Name?.Trim(), faseActual.Trim(), StringComparison.OrdinalIgnoreCase))
                 .ToList();

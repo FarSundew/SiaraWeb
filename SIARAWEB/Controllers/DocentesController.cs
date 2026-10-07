@@ -36,7 +36,7 @@ namespace SIARAWEB.Controllers
                 .Include(u => u.Departamento)
                 .Include(u => u.DocenteAsignaturas!)
                     .ThenInclude(da => da.Subject)
-                        .ThenInclude(s => s!.AcademicPeriod)
+                        
                 .AsQueryable();
 
             // 🔒 Si es Jefe de Carrera: Muestra los adscritos a su carrera Y los que imparten materias de su carrera
@@ -73,6 +73,15 @@ namespace SIARAWEB.Controllers
             ViewBag.DocenteNombre = docente.FullName;
             ViewBag.DocenteEmail = docente.Email;
             ViewBag.DocenteId = docente.Id;
+            var user = await _userManager.GetUserAsync(User);
+            if (User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador"))
+            {
+                ViewBag.Subjects = await _context.Subjects.Where(s => s.DepartamentoId == user.DepartamentoId).ToListAsync();
+            }
+            else
+            {
+                ViewBag.Subjects = await _context.Subjects.ToListAsync();
+            }
 
             int pageSize = 6;
 
@@ -149,3 +158,4 @@ namespace SIARAWEB.Controllers
         }
     }
 }
+

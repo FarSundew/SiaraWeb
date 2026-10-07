@@ -1,7 +1,8 @@
-﻿@model SIARAWEB.Models.AcademicTracking
+@model SIARAWEB.Models.AcademicTracking
 
 @{
     var subject = (SIARAWEB.Models.Subject)ViewBag.Subject;
+    var task = (SIARAWEB.Models.DocumentTask)ViewBag.Task;
     ViewData["Title"] = "Captura de Seguimiento";
 }
 
@@ -11,9 +12,9 @@
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase;">
-            SEGUIMIENTO ACADÉMICO - @subject.Code
+            SEGUIMIENTO ACAD�MICO - @subject.Code
         </h3>
-        <a asp-action="Index" class="btn-siara-3d" style="text-decoration: none; padding: 10px 20px;">SALIR</a>
+        <a href="/DocumentTasks/DocenteTasks" class="btn-siara-3d" style="text-decoration: none; padding: 10px 20px;">SALIR</a>
     </div>
 
     @if (TempData["Success"] != null)
@@ -31,17 +32,16 @@
                 <div class="card-body">
                     <form asp-action="Capture" method="post" id="trackingForm">
                         <input type="hidden" asp-for="SubjectId" />
+                        <input type="hidden" asp-for="DocumentTaskId" />
 
                         <div class="mb-3">
                             <label class="fw-bold" style="color: #112d60; font-size: 13px;">FASE DE SEGUIMIENTO</label>
-                            <select asp-for="CutoffDateId" class="form-select fw-bold" asp-items="ViewBag.CutoffDates" required>
-                                <option value="">-- SELECCIONAR --</option>
-                            </select>
+                            <input type="text" class="form-control fw-bold bg-light" value="@task.PhaseType - @task.Title" disabled />
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold" style="color: #112d60; font-size: 13px;">TEMA / UNIDAD</label>
-                            <input asp-for="UnitNumber" type="number" min="1" max="10" class="form-control fw-bold text-center" required />
+                            <input asp-for="UnitNumber" type="number" class="form-control fw-bold text-center bg-light" readonly />
                         </div>
 
                         <div class="row mb-3">
@@ -63,19 +63,19 @@
                             </div>
                         </div>
 
-                        <!-- 🟢 ALERTA Y CAMPO DINÁMICO DE ACCIÓN CORRECTIVA (>= 40% REPROBACIÓN) -->
+                        <!-- ALERTA Y CAMPO DINAMICO DE ACCION CORRECTIVA (>= 40% REPROBACION) -->
                         <div id="seccionAccionCorrectiva" class="mb-3 d-none">
                             <div class="alert alert-warning py-2 px-3 border-start border-4 border-warning mb-2" role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                <strong id="lblPorcentajeReprobacion">Reprobación: 0%</strong>
+                                <strong id="lblPorcentajeReprobacion">Reprobaci�n: 0%</strong>
                                 <div style="font-size: 12px;" class="mt-1">
-                                    Por norma institucional, al superar el 40% de reprobación es obligatorio registrar la acción correctiva.
+                                    Por norma institucional, al superar el 40% de reprobaci�n es obligatorio registrar la acci�n correctiva.
                                 </div>
                             </div>
 
-                            <label class="fw-bold text-danger" style="font-size: 12px;">ACCIÓN CORRECTIVA A IMPLEMENTAR</label>
+                            <label class="fw-bold text-danger" style="font-size: 12px;">ACCION CORRECTIVA A IMPLEMENTAR</label>
                             <textarea asp-for="Observations" id="txtObservations" class="form-control" rows="3"
-                                      placeholder="Describa la estrategia (ej. asesorías extraordinarias, talleres de reforzamiento, etc.)..."></textarea>
+                                      placeholder="Describa la estrategia (ej. asesor�as extraordinarias, talleres de reforzamiento, etc.)..."></textarea>
                             <span asp-validation-for="Observations" class="text-danger small"></span>
                         </div>
 
@@ -89,7 +89,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm border-0" style="border-radius: 8px;">
                 <div class="card-header" style="background-color: #112d60; color: white; text-align: center; font-weight: 900; padding: 15px;">
-                    ESTADÍSTICAS DE RENDIMIENTO REGISTRADAS
+                    ESTADISTICAS DE RENDIMIENTO REGISTRADAS
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-striped align-middle text-center mb-0">
@@ -97,10 +97,10 @@
                             <tr>
                                 <th style="white-space: nowrap; width: 14%;">FASE</th>
                                 <th style="width: 10%;">TEMA</th>
-                                <th style="width: 12%;" class="text-success">ACREDITACIÓN</th>
-                                <th style="width: 12%;" class="text-danger">REPROBACIÓN</th>
-                                <th style="width: 10%;" class="text-muted">DESERCIÓN</th>
-                                <th style="width: 20%;">ACCIÓN CORRECTIVA</th>
+                                <th style="width: 12%;" class="text-success">ACREDITACION</th>
+                                <th style="width: 12%;" class="text-danger">REPROBACION</th>
+                                <th style="width: 10%;" class="text-muted">DESERCION</th>
+                                <th style="width: 20%;">ACCION CORRECTIVA</th>
                                 <th style="width: 12%;">JEFATURA</th>
                                 <th style="width: 10%;">ACCIONES</th>
                             </tr>
@@ -108,7 +108,7 @@
                         <tbody>
                             @if (subject.AcademicTrackings == null || !subject.AcademicTrackings.Any())
                             {
-                                <tr><td colspan="8" class="py-4 text-muted fw-bold">SIN REGISTROS AÚN</td></tr>
+                                <tr><td colspan="8" class="py-4 text-muted fw-bold">SIN REGISTROS AUN</td></tr>
                             }
                             else
                             {
@@ -116,42 +116,41 @@
                                 {
                                     <tr style="font-weight: 900; font-size: 13px;">
                                         <td class="text-primary" style="white-space: nowrap;">
-                                            @(track.CutoffDate?.Name ?? "1er Seguimiento")
+                                            @(track.DocumentTask?.PhaseType ?? "-")
                                         </td>
-                                        <td>TEMA @track.UnitNumber</td>
+                                        <td>Tema @track.UnitNumber</td>
                                         <td class="text-success">@track.ApprovalPercentage.ToString("F1")%</td>
                                         <td class="text-danger">@track.FailurePercentage.ToString("F1")%</td>
                                         <td class="text-muted">@track.DropoutPercentage.ToString("F1")%</td>
 
-                                        <!-- 🟢 Acción Correctiva con Modal Desplegable -->
+                                        <!-- Acci�n Correctiva con Modal Desplegable -->
                                         <td>
                                             @if (track.FailurePercentage >= 40)
                                             {
                                                 if (!string.IsNullOrWhiteSpace(track.Observations))
                                                 {
-                                                    <!-- Botón compacto para abrir la acción completa -->
                                                     <button type="button"
                                                             class="btn btn-sm btn-outline-primary fw-bold px-2 py-1"
                                                             style="font-size: 11px; border-radius: 6px;"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#modalAccion_@track.Id"
-                                                            title="Ver acción correctiva">
+                                                            title="Ver acci�n correctiva">
                                                         <i class="bi bi-eye-fill me-1"></i> Ver Plan
                                                     </button>
 
-                                                    <!-- Modal con el texto íntegro -->
+                                                    <!-- Modal -->
                                                     <div class="modal fade" id="modalAccion_@track.Id" tabindex="-1" aria-hidden="true">
                                                         <div class="modal-dialog modal-dialog-centered">
                                                             <div class="modal-content text-start border-0 shadow">
                                                                 <div class="modal-header text-white" style="background-color: #112d60;">
                                                                     <h6 class="modal-title fw-bold">
-                                                                        <i class="bi bi-tools text-warning me-2"></i> Acción Correctiva - Tema @track.UnitNumber
+                                                                        <i class="bi bi-tools text-warning me-2"></i> Acci�n Correctiva - Tema @track.UnitNumber
                                                                     </h6>
                                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                                                                 </div>
                                                                 <div class="modal-body p-3 bg-light">
                                                                     <div class="p-3 bg-white border rounded shadow-sm">
-                                                                        <span class="text-muted small d-block mb-2">Estrategia registrada para reducir la reprobación (@track.FailurePercentage.ToString("F1")%):</span>
+                                                                        <span class="text-muted small d-block mb-2">Estrategia registrada para reducir la reprobaci�n (@track.FailurePercentage.ToString("F1")%):</span>
                                                                         <p class="text-dark m-0" style="white-space: pre-wrap; font-weight: normal; font-size: 13px;">@track.Observations</p>
                                                                     </div>
                                                                 </div>
@@ -164,7 +163,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-danger text-wrap" style="font-size: 10px;">SIN ACCIÓN REGISTRADA</span>
+                                                    <span class="badge bg-danger text-wrap" style="font-size: 10px;">SIN ACCION REGISTRADA</span>
                                                 }
                                             }
                                             else
@@ -191,7 +190,8 @@
                                             <form asp-action="Delete" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@track.Id" />
                                                 <input type="hidden" name="subjectId" value="@subject.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('¿Eliminar registro del tema?');">🗑️</button>
+                                                <input type="hidden" name="taskId" value="@task.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold" onclick="return confirm('�Eliminar registro del tema?');">?</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -222,7 +222,7 @@
                     const porcentajeReprobados = (reprobados / total) * 100;
 
                     if (porcentajeReprobados >= 40) {
-                        lblPorcentaje.innerText = `Reprobación: ${porcentajeReprobados.toFixed(1)}% (≥ 40%)`;
+                        lblPorcentaje.innerText = "Reprobacion: " + porcentajeReprobados.toFixed(1) + "% (>= 40%)";
                         contenedorAccion.classList.remove("d-none");
                         txtObservations.setAttribute("required", "required");
                     } else {
@@ -238,6 +238,15 @@
 
             txtTotal.addEventListener("input", evaluarReprobacion);
             txtFailed.addEventListener("input", evaluarReprobacion);
+            
+            // Llama a la funcion al cargar para que si hay datos previos, se muestre la accion correctiva
+            evaluarReprobacion();
         });
     </script>
 }
+
+
+
+
+
+

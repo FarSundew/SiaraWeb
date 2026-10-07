@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.Collections.Generic;
 using SIARAWEB.Models;
 
@@ -6,15 +6,18 @@ namespace SIARAWEB.Models
 {
     public class GeneralTrackingReportViewModel
     {
-        // Filtros de b√∫squeda
+        // Filtros de b˙squeda
         public int? SelectedPeriodId { get; set; }
-        public int? SelectedCutoffDateId { get; set; }
+        public int? SelectedTaskId { get; set; }
+        public int? SelectedDepartamentoId { get; set; }
+        public string? SelectedApprovalStatus { get; set; }
         public string? SearchTeacherOrSubject { get; set; }
-        public bool OnlyHighRisk { get; set; } // Reprobaci√≥n >= 40%
+        public bool OnlyHighRisk { get; set; } // ReprobaciÛn >= 40%
 
-        // Cat√°logos para los selects
+        // Cat·logos para los selects
         public List<AcademicPeriod> AcademicPeriods { get; set; } = new();
-        public List<CutoffDate> CutoffDates { get; set; } = new();
+        public List<DocumentTask> Tasks { get; set; } = new();
+        public List<Departamento> Departamentos { get; set; } = new();
 
         // Resumen cuantitativo superior (KPIs)
         public int TotalGroupsEvaluated { get; set; }
@@ -53,7 +56,7 @@ namespace SIARAWEB.Models
         public string ApprovalStatus { get; set; } = "Pendiente";
     }
 
-    // Alias para compatibilidad con c√≥digo existente que busque GeneralReportViewModel
+    // Alias para compatibilidad con cÛdigo existente que busque GeneralReportViewModel
     public class GeneralReportViewModel : GeneralTrackingReportViewModel
     {
     }

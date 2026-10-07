@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿
+
+@inject Microsoft.AspNetCore.Identity.UserManager<SIARAWEB.Models.ApplicationUser> UserManager
+@inject SIARAWEB.Data.ApplicationDbContext DbContext
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -23,6 +27,67 @@
         <div style="display: flex; align-items: center; gap: 20px;">
             @if (User.Identity?.IsAuthenticated == true)
             {
+                
+    var currentUser = await UserManager.GetUserAsync(User);
+    int unreadCount = 0;
+    List<SIARAWEB.Models.Notification> importantNotifs = new List<SIARAWEB.Models.Notification>();
+    List<SIARAWEB.Models.Notification> normalNotifs = new List<SIARAWEB.Models.Notification>();
+    if (currentUser != null) {
+        var allNotifs = DbContext.Notifications.Where(n => n.UserId == currentUser.Id).OrderByDescending(n => n.CreatedAt).ToList();
+        unreadCount = allNotifs.Count(n => !n.IsRead);
+        importantNotifs = allNotifs.Where(n => n.Type == "Importante").Take(5).ToList();
+        normalNotifs = allNotifs.Where(n => n.Type == "Normal").Take(5).ToList();
+    }
+                <div class="dropdown">
+                    <button class="btn btn-link text-white text-decoration-none dropdown-toggle" type="button" id="bellDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" style="position: relative;">
+                        <i class="bi bi-bell-fill fs-5"></i>
+                        @if(unreadCount > 0) {
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; margin-top: 5px; margin-left: -10px;">
+                                @unreadCount
+                            </span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bellDropdown" style="min-width: 350px; border-radius: 12px; padding: 0; overflow: hidden;">
+                        <li class="px-3 py-2 fw-bold border-bottom bg-light text-primary d-flex justify-content-between align-items-center">
+                            Notificaciones
+                            <ul class="nav nav-pills" id="pills-tab" role="tablist" style="font-size: 0.8rem;">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active py-0 px-2" id="pills-important-tab" data-bs-toggle="pill" data-bs-target="#pills-important" type="button" role="tab">Importantes</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link py-0 px-2" id="pills-normal-tab" data-bs-toggle="pill" data-bs-target="#pills-normal" type="button" role="tab">Normales</button>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="tab-content" id="pills-tabContent" style="max-height: 400px; overflow-y: auto;">
+                                <div class="tab-pane fade show active" id="pills-important" role="tabpanel" tabindex="0">
+                                    @if (!importantNotifs.Any()) {
+                                        <div class="px-3 py-4 text-center text-muted small"><i class="bi bi-bell-slash fs-4 d-block mb-2"></i>No hay nuevas tareas o fechas.</div>
+                                    }
+                                    @foreach(var notif in importantNotifs) {
+                                        <a class="dropdown-item py-2 px-3 border-bottom @(notif.IsRead ? "" : "fw-bold bg-light")" href="@Url.Action("MarkNotificationRead", "Home", new { id = notif.Id, returnUrl = notif.ActionUrl })" style="white-space: normal; line-height: 1.2;">
+                                            <div style="font-size: 0.85rem;" class="text-wrap">@notif.Message</div>
+                                            <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>@notif.CreatedAt.ToString("dd/MMM HH:mm")</div>
+                                        </a>
+                                    }
+                                </div>
+                                <div class="tab-pane fade" id="pills-normal" role="tabpanel" tabindex="0">
+                                    @if (!normalNotifs.Any()) {
+                                        <div class="px-3 py-4 text-center text-muted small"><i class="bi bi-bell-slash fs-4 d-block mb-2"></i>No hay actualizaciones de entregas.</div>
+                                    }
+                                    @foreach(var notif in normalNotifs) {
+                                        <a class="dropdown-item py-2 px-3 border-bottom @(notif.IsRead ? "" : "fw-bold bg-light")" href="@Url.Action("MarkNotificationRead", "Home", new { id = notif.Id, returnUrl = notif.ActionUrl })" style="white-space: normal; line-height: 1.2;">
+                                            <div style="font-size: 0.85rem;" class="text-wrap">@notif.Message</div>
+                                            <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-clock me-1"></i>@notif.CreatedAt.ToString("dd/MMM HH:mm")</div>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="dropdown">
                     <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2"
                             type="button"
@@ -85,3 +150,6 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+
+

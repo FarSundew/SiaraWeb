@@ -1,0 +1,155 @@
+﻿@model SIARAWEB.ViewModel.SubjectHistoryViewModel
+
+@{
+    ViewData["Title"] = "Historial de Entregas";
+    string docenteNombre = Model.Docente?.FullName ?? "Sin docente asignado";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-clock-history me-2"></i> HISTORIAL DE ENTREGAS POR PERIODO
+            </h3>
+            <p class="text-muted fw-bold mt-1 mb-0">
+                Materia: <span class="text-dark">@Model.Subject?.Name</span> | Docente: <span class="text-dark">@docenteNombre</span>
+            </p>
+        </div>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary fw-bold px-3">
+            <i class="bi bi-arrow-left me-1"></i> Regresar
+        </a>
+    </div>
+
+    @if (!Model.TaskGroups.Any())
+    {
+        <div class="alert alert-info fw-bold text-center mt-4">
+            <i class="bi bi-info-circle-fill me-2"></i> No hay registros de entregas para esta materia.
+        </div>
+    }
+
+    <div class="accordion" id="historyAccordion">
+        @foreach (var group in Model.TaskGroups)
+        {
+            var headingId = "heading" + group.Task.Id;
+            var collapseId = "collapse" + group.Task.Id;
+
+            <div class="accordion-item mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden; border: none;">
+                <h2 class="accordion-header" id="@headingId">
+                    <button class="accordion-button collapsed fw-bold p-3" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId" style="background-color: #112d60; color: white;">
+                        <i class="bi bi-calendar-check me-2"></i> 
+                        @(group.Task.PhaseType) - @(group.Task.Title) 
+                        <span class="badge bg-light text-dark ms-3">Vence: @(group.Task.DueDate.ToString("dd/MMM/yyyy"))</span>
+                    </button>
+                </h2>
+                <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="@headingId" data-bs-parent="#historyAccordion">
+                    <div class="accordion-body p-4 bg-white">
+                        
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">
+                            <i class="bi bi-file-earmark-text me-1"></i> Documentos Subidos
+                        </h5>
+                        @if (group.Documents.Any())
+                        {
+                            <div class="table-responsive mb-4">
+                                <table class="table table-hover align-middle text-center mb-0">
+                                    <thead style="background-color: #f2f3f5; color: #112d60; font-size: 13px;">
+                                        <tr>
+                                            <th class="text-start">TIPO</th>
+                                            <th>FECHA DE SUBIDA</th>
+                                            <th>ESTADO DE TIEMPO</th>
+                                            <th>ESTADO DE REVISIÓN</th>
+                                            <th>ARCHIVO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var doc in group.Documents)
+                                        {
+                                            <tr>
+                                                <td class="text-start fw-bold">@doc.DocumentType</td>
+                                                <td>@doc.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>
+                                                    @if (doc.FilePath == "N/A") { <span class="badge bg-secondary">No aplica</span> }
+                                                    else if (doc.IsOnTime) { <span class="badge bg-success">A tiempo</span> }
+                                                    else { <span class="badge bg-warning text-dark">Con retraso</span> }
+                                                </td>
+                                                <td>
+                                                    @if (doc.ApprovalStatus == "Pendiente") { <span class="badge bg-secondary"><i class="bi bi-hourglass-split"></i> Pendiente</span> }
+                                                    else if (doc.ApprovalStatus == "Aprobado") { <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Aprobado</span> }
+                                                    else if (doc.ApprovalStatus == "Rechazado") { <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Rechazado</span> }
+                                                    
+                                                    @if (!string.IsNullOrEmpty(doc.Feedback))
+                                                    {
+                                                        <br /><small class="text-muted fw-bold d-block mt-1">📝 "@doc.Feedback"</small>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (doc.FilePath != "N/A")
+                                                    {
+                                                        <a href="@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-danger fw-bold"><i class="bi bi-file-earmark-pdf-fill"></i> Ver PDF</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted fst-italic">N/A</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic small mb-4">No se subieron documentos en esta fase.</p>
+                        }
+
+                        <h5 class="fw-bold text-secondary border-bottom pb-2 mb-3">
+                            <i class="bi bi-bar-chart-line me-1"></i> Seguimiento de Calificaciones
+                        </h5>
+                        @if (group.Trackings.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle text-center mb-0">
+                                    <thead style="background-color: #f2f3f5; color: #112d60; font-size: 13px;">
+                                        <tr>
+                                            <th>UNIDAD</th>
+                                            <th>% APROBACIÓN</th>
+                                            <th>ESTADO DE REVISIÓN</th>
+                                            <th>FECHA DE REGISTRO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var tr in group.Trackings)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold">Unidad @tr.UnitNumber</td>
+                                                <td class="fw-bold @(tr.ApprovalPercentage >= 70 ? "text-success" : "text-danger")">
+                                                    @tr.ApprovalPercentage%
+                                                </td>
+                                                <td>
+                                                    @if (tr.ApprovalStatus == "Pendiente") { <span class="badge bg-secondary">Pendiente</span> }
+                                                    else if (tr.ApprovalStatus == "Aprobado") { <span class="badge bg-success">Aprobado</span> }
+                                                    else if (tr.ApprovalStatus == "Rechazado") { <span class="badge bg-danger">Rechazado</span> }
+                                                    
+                                                    @if (!string.IsNullOrEmpty(tr.Feedback))
+                                                    {
+                                                        <br /><small class="text-muted fw-bold d-block mt-1">📝 "@tr.Feedback"</small>
+                                                    }
+                                                </td>
+                                                <td>@tr.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic small mb-0">No se registraron seguimientos en esta fase.</p>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

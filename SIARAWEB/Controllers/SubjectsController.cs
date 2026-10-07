@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -142,7 +142,7 @@ namespace SIARAWEB.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public async Task<IActionResult> AssignTeacher(int subjectId, int periodId, string docenteId, string group)
+        public async Task<IActionResult> AssignTeacher(int subjectId, string semestre, int anio, string docenteId, string group)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
@@ -159,7 +159,24 @@ namespace SIARAWEB.Controllers
             if (string.IsNullOrWhiteSpace(docenteId))
             {
                 TempData["Error"] = "Debes seleccionar un docente titular.";
-                return RedirectToAction(nameof(Index), new { periodoId = periodId });
+                return RedirectToAction("Details", "Docentes", new { id = docenteId });
+            }
+
+            string periodName = $"{semestre} {anio}";
+            var period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.Name == periodName);
+            if (period == null)
+            {
+                int startMonth = semestre.Contains("Enero", StringComparison.OrdinalIgnoreCase) ? 1 : 7;
+                int endMonth = semestre.Contains("Enero", StringComparison.OrdinalIgnoreCase) ? 6 : 12;
+                period = new AcademicPeriod
+                {
+                    Name = periodName,
+                    StartDate = new DateTime(anio, startMonth, 1),
+                    EndDate = new DateTime(anio, endMonth, DateTime.DaysInMonth(anio, endMonth)),
+                    IsActive = true
+                };
+                _context.AcademicPeriods.Add(period);
+                await _context.SaveChangesAsync();
             }
 
             string grupoNormalizado = string.IsNullOrWhiteSpace(group) ? "Grupo A - Matutino" : group.Trim();
@@ -167,28 +184,40 @@ namespace SIARAWEB.Controllers
             // Evitar duplicar el mismo grupo/turno en el mismo ciclo para la misma materia
             bool yaExisteGrupo = await _context.DocenteAsignaturas.AnyAsync(da =>
                 da.SubjectId == subjectId &&
-                da.AcademicPeriodId == periodId &&
+                da.AcademicPeriodId == period.Id &&
                 da.Group == grupoNormalizado);
 
             if (yaExisteGrupo)
             {
-                TempData["Error"] = $"El {grupoNormalizado} ya tiene un docente asignado para este ciclo escolar.";
-                return RedirectToAction(nameof(Index), new { periodoId = periodId });
+                TempData["Error"] = $"El {grupoNormalizado} ya tiene un docente asignado para {periodName}.";
+                return RedirectToAction("Details", "Docentes", new { id = docenteId });
             }
 
-            var nuevaAsignacion = new DocenteAsignatura
-            {
-                SubjectId = subjectId,
-                AcademicPeriodId = periodId,
-                DocenteId = docenteId,
-                Group = grupoNormalizado
-            };
+            var asignacionExistente = await _context.DocenteAsignaturas
+                .FirstOrDefaultAsync(da => da.DocenteId == docenteId && da.SubjectId == subjectId);
 
-            _context.DocenteAsignaturas.Add(nuevaAsignacion);
+            if (asignacionExistente != null)
+            {
+                asignacionExistente.AcademicPeriodId = period.Id;
+                asignacionExistente.Group = grupoNormalizado;
+                _context.DocenteAsignaturas.Update(asignacionExistente);
+            }
+            else
+            {
+                var nuevaAsignacion = new DocenteAsignatura
+                {
+                    SubjectId = subjectId,
+                    AcademicPeriodId = period.Id,
+                    DocenteId = docenteId,
+                    Group = grupoNormalizado
+                };
+                _context.DocenteAsignaturas.Add(nuevaAsignacion);
+            }
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Docente asignado exitosamente al {grupoNormalizado}.";
-            return RedirectToAction(nameof(Index), new { periodoId = periodId });
+            TempData["Success"] = $"Docente asignado exitosamente al {grupoNormalizado} en {periodName}.";
+            return RedirectToAction("Details", "Docentes", new { id = docenteId });
         }
 
         // POST: Subjects/UnassignTeacher
@@ -196,14 +225,14 @@ namespace SIARAWEB.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public async Task<IActionResult> UnassignTeacher(int assignmentId)
+        public async Task<IActionResult> UnassignTeacher(string docenteId, int subjectId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
 
             var asignacion = await _context.DocenteAsignaturas
                 .Include(da => da.Subject)
-                .FirstOrDefaultAsync(da => da.Id == assignmentId);
+                .FirstOrDefaultAsync(da => da.DocenteId == docenteId && da.SubjectId == subjectId);
 
             if (asignacion == null) return NotFound();
 
@@ -213,12 +242,11 @@ namespace SIARAWEB.Controllers
                 if (asignacion.Subject?.DepartamentoId != currentUser.DepartamentoId) return Forbid();
             }
 
-            int periodId = asignacion.AcademicPeriodId ?? 0;
             _context.DocenteAsignaturas.Remove(asignacion);
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Asignación de grupo desvinculada correctamente.";
-            return RedirectToAction(nameof(Index), new { periodoId = periodId });
+            return RedirectToAction("Details", "Docentes", new { id = docenteId });
         }
 
         // GET: Subjects/Edit/5

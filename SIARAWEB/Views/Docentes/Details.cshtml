@@ -26,10 +26,75 @@
                     </div>
                 </div>
             </div>
-            <div>
+                        <div class="d-flex gap-2">
                 <a asp-action="Index" class="btn btn-outline-light fw-bold px-3 py-2" style="border-radius: 8px;">
                     <i class="bi bi-arrow-left me-1"></i> Regresar al Directorio
                 </a>
+                <button type="button" class="btn btn-warning fw-bold px-3 py-2" style="border-radius: 8px; color: #112d60;" data-bs-toggle="modal" data-bs-target="#assignTeacherModal">
+                    <i class="bi bi-plus-circle me-1"></i> Asignar Materia
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Asignacin -->
+    <div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-labelledby="assignTeacherModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+                <div class="modal-header" style="background-color: #112d60; color: white;">
+                    <h5 class="modal-title fw-bold" id="assignTeacherModalLabel">Asignar Materia al Docente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Subjects" asp-action="AssignTeacher" method="post">
+                    <div class="modal-body p-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="docenteId" value="@ViewBag.DocenteId" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #112d60;">Materia a Asignar</label>
+                            <select class="form-select" name="subjectId" required>
+                                <option value="">-- Selecciona una Materia --</option>
+                                @if(ViewBag.Subjects != null)
+                                {
+                                    foreach(var sub in ViewBag.Subjects)
+                                    {
+                                        <option value="@sub.Id">@sub.Code - @sub.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Semestre</label>
+                                <select class="form-select" name="semestre" required>
+                                    <option value="Enero - Junio">Enero - Junio</option>
+                                    <option value="Julio - Diciembre">Julio - Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Ao</label>
+                                <select class="form-select" name="anio" required>
+                                    @for (int y = DateTime.Now.Year; y <= DateTime.Now.Year + 2; y++)
+                                    {
+                                        <option value="@y">@y</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #112d60;">Grupo / Turno</label>
+                            <input type="text" class="form-control" name="group" placeholder="Ej. Grupo A - Matutino" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold" style="background-color: #f4a915; color: #112d60; border: none;">
+                            Guardar Asignacin
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
