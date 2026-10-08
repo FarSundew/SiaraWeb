@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +24,22 @@ namespace SIARAWEB.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
 
-            // 1. Definir Periodo
+            // 1. Definir Periodo con Cookie
+            int? storedPeriodo = null;
+            if (periodoId.HasValue)
+            {
+                Response.Cookies.Append("SelectedPeriodoId", periodoId.Value.ToString(), new CookieOptions { Expires = DateTime.Now.AddDays(7) });
+                storedPeriodo = periodoId.Value;
+            }
+            else
+            {
+                var cookie = Request.Cookies["SelectedPeriodoId"];
+                if (int.TryParse(cookie, out int cId)) storedPeriodo = cId;
+            }
+
             var periodoActivo = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
                                 ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
-            int activePeriodId = periodoId ?? periodoActivo?.Id ?? 0;
+            int activePeriodId = storedPeriodo ?? periodoActivo?.Id ?? 0;
 
             // 2. Consulta Base de Asignaturas
             var subjectQuery = _context.Subjects
@@ -177,4 +189,5 @@ namespace SIARAWEB.Controllers
         }
     }
 }
+
 
