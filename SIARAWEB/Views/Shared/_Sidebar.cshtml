@@ -6,79 +6,63 @@
 
         <li class="nav-item">
             <a class="nav-link fw-bold siara-nav-link" asp-controller="Home" asp-action="Index">
-                🏠 INICIO
+                <i class="bi bi-house-door-fill me-2"></i> INICIO
             </a>
         </li>
 
-        <!-- 👨‍🏫 DOCENTES (Y Jefes de Carrera que dan clases) -->
+        <!-- DOCENTES (Y Jefes de Carrera que dan clases) -->
         @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="DocenteTasks">
-                    <i class="bi bi-clipboard-check me-2"></i> MIS TAREAS / ENTREGAS
+                    <i class="bi bi-clipboard-check-fill me-2"></i> MIS TAREAS / ENTREGAS
                 </a>
-
             </li>
         }
 
-        <!-- 👔 JEFE DE CARRERA -->
-        @if (User.IsInRole("JefeCarrera"))
+        <!-- JEFE DE CARRERA Y JEFE GENERAL (SUBDIRECTOR) -->
+        @if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
         {
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Subjects" asp-action="Index">
-                    📚 ASIGNATURAS
+                    <i class="bi bi-book-fill me-2"></i> ASIGNATURAS
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Docentes" asp-action="Index">
-                    👨‍🏫 PLANTILLA DOCENTE
+                    <i class="bi bi-people-fill me-2"></i> PLANTILLA DOCENTE
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="Index">
-                    🚥 SEMÁFORO ENTREGAS
+                    <i class="bi bi-bar-chart-fill me-2"></i> PANEL ANALÍTICO
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="Index">
-                    ⏳ BUZONES / TAREAS
+                    <i class="bi bi-mailbox2 me-2"></i> BUZONES INSTITUCIONALES
                 </a>
             </li>
-
         }
 
-        <!-- 👑 JEFE GENERAL / SUBDIRECTOR -->
-        @if (User.IsInRole("JefeGeneral"))
-        {
-            <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="DashboardGeneral" asp-action="Index">
-                    🧭 MAPA INSTITUCIONAL
-                </a>
-            </li>
-            
-
-        }
-
-        <!-- 🛠️ ADMINISTRADOR -->
+        <!-- ADMINISTRADOR -->
         @if (User.IsInRole("Administrador"))
         {
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="ApplicationUsers" asp-action="Index">
-                    👥 GESTIÓN DE USUARIOS
+                    <i class="bi bi-person-badge-fill me-2"></i> GESTIÓN DE USUARIOS
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Departamentos" asp-action="Index">
-                    🏢 DEPARTAMENTOS Y CARRERAS
+                    <i class="bi bi-building me-2"></i> DEPARTAMENTOS Y CARRERAS
                 </a>
             </li>
-
             <li class="nav-item">
                 <a class="nav-link fw-bold siara-nav-link" asp-controller="Backup" asp-action="Index">
-                    💾 RESPALDO BD
+                    <i class="bi bi-database-fill-gear me-2"></i> RESPALDO BD
                 </a>
             </li>
-
         }
 
     </ul>
@@ -98,4 +82,3 @@
             color: #112d60 !important;
         }
 </style>
-
