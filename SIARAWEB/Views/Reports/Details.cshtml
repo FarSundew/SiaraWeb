@@ -1,4 +1,4 @@
-﻿@model SIARAWEB.Models.Subject
+@model SIARAWEB.Models.Subject
 
 @{
     ViewData["Title"] = "Detalles de Materia: " + Model.Name;
@@ -23,20 +23,20 @@
         </div>
     </div>
 
-    <!-- PestaÃ±as de NavegaciÃ³n -->
+    <!-- Pestañas de Navegación -->
     <ul class="nav nav-pills mb-4 fw-bold gap-2" id="detailsTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-pill px-4 shadow-sm" id="docs-tab" data-bs-toggle="pill" data-bs-target="#docs" type="button" role="tab"><i class="bi bi-file-earmark-pdf-fill me-1"></i> DocumentaciÃ³n (SemÃ¡foro)</button>
+            <button class="nav-link active rounded-pill px-4 shadow-sm" id="docs-tab" data-bs-toggle="pill" data-bs-target="#docs" type="button" role="tab"><i class="bi bi-file-earmark-pdf-fill me-1"></i> Documentación (Semáforo)</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill px-4 shadow-sm" id="tracks-tab" data-bs-toggle="pill" data-bs-target="#tracks" type="button" role="tab"><i class="bi bi-clipboard-data-fill me-1"></i> Historial (SÃ¡bana)</button>
+            <button class="nav-link rounded-pill px-4 shadow-sm" id="tracks-tab" data-bs-toggle="pill" data-bs-target="#tracks" type="button" role="tab"><i class="bi bi-clipboard-data-fill me-1"></i> Historial (Sábana)</button>
         </li>
     </ul>
 
-    <!-- Contenido de las PestaÃ±as -->
+    <!-- Contenido de las Pestañas -->
     <div class="tab-content" id="detailsTabsContent">
         
-        <!-- TAB 1: DOCUMENTACIÃ“N -->
+        <!-- TAB 1: DOCUMENTACIÓN -->
         <div class="tab-pane fade show active" id="docs" role="tabpanel">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                 <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
@@ -49,7 +49,7 @@
                                 <th class="text-start ps-4">FASE / TAREA</th>
                                 <th>FECHA DE ENTREGA</th>
                                 <th>ESTADO (TIEMPO)</th>
-                                <th>REVISIÃ“N</th>
+                                <th>REVISIÓN</th>
                                 <th>ARCHIVO PDF</th>
                             </tr>
                         </thead>
@@ -110,7 +110,7 @@
             </div>
         </div>
 
-        <!-- TAB 2: HISTORIAL SÃBANA -->
+        <!-- TAB 2: HISTORIAL SÁBANA -->
         <div class="tab-pane fade" id="tracks" role="tabpanel">
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
                 <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
@@ -124,8 +124,8 @@
                                 <th>TEMA / UNIDAD</th>
                                 <th class="text-success">APROBADOS</th>
                                 <th class="text-danger">REPROBADOS</th>
-                                <th class="text-start" style="width:25%">ACCIÃ“N CORRECTIVA</th>
-                                <th>AUDITORÃA</th>
+                                <th class="text-start" style="width:25%">ACCIÓN CORRECTIVA</th>
+                                <th>AUDITORÍA</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -147,7 +147,7 @@
                                             @if (isHighRisk) { <i class="bi bi-exclamation-triangle-fill text-warning"></i> }
                                         </td>
                                         <td class="text-start text-muted small">
-                                            @(string.IsNullOrWhiteSpace(track.Observations) ? (isHighRisk ? "âš ï¸ SIN ACCIÃ“N" : "-") : track.Observations)
+                                            @(string.IsNullOrWhiteSpace(track.Observations) ? (isHighRisk ? "⚠️ SIN ACCIÓN" : "-") : track.Observations)
                                         </td>
                                         <td>
                                             @if (track.ApprovalStatus == "Aprobado") { <span class="badge bg-success">Aprobado</span> }
