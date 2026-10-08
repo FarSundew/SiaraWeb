@@ -1,0 +1,168 @@
+﻿@model SIARAWEB.Models.Subject
+
+@{
+    ViewData["Title"] = "Detalles de Materia: " + Model.Name;
+    var docente = Model.DocenteAsignaturas?.FirstOrDefault()?.Docente;
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin: 0;">
+                <i class="bi bi-journal-bookmark-fill me-2"></i> @Model.Code - @Model.Name
+            </h3>
+            <p class="text-muted fw-bold mt-1 mb-0">
+                <i class="bi bi-person-fill"></i> Docente: @(docente?.FullName ?? "Sin asignar")
+            </p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary fw-bold shadow-sm rounded-3">
+                <i class="bi bi-arrow-left"></i> Volver al Tablero
+            </a>
+        </div>
+    </div>
+
+    <!-- PestaÃ±as de NavegaciÃ³n -->
+    <ul class="nav nav-pills mb-4 fw-bold gap-2" id="detailsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill px-4 shadow-sm" id="docs-tab" data-bs-toggle="pill" data-bs-target="#docs" type="button" role="tab"><i class="bi bi-file-earmark-pdf-fill me-1"></i> DocumentaciÃ³n (SemÃ¡foro)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4 shadow-sm" id="tracks-tab" data-bs-toggle="pill" data-bs-target="#tracks" type="button" role="tab"><i class="bi bi-clipboard-data-fill me-1"></i> Historial (SÃ¡bana)</button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las PestaÃ±as -->
+    <div class="tab-content" id="detailsTabsContent">
+        
+        <!-- TAB 1: DOCUMENTACIÃ“N -->
+        <div class="tab-pane fade show active" id="docs" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-folder-fill me-2"></i> ARCHIVOS ENTREGADOS
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center mb-0" style="font-size: 14px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-4">FASE / TAREA</th>
+                                <th>FECHA DE ENTREGA</th>
+                                <th>ESTADO (TIEMPO)</th>
+                                <th>REVISIÃ“N</th>
+                                <th>ARCHIVO PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Documents == null || !Model.Documents.Any())
+                            {
+                                <tr><td colspan="5" class="text-muted fw-bold py-4">No hay documentos entregados.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var doc in Model.Documents.OrderBy(d => d.UploadedAt))
+                                {
+                                    <tr>
+                                        <td class="text-start fw-bold ps-4 text-primary">@doc.DocumentTask?.Title</td>
+                                        <td>@doc.UploadedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (doc.IsOnTime)
+                                            {
+                                                <span class="badge bg-success shadow-sm">A Tiempo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger shadow-sm">Desfasado</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (doc.ApprovalStatus == "Aprobado")
+                                            {
+                                                <span class="badge bg-success shadow-sm">Aprobado</span>
+                                            }
+                                            else if (doc.ApprovalStatus == "Rechazado")
+                                            {
+                                                <span class="badge bg-danger shadow-sm">Rechazado</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark shadow-sm">Pendiente</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(doc.FilePath))
+                                            {
+                                                <a href="~/@doc.FilePath" target="_blank" class="btn btn-sm btn-outline-danger fw-bold rounded-pill shadow-sm">
+                                                    <i class="bi bi-file-earmark-pdf-fill"></i> Ver PDF
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">No disponible</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: HISTORIAL SÃBANA -->
+        <div class="tab-pane fade" id="tracks" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i> DESGLOSE DE RENDIMIENTO
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle text-center mb-0" style="font-size: 14px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-3">FASE / TAREA</th>
+                                <th>TEMA / UNIDAD</th>
+                                <th class="text-success">APROBADOS</th>
+                                <th class="text-danger">REPROBADOS</th>
+                                <th class="text-start" style="width:25%">ACCIÃ“N CORRECTIVA</th>
+                                <th>AUDITORÃA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.AcademicTrackings == null || !Model.AcademicTrackings.Any())
+                            {
+                                <tr><td colspan="6" class="text-muted fw-bold py-4">No hay datos de rendimiento registrados.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var track in Model.AcademicTrackings.OrderBy(t => t.DocumentTaskId).ThenBy(t => t.UnitNumber))
+                                {
+                                    bool isHighRisk = track.FailurePercentage >= 40.0m;
+                                    <tr class="@(isHighRisk ? "table-danger bg-opacity-10" : "")">
+                                        <td class="text-start fw-bold ps-3 text-primary">@track.DocumentTask?.Title</td>
+                                        <td><span class="badge bg-secondary">T-@track.UnitNumber</span></td>
+                                        <td class="text-success fw-bold">@track.ApprovalPercentage.ToString("0.0")%</td>
+                                        <td class="text-danger fw-bold">
+                                            @track.FailurePercentage.ToString("0.0")%
+                                            @if (isHighRisk) { <i class="bi bi-exclamation-triangle-fill text-warning"></i> }
+                                        </td>
+                                        <td class="text-start text-muted small">
+                                            @(string.IsNullOrWhiteSpace(track.Observations) ? (isHighRisk ? "âš ï¸ SIN ACCIÃ“N" : "-") : track.Observations)
+                                        </td>
+                                        <td>
+                                            @if (track.ApprovalStatus == "Aprobado") { <span class="badge bg-success">Aprobado</span> }
+                                            else if (track.ApprovalStatus == "Rechazado") { <span class="badge bg-danger">Rechazado</span> }
+                                            else { <span class="badge bg-warning text-dark">Pendiente</span> }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+

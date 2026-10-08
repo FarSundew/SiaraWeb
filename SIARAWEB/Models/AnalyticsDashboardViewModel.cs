@@ -46,18 +46,15 @@ namespace SIARAWEB.Models
 
     public class SabanaRow
     {
-        public int TrackingId { get; set; }
         public int SubjectId { get; set; }
         public string SubjectCode { get; set; } = "";
         public string SubjectName { get; set; } = "";
         public string TeacherName { get; set; } = "";
-        public string PhaseName { get; set; } = "";
-        public int UnitNumber { get; set; }
-        public decimal ApprovalPercentage { get; set; }
-        public decimal FailurePercentage { get; set; }
-        public bool IsHighRisk => FailurePercentage >= 40.0m;
-        public string ApprovalStatus { get; set; } = "";
-        public string? CorrectiveAction { get; set; }
+        public int TotalTrackings { get; set; }
+        public decimal AvgApprovalPercentage { get; set; }
+        public decimal AvgFailurePercentage { get; set; }
+        public int HighRiskCount { get; set; }
+        public bool IsHighRisk => AvgFailurePercentage >= 40.0m || HighRiskCount > 0;
     }
 }
 

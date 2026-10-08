@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +59,7 @@ namespace SIARAWEB.Controllers
 
             var asignaturas = await subjectQuery.OrderBy(s => s.Name).ToListAsync();
 
-            // 4. Armar el Semáforo
+            // 4. Armar el SemÃ¡foro
             var listaSemaforo = new List<SemaforoRow>();
             foreach (var materia in asignaturas)
             {
@@ -88,27 +88,26 @@ namespace SIARAWEB.Controllers
                 listaSemaforo.Add(item);
             }
 
-            // 5. Armar la Sábana
+                        // 5. Armar la Sabana
             var subjectIds = asignaturas.Select(s => s.Id).ToList();
             var allTrackings = await _context.AcademicTrackings
                 .Include(t => t.DocumentTask)
                 .Where(t => subjectIds.Contains(t.SubjectId) && t.DocumentTask != null && t.DocumentTask.AcademicPeriodId == activePeriodId)
-                .OrderBy(t => t.Subject!.Name).ThenBy(t => t.DocumentTaskId).ThenBy(t => t.UnitNumber)
                 .ToListAsync();
 
-            var listaSabana = allTrackings.Select(t => new SabanaRow
-            {
-                TrackingId = t.Id,
-                SubjectId = t.SubjectId,
-                SubjectCode = asignaturas.FirstOrDefault(s => s.Id == t.SubjectId)?.Code ?? "-",
-                SubjectName = asignaturas.FirstOrDefault(s => s.Id == t.SubjectId)?.Name ?? "-",
-                TeacherName = asignaturas.FirstOrDefault(s => s.Id == t.SubjectId)?.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin Asignar",
-                PhaseName = t.DocumentTask?.Title ?? "Seguimiento",
-                UnitNumber = t.UnitNumber,
-                ApprovalPercentage = t.ApprovalPercentage,
-                FailurePercentage = t.FailurePercentage,
-                ApprovalStatus = t.ApprovalStatus,
-                CorrectiveAction = t.Observations
+            var listaSabana = asignaturas.Select(s => {
+                var subjectTrackings = allTrackings.Where(t => t.SubjectId == s.Id).ToList();
+                return new SabanaRow
+                {
+                    SubjectId = s.Id,
+                    SubjectCode = s.Code,
+                    SubjectName = s.Name,
+                    TeacherName = s.DocenteAsignaturas?.FirstOrDefault()?.Docente?.FullName ?? "Sin Asignar",
+                    TotalTrackings = subjectTrackings.Count,
+                    AvgApprovalPercentage = subjectTrackings.Any() ? Math.Round(subjectTrackings.Average(t => t.ApprovalPercentage), 1) : 0m,
+                    AvgFailurePercentage = subjectTrackings.Any() ? Math.Round(subjectTrackings.Average(t => t.FailurePercentage), 1) : 0m,
+                    HighRiskCount = subjectTrackings.Count(t => t.FailurePercentage >= 40.0m)
+                };
             }).ToList();
 
             // 6. Completar el ViewModel Unificado
@@ -145,6 +144,7 @@ namespace SIARAWEB.Controllers
                 .Include(s => s.Departamento)
                 .Include(s => s.DocenteAsignaturas!).ThenInclude(da => da.Docente)
                 .Include(s => s.Documents!).ThenInclude(d => d.DocumentTask)
+                .Include(s => s.AcademicTrackings!).ThenInclude(t => t.DocumentTask)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (materia == null) return NotFound();
@@ -171,7 +171,7 @@ namespace SIARAWEB.Controllers
                 document.Feedback = feedback ?? string.Empty;
                 _context.Documents.Update(document);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = $"El documento fue {status.ToUpper()} con éxito.";
+                TempData["Success"] = $"El documento fue {status.ToUpper()} con Ã©xito.";
             }
             return RedirectToAction(nameof(Details), new { id = subjectId });
         }
