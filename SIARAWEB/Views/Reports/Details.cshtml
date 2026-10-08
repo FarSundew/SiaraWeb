@@ -92,7 +92,7 @@
                                         <td>
                                             @if (!string.IsNullOrEmpty(doc.FilePath))
                                             {
-                                                <a href="@Url.Content("~" + doc.FilePath)" target="_blank" class="btn btn-sm btn-outline-danger fw-bold rounded-pill shadow-sm">
+                                                <a href="@Url.Content("~/" + doc.FilePath.TrimStart('/'))" target="_blank" class="btn btn-sm btn-outline-danger fw-bold rounded-pill shadow-sm">
                                                     <i class="bi bi-file-earmark-pdf-fill"></i> Ver PDF
                                                 </a>
                                             }
