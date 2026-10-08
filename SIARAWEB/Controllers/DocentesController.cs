@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ using SIARAWEB.Models;
 namespace SIARAWEB.Controllers
 {
     // 🔒 Acceso para el Jefe de Carrera, Jefe General y Soporte Técnico
-    [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+    [Authorize(Roles = "JefeCarrera,Administrador")]
     public class DocentesController : Controller
     {
         private readonly ApplicationDbContext _context;

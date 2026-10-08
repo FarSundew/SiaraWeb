@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "Administrador,JefeGeneral")]
+    [Authorize(Roles = "Administrador")]
     public class AcademicPeriodsController : Controller
     {
         private readonly ApplicationDbContext _context;

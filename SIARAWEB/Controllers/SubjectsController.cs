@@ -8,7 +8,7 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+    [Authorize(Roles = "JefeCarrera,Administrador")]
     public class SubjectsController : Controller
     {
         private readonly ApplicationDbContext _context;

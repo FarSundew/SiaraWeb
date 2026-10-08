@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+ï»¿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ using SIARAWEB.ViewModels;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "Docente,JefeCarrera,JefeGeneral,Administrador")]
+    [Authorize(Roles = "Docente,JefeCarrera,Administrador")]
     public class FinalReportController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -45,7 +45,7 @@ namespace SIARAWEB.Controllers
                 .OrderByDescending(c => c.DepartamentoId)
                 .FirstOrDefaultAsync();
 
-            // 2. Solo lectura si ya expiró el corte o el usuario es solo visor (JefeGeneral)
+            // 2. Solo lectura si ya expirÃ³ el corte o el usuario es solo visor (JefeGeneral)
             bool esSoloLectura = User.IsInRole("JefeGeneral") || (cutoffFinal != null && DateTime.Now > cutoffFinal.DueDate);
 
             // 3. Obtener unidades previas
@@ -93,7 +93,7 @@ namespace SIARAWEB.Controllers
                 return RedirectToAction(nameof(SubjectSummary), new { id = model.SubjectId });
             }
 
-            // Cálculo institucional definitivo[cite: 2]
+            // CÃ¡lculo institucional definitivo[cite: 2]
             model.FinalApprovedStudents = model.ApprovedRegularStudents + model.ApprovedMakeupStudents;
             model.FinalApprovalPercentage = Math.Round(((decimal)model.FinalApprovedStudents / model.TotalStudents) * 100, 2);
             model.FinalFailurePercentage = Math.Round(((decimal)model.FinalFailedStudents / model.TotalStudents) * 100, 2);
@@ -123,8 +123,9 @@ namespace SIARAWEB.Controllers
             }
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Cierre de materia e índices finales guardados con éxito.";
+            TempData["Success"] = "Cierre de materia e Ã­ndices finales guardados con Ã©xito.";
             return RedirectToAction(nameof(SubjectSummary), new { id = model.SubjectId });
         }
     }
 }
+

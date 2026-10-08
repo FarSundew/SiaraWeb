@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -58,7 +58,7 @@ namespace SIARAWEB.Controllers
         // =========================================================================
 
         // GET: DocumentTasks
-        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        [Authorize(Roles = "JefeCarrera,Administrador")]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -77,7 +77,7 @@ namespace SIARAWEB.Controllers
         }
 
         // GET: DocumentTasks/Details/5
-        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        [Authorize(Roles = "JefeCarrera,Administrador")]
         public async Task<IActionResult> Details(int id)
         {
             var task = await _context.DocumentTasks
@@ -256,7 +256,7 @@ namespace SIARAWEB.Controllers
         }
 
         // GET: DocumentTasks/Review/5
-        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        [Authorize(Roles = "JefeCarrera,Administrador")]
         public async Task<IActionResult> Review(int id)
         {
             var task = await _context.DocumentTasks
@@ -325,7 +325,7 @@ namespace SIARAWEB.Controllers
         }
         
         [HttpPost]
-        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        [Authorize(Roles = "JefeCarrera,Administrador")]
         [ValidateAntiForgeryToken]
                 public async Task<IActionResult> ReviewTracking(int trackingId, int taskId, string status, string? feedback)
         {
@@ -373,7 +373,7 @@ namespace SIARAWEB.Controllers
         }
 
                 // GET: DocumentTasks/SubjectHistory/5
-        [Authorize(Roles = "JefeCarrera,JefeGeneral,Administrador")]
+        [Authorize(Roles = "JefeCarrera,Administrador")]
         public async Task<IActionResult> SubjectHistory(int id)
         {
             var subject = await _context.Subjects
