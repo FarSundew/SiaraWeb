@@ -441,6 +441,11 @@ namespace SIARAWEB.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Turno")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("DocenteId", "SubjectId");
 
                     b.HasIndex("AcademicPeriodId");
@@ -671,6 +676,9 @@ namespace SIARAWEB.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Semestre")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

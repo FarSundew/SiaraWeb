@@ -1,4 +1,4 @@
-﻿@model IEnumerable<SIARAWEB.Models.ApplicationUser>
+@model IEnumerable<SIARAWEB.Models.ApplicationUser>
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<SIARAWEB.Models.ApplicationUser> UserManager
 
@@ -6,13 +6,26 @@
     ViewData["Title"] = "Directorio de Docentes";
     int miDeptoId = ViewBag.MiDepartamentoId ?? 0;
     bool esJefeCarrera = User.IsInRole("JefeCarrera");
+    var currentUserId = UserManager.GetUserId(User);
+    string? jefeTitularId = ViewBag.JefeTitularId as string;
+    bool yoSoyJefeTitular = User.IsInRole("Administrador") || (!string.IsNullOrEmpty(jefeTitularId) && currentUserId == jefeTitularId);
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h2 class="fw-bold" style="color: #112d60;">Directorio de Docentes</h2>
-            <p class="text-muted m-0">Consulta la plantilla docente, asignaciones y comisiones de auditoría auxiliar.</p>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-people-fill me-2"></i> DIRECTORIO DE DOCENTES
+            </h3>
+            <p class="text-muted fw-bold m-0">Consulta la plantilla docente, asignaciones y comisiones de auditoría auxiliar.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary fw-bold px-3 py-2 shadow-sm" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#prestamoDocenteModal">
+                <i class="bi bi-arrow-left-right me-1"></i> Préstamo de Docente
+            </button>
+            <a asp-action="Create" class="btn text-white fw-bold px-3 py-2 shadow-sm" style="background-color: #112d60; border-radius: 8px;">
+                <i class="bi bi-person-plus-fill me-1" style="color: #f4a915;"></i> Alta de Docente
+            </a>
         </div>
     </div>
 
@@ -106,6 +119,10 @@
                             int cantidadMaterias = docente.DocenteAsignaturas?.Count ?? 0;
                             bool esDeMiCarrera = docente.DepartamentoId == miDeptoId;
                             bool esRevisor = await UserManager.IsInRoleAsync(docente, "JefeCarrera");
+                            bool esAdmin = await UserManager.IsInRoleAsync(docente, "Administrador") || await UserManager.IsInRoleAsync(docente, "JefeGeneral");
+                            bool esYo = docente.Id == currentUserId;
+                            bool esJefeTitular = (!string.IsNullOrEmpty(jefeTitularId) && docente.Id == jefeTitularId)
+                                                 || (docente.Departamento != null && docente.Departamento.HeadOfDepartmentId == docente.Id);
 
                             <tr>
                                 <td class="px-4 py-3">
@@ -139,14 +156,14 @@
                                 <td class="px-4 text-center">
                                     @if (cantidadMaterias > 0)
                                     {
-                                        <span class="badge bg-success bg-opacity-15 text-success px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                        <span class="badge bg-success text-white px-3 py-2" style="border-radius: 20px; font-size: 13px;">
                                             <i class="bi bi-book me-1"></i> @cantidadMaterias materia(s)
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-warning bg-opacity-15 text-dark px-3 py-2" style="border-radius: 20px; font-size: 13px;">
-                                            Sin materias
+                                        <span class="badge bg-warning text-dark px-3 py-2" style="border-radius: 20px; font-size: 13px;">
+                                            <i class="bi bi-exclamation-circle me-1"></i> Sin materias
                                         </span>
                                     }
                                 </td>
@@ -155,42 +172,66 @@
                                 @if (esJefeCarrera)
                                 {
                                     <td class="px-4 text-center">
-                                        @if (esDeMiCarrera)
+                                        @if (esAdmin)
+                                        {
+                                            <span class="badge bg-danger text-white py-2 px-3" style="font-size: 12px; border-radius: 20px;" title="Administrador del sistema protegido">
+                                                <i class="bi bi-shield-fill me-1"></i> Administrador
+                                            </span>
+                                        }
+                                        else if (esJefeTitular)
+                                        {
+                                            <span class="badge bg-success text-white py-2 px-3" style="font-size: 12px; border-radius: 20px;" title="Jefe de Carrera Titular (Inmune a revocación)">
+                                                <i class="bi bi-star-fill me-1"></i> Jefe Titular
+                                            </span>
+                                        }
+                                        else if (esDeMiCarrera)
                                         {
                                             @if (esRevisor)
                                             {
-                                                <div class="d-flex flex-column align-items-center gap-1">
-                                                    <span class="badge bg-info text-dark px-2 py-1" style="font-size: 11px;">
-                                                        <i class="bi bi-shield-check me-1"></i>Revisor Auxiliar
+                                                <div class="d-flex flex-column align-items-center gap-2">
+                                                    <span class="badge bg-primary text-white px-3 py-2" style="font-size: 12px; border-radius: 20px;">
+                                                        <i class="bi bi-check-circle-fill me-1"></i> Revisor Activo
                                                     </span>
-                                                    <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="docenteId" value="@docente.Id" />
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold"
-                                                                onclick="return confirm('¿Deseas revocar los permisos de revisión a este docente?');"
-                                                                style="font-size: 11px; border-radius: 6px;">
-                                                            Revocar
-                                                        </button>
-                                                    </form>
+                                                    @if (yoSoyJefeTitular && !esYo)
+                                                    {
+                                                        <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="docenteId" value="@docente.Id" />
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-3 fw-bold"
+                                                                    onclick="return confirm('¿Deseas revocar los permisos de revisión a este docente?');"
+                                                                    style="font-size: 11px; border-radius: 6px;">
+                                                                <i class="bi bi-x-lg me-1"></i> Revocar
+                                                            </button>
+                                                        </form>
+                                                    }
                                                 </div>
                                             }
                                             else
                                             {
-                                                <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="docenteId" value="@docente.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold"
-                                                            onclick="return confirm('¿Deseas comisionar a este docente como revisor auxiliar? Podrá dictaminar evidencias de la carrera.');"
-                                                            style="font-size: 11px; border-radius: 6px;">
-                                                        <i class="bi bi-person-plus me-1"></i>Comisionar
-                                                    </button>
-                                                </form>
+                                                @if (yoSoyJefeTitular)
+                                                {
+                                                    <form asp-action="ToggleReviewerRole" method="post" class="d-inline m-0">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="docenteId" value="@docente.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-3 fw-bold"
+                                                                onclick="return confirm('¿Deseas comisionar a este docente como revisor auxiliar? Podrá dictaminar evidencias de la carrera.');"
+                                                                style="font-size: 11px; border-radius: 6px;">
+                                                            <i class="bi bi-plus-circle me-1"></i> Comisionar
+                                                        </button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary text-white py-2 px-3" style="font-size: 12px; border-radius: 20px;">
+                                                        <i class="bi bi-person me-1"></i> Docente
+                                                    </span>
+                                                }
                                             }
                                         }
                                         else
                                         {
-                                            <span class="badge bg-light text-muted border py-1 px-2" style="font-size: 11px;" title="Solo puedes comisionar a docentes adscritos a tu academia">
-                                                <i class="bi bi-slash-circle me-1"></i>No elegible
+                                            <span class="badge bg-dark text-white py-2 px-3" style="font-size: 12px; border-radius: 20px;" title="Solo puedes comisionar a docentes adscritos a tu academia">
+                                                <i class="bi bi-ban me-1"></i> No Elegible
                                             </span>
                                         }
                                     </td>
@@ -205,6 +246,113 @@
                         }
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Préstamo de Docente Interdepartamental -->
+    <div class="modal fade" id="prestamoDocenteModal" tabindex="-1" aria-labelledby="prestamoDocenteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+                <div class="modal-header text-white" style="background-color: #112d60;">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="prestamoDocenteModalLabel">
+                            <i class="bi bi-arrow-left-right me-2"></i> Préstamo de Docente Interdepartamental
+                        </h5>
+                        <small class="opacity-75">Asigna una asignatura de tu carrera a un profesor adscrito a otro departamento</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-action="AssignTeacher" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #112d60;">Docente a Solicitar en Préstamo</label>
+                            <select class="form-select" name="docenteId" required>
+                                <option value="">-- Selecciona el Docente --</option>
+                                @if (ViewBag.TodosDocentes != null)
+                                {
+                                    foreach (var d in (IEnumerable<SIARAWEB.Models.ApplicationUser>)ViewBag.TodosDocentes)
+                                    {
+                                        string deptoDocente = d.Departamento?.Code ?? d.Departamento?.Name ?? "Sin Depto";
+                                        bool esExterno = d.DepartamentoId != miDeptoId;
+                                        <option value="@d.Id">
+                                            @d.FullName (@deptoDocente) @(esExterno ? "★ Externo" : "(Adscrito)")
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <small class="text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i> Puedes seleccionar tanto profesores de tu carrera como de otros departamentos.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #112d60;">Materia a Asignar</label>
+                            <select class="form-select" name="subjectId" required>
+                                <option value="">-- Selecciona una Materia --</option>
+                                @if (ViewBag.MisAsignaturas != null)
+                                {
+                                    foreach (var sub in (IEnumerable<SIARAWEB.Models.Subject>)ViewBag.MisAsignaturas)
+                                    {
+                                        <option value="@sub.Id">@sub.Code - @sub.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold" style="color: #112d60;">Semestre / Periodo</label>
+                                <select class="form-select" name="semestre" required>
+                                    @{
+                                        var opcionesPrestamo = SIARAWEB.Models.PeriodConfig.Load().GetOpciones();
+                                        bool defaultSeg = DateTime.Now.Month > 6;
+                                    }
+                                    @for (int i = 0; i < opcionesPrestamo.Count; i++)
+                                    {
+                                        string op = opcionesPrestamo[i];
+                                        bool sel = (i == 0 && !defaultSeg) || (i == 1 && defaultSeg);
+                                        <option value="@op" selected="@sel">@op</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold" style="color: #112d60;">Año</label>
+                                <select class="form-select" name="anio" required>
+                                    @{
+                                        int anioBase = DateTime.Now.Year;
+                                        for (int y = anioBase; y <= anioBase + 2; y++)
+                                        {
+                                            <option value="@y" selected="@(y == anioBase)">@y</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Grupo</label>
+                                <input type="text" class="form-control" name="group" placeholder="Ej. Grupo A" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Turno</label>
+                                <select class="form-select" name="turno" required>
+                                    <option value="Matutino">Matutino</option>
+                                    <option value="Vespertino">Vespertino</option>
+                                    <option value="Mixto">Mixto</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn text-white fw-bold" style="background-color: #112d60;">
+                            <i class="bi bi-check-lg me-1"></i> Asignar Carga en Préstamo
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

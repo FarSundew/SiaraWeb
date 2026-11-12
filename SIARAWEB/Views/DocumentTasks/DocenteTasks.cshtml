@@ -10,7 +10,7 @@
         <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase;">
             <i class="bi bi-folder-check me-2"></i> MIS REQUERIMIENTOS Y TAREAS
         </h3>
-        <p class="text-muted fw-bold">Consulta tus entregas por cada asignatura asignada en el ciclo escolar.</p>
+        <p class="text-muted fw-bold">Consulta tus entregas por cada asignatura y departamento asignado en el ciclo escolar.</p>
     </div>
 
     @if (TempData["Success"] != null)
@@ -32,29 +32,39 @@
         @foreach (var task in Model)
         {
             bool vencida = DateTime.Now > task.DueDate;
-            // Filtra solo las materias que coincidan con el periodo de esta tarea
+            string deptoNombre = task.Departamento?.Name ?? "Departamento General";
+            string tituloConDepartamento = !string.IsNullOrWhiteSpace(task.Title) && task.Title.Contains(deptoNombre, StringComparison.OrdinalIgnoreCase)
+                ? task.Title
+                : $"{task.Title} - {deptoNombre}";
+
+            // Filtra solo las materias que coincidan con el periodo y el departamento de esta tarea
             var materiasPeriodo = asignaciones
-            .Where(da => da.Subject != null && da.AcademicPeriodId == task.AcademicPeriodId && da.Subject.DepartamentoId == task.DepartamentoId)
-            .ToList();
+                .Where(da => da.Subject != null && da.AcademicPeriodId == task.AcademicPeriodId && da.Subject.DepartamentoId == task.DepartamentoId)
+                .OrderBy(da => da.Subject!.Semestre)
+                .ThenBy(da => da.Subject!.Name)
+                .ToList();
 
             <div class="card shadow-sm border-0 rounded-4 mb-5" style="border-left: 6px solid @(vencida ? "#dc3545" : "#112d60") !important;">
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                             <span class="badge bg-light text-dark border fw-bold">@(task.AcademicPeriod?.Name ?? "General")</span>
+                            <span class="badge text-white fw-bold" style="background-color: #112d60;">
+                                <i class="bi bi-building me-1"></i> @deptoNombre
+                            </span>
                             <span class="badge bg-primary">@task.PhaseType</span>
                             <span class="badge @(vencida ? "bg-danger" : "bg-success")">
                                 @(vencida ? "Vencida" : "Abierta")
                             </span>
                         </div>
-                        <h4 class="fw-bold mb-0" style="color: #112d60;">@task.Title</h4>
+                        <h4 class="fw-bold mb-0" style="color: #112d60;">@tituloConDepartamento</h4>
                         @if (!string.IsNullOrWhiteSpace(task.Description))
                         {
                             <small class="text-muted">@task.Description</small>
                         }
                     </div>
                     <div class="text-end">
-                        <small class="text-muted d-block fw-bold">FECHA LÕMITE DE ENTREGA:</small>
+                        <small class="text-muted d-block fw-bold">FECHA L√çMITE DE ENTREGA:</small>
                         <span class="fw-bold @(vencida ? "text-danger" : "text-dark")">
                             <i class="bi bi-clock me-1"></i> @task.DueDate.ToString("dd/MMM/yyyy HH:mm") hrs
                         </span>
@@ -63,13 +73,13 @@
 
                 <div class="card-body p-4 bg-light bg-opacity-50">
                     <h6 class="fw-bold text-muted mb-3" style="font-size: 13px; text-transform: uppercase;">
-                        <i class="bi bi-mortarboard-fill me-1"></i> TUS ASIGNATURAS EN ESTA TAREA:
+                        <i class="bi bi-mortarboard-fill me-1"></i> TUS ASIGNATURAS EN ESTA TAREA (@deptoNombre):
                     </h6>
 
                     @if (!materiasPeriodo.Any())
                     {
                         <div class="alert alert-light border text-muted py-3">
-                            <i class="bi bi-info-circle me-1"></i> No tienes materias asignadas en el periodo correspondiente a este requerimiento.
+                            <i class="bi bi-info-circle me-1"></i> No tienes materias asignadas en <strong>@deptoNombre</strong> durante el periodo correspondiente a este requerimiento.
                         </div>
                     }
                     else
@@ -82,16 +92,49 @@
                                 var tracksSubidos = subject.AcademicTrackings?.Count(t => t.DocumentTaskId == task.Id) ?? 0;
                                 bool isCompleted = (task.PhaseType == "Inicial") ? (docsSubidos > 0) : (docsSubidos > 0 && tracksSubidos > 0);
 
+                                // Validaci√≥n de Entrega Secuencial en Vista
+                                bool bloqueado = false;
+                                string motivoBloqueo = "";
+                                if (task.PhaseType == "Seguimiento2")
+                                {
+                                    bool tienePrevio = (subject.Documents?.Any(d => d.DocumentTask != null && d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId && d.DocumentTask.PhaseType == "Seguimiento1") ?? false)
+                                                       || (subject.AcademicTrackings?.Any(t => t.DocumentTask != null && t.DocumentTask.AcademicPeriodId == task.AcademicPeriodId && t.DocumentTask.PhaseType == "Seguimiento1") ?? false);
+                                    if (!tienePrevio)
+                                    {
+                                        bloqueado = true;
+                                        motivoBloqueo = "Requiere entregar primero el 1er Seguimiento";
+                                    }
+                                }
+                                else if (task.PhaseType == "Final")
+                                {
+                                    bool tienePrevio = (subject.Documents?.Any(d => d.DocumentTask != null && d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId && d.DocumentTask.PhaseType == "Seguimiento2") ?? false)
+                                                       || (subject.AcademicTrackings?.Any(t => t.DocumentTask != null && t.DocumentTask.AcademicPeriodId == task.AcademicPeriodId && t.DocumentTask.PhaseType == "Seguimiento2") ?? false);
+                                    if (!tienePrevio)
+                                    {
+                                        bloqueado = true;
+                                        motivoBloqueo = "Requiere entregar primero el 2do Seguimiento";
+                                    }
+                                }
+
                                 <div class="col-md-6 col-xl-4">
                                     <div class="card h-100 shadow-sm border-0 rounded-3">
                                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                                             <div>
-                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
                                                     <span class="badge bg-secondary">@subject.Code</span>
-                                                    <span class="badge bg-light text-dark border">@da.Group</span>
+                                                    <div class="d-flex gap-1">
+                                                        @if (subject.Semestre > 0)
+                                                        {
+                                                            <span class="badge bg-dark bg-opacity-10 text-dark">@(subject.Semestre)¬∞ Sem</span>
+                                                        }
+                                                        <span class="badge bg-light text-dark border">@da.Group</span>
+                                                    </div>
                                                 </div>
                                                 <div class="d-flex flex-column align-items-start mb-1">
-                                                    <h6 class="fw-bold text-dark mb-1">@subject.Name</h6>
+                                                    <h6 class="fw-bold text-dark mb-0">@subject.Name</h6>
+                                                    <small class="text-muted mb-1" style="font-size: 11px;">
+                                                        <i class="bi bi-building me-1"></i>@(subject.Departamento?.Name ?? deptoNombre)
+                                                    </small>
                                                     <div class="d-flex gap-1 mt-1">
                                                         @if (docsSubidos > 0) {
                                                             <span class="badge bg-success" style="font-size: 9px;"><i class="bi bi-file-earmark-check"></i> DOCS OK</span>
@@ -124,17 +167,26 @@
                                             </div>
 
                                             <div class="d-flex gap-2 mt-2 pt-2 border-top">
-                                                <!-- BotÛn para subir Documentos PDF -->
-                                                <a href="/Documents/Upload/@subject.Id?taskId=@task.Id" class="btn btn-sm btn-outline-primary fw-bold w-100">
-                                                    <i class="bi bi-upload me-1"></i> Evidencias
-                                                </a>
-
-                                                <!-- BotÛn para Capturar Calificaciones (solo si no es fase inicial) -->
-                                                @if (task.PhaseType != "Inicial")
+                                                @if (bloqueado)
                                                 {
-                                                    <a href="/AcademicTrackings/Capture/@subject.Id?taskId=@task.Id" class="btn btn-sm btn-outline-success fw-bold w-100">
-                                                        <i class="bi bi-pencil-square me-1"></i> Calificar
+                                                    <div class="alert alert-danger py-1 px-2 m-0 w-100 text-center fw-bold" style="font-size: 11px;" title="@motivoBloqueo">
+                                                        <i class="bi bi-lock-fill me-1"></i> Fase Bloqueada: Entrega previa requerida
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <!-- Bot√≥n para subir Documentos PDF -->
+                                                    <a href="/Documents/Upload/@subject.Id?taskId=@task.Id" class="btn btn-sm btn-outline-primary fw-bold w-100">
+                                                        <i class="bi bi-upload me-1"></i> Evidencias
                                                     </a>
+
+                                                    <!-- Bot√≥n para Capturar Calificaciones (solo si no es fase inicial) -->
+                                                    @if (task.PhaseType != "Inicial")
+                                                    {
+                                                        <a href="/AcademicTrackings/Capture/@subject.Id?taskId=@task.Id" class="btn btn-sm btn-outline-success fw-bold w-100">
+                                                            <i class="bi bi-pencil-square me-1"></i> Calificar
+                                                        </a>
+                                                    }
                                                 }
                                             </div>
                                         </div>
@@ -148,6 +200,4 @@
         }
     }
 </div>
-
-
 

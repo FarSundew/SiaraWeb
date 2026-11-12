@@ -8,7 +8,7 @@ using SIARAWEB.Models;
 
 namespace SIARAWEB.Controllers
 {
-    // ?? Autorizamos tanto a Docentes puros como a Jefes de Carrera que imparten clases
+    // Autorizamos tanto a Docentes puros como a Jefes de Carrera que imparten clases
     [Authorize(Roles = "Docente,JefeCarrera")]
     public class DocumentsController : Controller
     {
@@ -21,27 +21,6 @@ namespace SIARAWEB.Controllers
             _userManager = userManager;
         }
 
-        // GET: Documents (Mis Materias)
-        public async Task<IActionResult> Index()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var misAsignaturas = await _context.DocenteAsignaturas
-                .Include(da => da.Subject)
-
-                .Include(da => da.Subject)
-                    .ThenInclude(s => s!.Documents)
-                .Where(da => da.DocenteId == currentUser.Id)
-                .Select(da => da.Subject)
-                .ToListAsync();
-
-            return View(misAsignaturas);
-        }
-
         // GET: Documents/Upload/5
         public async Task<IActionResult> Upload(int id, int taskId)
         {
@@ -52,40 +31,69 @@ namespace SIARAWEB.Controllers
             if (subject == null) return NotFound();
 
             var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == taskId);
-            if (task == null) return NotFound("La tarea/buz髇 no existe.");
+            if (task == null) return NotFound("La tarea/buz贸n no existe.");
 
+            // [SECUENCIAL]
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.Documents.AnyAsync(d =>
+                    d.SubjectId == id &&
+                    d.DocumentTask != null &&
+                    d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    d.DocumentTask.PhaseType == "Seguimiento1");
+
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes entregar las evidencias del 1er Seguimiento antes de subir las del 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.Documents.AnyAsync(d =>
+                    d.SubjectId == id &&
+                    d.DocumentTask != null &&
+                    d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    d.DocumentTask.PhaseType == "Seguimiento2");
+
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes entregar las evidencias del 2do Seguimiento antes de subir el Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
             var documentosRequeridos = new List<string>();
             switch (task.PhaseType)
             {
                 case "Inicial":
                     documentosRequeridos = new List<string> {
-                        "Instrumentaci髇 Did醕tica",
-                        "Instrumentos de Evaluaci髇",
-                        "Pr醕ticas de Laboratorio",
+                        "Instrumentaci贸n Did谩ctica",
+                        "Instrumentos de Evaluaci贸n",
+                        "Pr谩cticas de Laboratorio",
                         "Proyecto Individual",
-                        "Evaluaci髇 Diagn髎tica"
+                        "Evaluaci贸n Diagn贸stica"
                     };
                     break;
                 case "Seguimiento1":
                     documentosRequeridos = new List<string> {
                         "Avance (apart. 6)",
                         "Calif. Parc. (Calificaciones Parciales)",
-                        "Instr. Eval. (Instrumentos de Evaluaci髇)",
-                        "Eval. Diagn. (Evaluaci髇 Diagn髎tica)",
+                        "Instr. Eval. (Instrumentos de Evaluaci贸n)",
+                        "Eval. Diagn. (Evaluaci贸n Diagn贸stica)",
                         "Avance Proy. Ind. (Proyecto Individual)"
                     };
                     break;
                 case "Seguimiento2":
                     documentosRequeridos = new List<string> {
-                        "Avance Program醫ico (apart. 6)",
-                        "Instrumentos de Evaluaci髇",
+                        "Avance Program谩tico (apart. 6)",
+                        "Instrumentos de Evaluaci贸n",
                         "Reporte de Seguimiento Intermedio"
                     };
                     break;
                 case "Final":
                     documentosRequeridos = new List<string> {
                         "Acta de Calificaciones",
-                        "Instrumentos de Evaluaci髇 Finales",
+                        "Instrumentos de Evaluaci贸n Finales",
                         "Cierre de Proyecto / Reporte Final"
                     };
                     break;
@@ -104,20 +112,49 @@ namespace SIARAWEB.Controllers
         {
             if (documentTaskId == 0)
             {
-                TempData["Error"] = "Error cr韙ico: No hay una Fase activa para vincular este documento.";
+                TempData["Error"] = "Error cr铆tico: No hay una Fase activa para vincular este documento.";
                 return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
             var task = await _context.DocumentTasks.FindAsync(documentTaskId);
             if (task == null) return NotFound();
 
+            // [SECUENCIAL POST]
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.Documents.AnyAsync(d =>
+                    d.SubjectId == subjectId &&
+                    d.DocumentTask != null &&
+                    d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    d.DocumentTask.PhaseType == "Seguimiento1");
+
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes entregar las evidencias del 1er Seguimiento antes de subir las del 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.Documents.AnyAsync(d =>
+                    d.SubjectId == subjectId &&
+                    d.DocumentTask != null &&
+                    d.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    d.DocumentTask.PhaseType == "Seguimiento2");
+
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes entregar las evidencias del 2do Seguimiento antes de subir el Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
             // Buscar si ya existe un registro previo de este documento para el mismo corte
             var existingDoc = await _context.Documents.FirstOrDefaultAsync(d =>
                 d.SubjectId == subjectId &&
                 d.DocumentTaskId == documentTaskId &&
                 d.DocumentType.ToLower().Trim() == documentType.ToLower().Trim());
 
-            // ?? Caso 1: Marcado como No Aplica (N/A)
+            // Caso 1: Marcado como No Aplica (N/A)
             if (isNotApplicable)
             {
                 if (existingDoc == null)
@@ -150,10 +187,10 @@ namespace SIARAWEB.Controllers
                 return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
-            // ?? Caso 2: Carga de archivo PDF
+            // Caso 2: Carga de archivo PDF
             if (file == null || file.Length == 0)
             {
-                TempData["Error"] = "Por favor, selecciona un archivo PDF v醠ido.";
+                TempData["Error"] = "Por favor, selecciona un archivo PDF v谩lido.";
                 return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = documentTaskId });
             }
 
@@ -180,7 +217,7 @@ namespace SIARAWEB.Controllers
 
             if (existingDoc == null)
             {
-                // ?? Primera entrega: Eval鷄 puntualidad contra la fecha l韒ite del corte
+                // Primera entrega: Eval煤a puntualidad contra la fecha l铆mite del corte
                 bool entregadoATiempo = fechaActual <= task.DueDate;
 
                 var nuevoDocumento = new Document
@@ -197,12 +234,12 @@ namespace SIARAWEB.Controllers
 
                 _context.Documents.Add(nuevoDocumento);
                 TempData["Success"] = entregadoATiempo
-                    ? $"Archivo '{documentType}' subido a tiempo con 閤ito."
+                    ? $"Archivo '{documentType}' subido a tiempo con 茅xito."
                     : $"Archivo '{documentType}' subido con retraso.";
             }
             else
             {
-                // ?? Re-subida / Correcci髇: Se elimina el archivo PDF f韘ico anterior si exist韆
+                // Re-subida / Correcci贸n: Se elimina el archivo PDF f铆sico anterior si exist铆a
                 if (existingDoc.FilePath != "N/A")
                 {
                     var oldPhysicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", existingDoc.FilePath.TrimStart('/'));
@@ -212,14 +249,14 @@ namespace SIARAWEB.Controllers
                     }
                 }
 
-                // Se actualiza la ruta y la fecha de correcci髇 SIN penalizar UploadedAt ni IsOnTime
+                // Se actualiza la ruta y la fecha de correcci贸n SIN penalizar UploadedAt ni IsOnTime
                 existingDoc.FilePath = dbRelativePath;
                 existingDoc.CorrectionSubmissionDate = fechaActual;
                 existingDoc.ApprovalStatus = "Pendiente";
                 existingDoc.Feedback = null;
-                    _context.Documents.Update(existingDoc);
+                _context.Documents.Update(existingDoc);
 
-                TempData["Success"] = $"Correcci髇 de '{documentType}' enviada para nueva revisi髇.";
+                TempData["Success"] = $"Correcci贸n de '{documentType}' enviada para nueva revisi贸n.";
             }
 
             await _context.SaveChangesAsync();
@@ -239,7 +276,7 @@ namespace SIARAWEB.Controllers
 
             if (doc != null)
             {
-                // 1. Eliminar el archivo f韘ico del servidor (si no es N/A)
+                // 1. Eliminar el archivo f铆sico del servidor (si no es N/A)
                 if (doc.FilePath != "N/A")
                 {
                     var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
@@ -253,7 +290,7 @@ namespace SIARAWEB.Controllers
                 _context.Documents.Remove(doc);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "ARCHIVO ELIMINADO CON 蒟ITO";
+                TempData["Success"] = "ARCHIVO ELIMINADO CON 脡XITO";
             }
 
             return RedirectToAction(nameof(Upload), new { id = subjectId, taskId = doc?.DocumentTaskId ?? 0 });

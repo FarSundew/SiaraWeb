@@ -20,7 +20,6 @@ namespace SIARAWEB.Models
 
         public ICollection<CutoffDate>? CutoffDates { get; set; }
 
-        // ?? ESTA ES LA LÍNEA QUE DEBES TENER:
         public ICollection<DocenteAsignatura>? DocenteAsignaturas { get; set; }
     }
 }

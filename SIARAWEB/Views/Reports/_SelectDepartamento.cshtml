@@ -1,0 +1,54 @@
+@model List<SIARAWEB.Models.Departamento>
+
+<div class="modal fade" id="selectDepartamentoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #112d60 0%, #1d428a 100%);">
+                <h5 class="modal-title fw-bold mb-0">
+                    <i class="bi bi-building-fill me-2 text-warning"></i>Descargar Sábana por Departamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="alert alert-info rounded-3 mb-0">
+                        No hay departamentos registrados.
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group rounded-3 shadow-sm">
+                        @foreach (var depto in Model)
+                        {
+                            string pdfUrl = Url.Action("ExportPdf", "Reports", new { periodoId = ViewBag.PeriodoId, departamentoId = depto.Id }) ?? "#";
+                            string excelUrl = Url.Action("ExportExcel", "Reports", new { periodoId = ViewBag.PeriodoId, departamentoId = depto.Id }) ?? "#";
+
+                            <div class="list-group-item py-3 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <div class="fw-bold text-dark">@depto.Name</div>
+                                    <small class="badge bg-light text-dark border">@depto.Code</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="@pdfUrl"
+                                       onclick="cerrarModalDepartamento()"
+                                       class="btn btn-sm btn-danger rounded-pill fw-bold px-3 shadow-sm">
+                                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                                    </a>
+                                    <a href="@excelUrl"
+                                       onclick="cerrarModalDepartamento()"
+                                       class="btn btn-sm btn-success rounded-pill fw-bold px-3 shadow-sm">
+                                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer bg-light border-0 py-2 px-4">
+                <button type="button" class="btn btn-secondary btn-sm fw-bold rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

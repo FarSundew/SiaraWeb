@@ -20,5 +20,8 @@ namespace SIARAWEB.Models
         public virtual AcademicPeriod? AcademicPeriod { get; set; }
 
         public string Group { get; set; } = "Grupo A";
+
+        [StringLength(20)]
+        public string Turno { get; set; } = "Matutino";
     }
 }

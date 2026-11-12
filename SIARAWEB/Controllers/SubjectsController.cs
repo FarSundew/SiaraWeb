@@ -21,7 +21,7 @@ namespace SIARAWEB.Controllers
         }
 
         // GET: Subjects
-        public async Task<IActionResult> Index(int? periodoId)
+        public async Task<IActionResult> Index(int? periodoId, string? sortOrder)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
@@ -51,11 +51,23 @@ namespace SIARAWEB.Controllers
             ViewBag.PeriodoSeleccionado = activePeriodId;
             ViewBag.ActivePeriodName = periodoActivo?.Name ?? "Sin Periodo Activo";
             ViewBag.EsPeriodoActivo = periodoActivo != null && periodoActivo.Id == activePeriodId && periodoActivo.IsActive;
+            ViewBag.CurrentSort = sortOrder ?? "semestre_asc";
 
             // Cargar la lista unificada de docentes para el modal de asignación rápida
             ViewBag.Docentes = new SelectList(await ObtenerDocentesDisponibles(), "Id", "FullName");
 
-            return View(await query.OrderBy(s => s.Name).ToListAsync());
+            // Ordenamiento dinámico
+            query = (sortOrder ?? "semestre_asc") switch
+            {
+                "semestre_desc" => query.OrderByDescending(s => s.Semestre).ThenBy(s => s.Name),
+                "name_asc"      => query.OrderBy(s => s.Name),
+                "name_desc"     => query.OrderByDescending(s => s.Name),
+                "code_asc"      => query.OrderBy(s => s.Code),
+                "code_desc"     => query.OrderByDescending(s => s.Code),
+                _               => query.OrderBy(s => s.Semestre).ThenBy(s => s.Name)
+            };
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Subjects/Create
@@ -142,7 +154,7 @@ namespace SIARAWEB.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public async Task<IActionResult> AssignTeacher(int subjectId, string semestre, int anio, string docenteId, string group)
+        public async Task<IActionResult> AssignTeacher(int subjectId, int? academicPeriodId, string? semestre, int? anio, string docenteId, string group, string turno)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return RedirectToAction("Login", "Account");
@@ -162,34 +174,61 @@ namespace SIARAWEB.Controllers
                 return RedirectToAction("Details", "Docentes", new { id = docenteId });
             }
 
-            string periodName = $"{semestre} {anio}";
-            var period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.Name == periodName);
-            if (period == null)
+            AcademicPeriod? period = null;
+            if (!string.IsNullOrWhiteSpace(semestre) && anio.HasValue)
             {
-                int startMonth = semestre.Contains("Enero", StringComparison.OrdinalIgnoreCase) ? 1 : 7;
-                int endMonth = semestre.Contains("Enero", StringComparison.OrdinalIgnoreCase) ? 6 : 12;
-                period = new AcademicPeriod
+                string targetPeriodName = $"{semestre.Trim()} {anio.Value}".Trim();
+                period = await _context.AcademicPeriods
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == targetPeriodName.ToLower());
+
+                if (period == null)
                 {
-                    Name = periodName,
-                    StartDate = new DateTime(anio, startMonth, 1),
-                    EndDate = new DateTime(anio, endMonth, DateTime.DaysInMonth(anio, endMonth)),
-                    IsActive = true
-                };
-                _context.AcademicPeriods.Add(period);
-                await _context.SaveChangesAsync();
+                    bool esEneroJunio = targetPeriodName.Contains("Enero", StringComparison.OrdinalIgnoreCase)
+                                     || targetPeriodName.Contains("Primer", StringComparison.OrdinalIgnoreCase);
+                    int y = anio.Value;
+                    period = new AcademicPeriod
+                    {
+                        Name = targetPeriodName,
+                        StartDate = esEneroJunio ? new DateTime(y, 1, 1) : new DateTime(y, 7, 1),
+                        EndDate = esEneroJunio ? new DateTime(y, 6, 30) : new DateTime(y, 12, 31),
+                        IsActive = true
+                    };
+                    _context.AcademicPeriods.Add(period);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if (academicPeriodId.HasValue && academicPeriodId.Value > 0)
+            {
+                period = await _context.AcademicPeriods.FindAsync(academicPeriodId.Value);
             }
 
-            string grupoNormalizado = string.IsNullOrWhiteSpace(group) ? "Grupo A - Matutino" : group.Trim();
+            if (period == null)
+            {
+                period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
+                         ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
+            }
+
+            if (period == null)
+            {
+                TempData["Error"] = "No hay un periodo escolar activo configurado en el sistema.";
+                return RedirectToAction("Details", "Docentes", new { id = docenteId });
+            }
+
+            string periodName = period.Name;
+
+            string grupoNormalizado = string.IsNullOrWhiteSpace(group) ? "Grupo A" : group.Trim();
+            string turnoNormalizado = string.IsNullOrWhiteSpace(turno) ? "Matutino" : turno.Trim();
 
             // Evitar duplicar el mismo grupo/turno en el mismo ciclo para la misma materia
             bool yaExisteGrupo = await _context.DocenteAsignaturas.AnyAsync(da =>
                 da.SubjectId == subjectId &&
                 da.AcademicPeriodId == period.Id &&
-                da.Group == grupoNormalizado);
+                da.Group == grupoNormalizado &&
+                da.Turno == turnoNormalizado);
 
             if (yaExisteGrupo)
             {
-                TempData["Error"] = $"El {grupoNormalizado} ya tiene un docente asignado para {periodName}.";
+                TempData["Error"] = $"El {grupoNormalizado} ({turnoNormalizado}) ya tiene un docente asignado para {periodName}.";
                 return RedirectToAction("Details", "Docentes", new { id = docenteId });
             }
 
@@ -200,6 +239,7 @@ namespace SIARAWEB.Controllers
             {
                 asignacionExistente.AcademicPeriodId = period.Id;
                 asignacionExistente.Group = grupoNormalizado;
+                asignacionExistente.Turno = turnoNormalizado;
                 _context.DocenteAsignaturas.Update(asignacionExistente);
             }
             else
@@ -209,7 +249,8 @@ namespace SIARAWEB.Controllers
                     SubjectId = subjectId,
                     AcademicPeriodId = period.Id,
                     DocenteId = docenteId,
-                    Group = grupoNormalizado
+                    Group = grupoNormalizado,
+                    Turno = turnoNormalizado
                 };
                 _context.DocenteAsignaturas.Add(nuevaAsignacion);
             }
@@ -302,6 +343,7 @@ namespace SIARAWEB.Controllers
             {
                 materiaExistente.Code = subject.Code?.Trim().ToUpper() ?? string.Empty;
                 materiaExistente.Name = subject.Name;
+                materiaExistente.Semestre = subject.Semestre;
                 materiaExistente.DepartamentoId = subject.DepartamentoId;
 
                 await _context.SaveChangesAsync();

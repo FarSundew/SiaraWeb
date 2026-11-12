@@ -14,7 +14,7 @@ namespace SIARAWEB.Data
 
         // --- LLAVES DE PROTECCIÓN DE DATOS (Identity / Cookies / Antiforgery) ---
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
-
+ 
         // --- PERIODOS ESCOLARES Y BUZONES/FECHAS DE CORTE ---
         public DbSet<AcademicPeriod> AcademicPeriods { get; set; }
         public DbSet<CutoffDate> CutoffDates { get; set; }

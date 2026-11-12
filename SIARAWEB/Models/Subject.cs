@@ -13,7 +13,11 @@ namespace SIARAWEB.Models
         [Required]
         public string Name { get; set; } = string.Empty;
 
-        // Relación con Departamento
+        [Range(1, 12, ErrorMessage = "El semestre debe estar entre 1 y 12.")]
+        [Display(Name = "Semestre")]
+        public int Semestre { get; set; } = 1;
+
+        // RelaciÃ³n con Departamento
         public int DepartamentoId { get; set; }
         public Departamento? Departamento { get; set; }
 

@@ -33,20 +33,38 @@ namespace SIARAWEB.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Forbid();
 
-            // 1. Tareas activas
-            var tareas = await _context.DocumentTasks
-                .Include(t => t.AcademicPeriod)
-                .Where(t => t.IsActive)
-                .OrderByDescending(t => t.DueDate)
-                .ToListAsync();
-
-            // 2. Asignaturas de este docente con sus documentos y seguimientos
+            // 1. Obtener asignaturas del docente (y departamentos donde imparte clases)
             var misMaterias = await _context.DocenteAsignaturas
                 .Include(da => da.Subject)
-                    .ThenInclude(s => s!.Documents)
+                    .ThenInclude(s => s!.Departamento)
                 .Include(da => da.Subject)
-                    .ThenInclude(s => s!.AcademicTrackings)
+                    .ThenInclude(s => s!.Documents!)
+                        .ThenInclude(d => d.DocumentTask)
+                .Include(da => da.Subject)
+                    .ThenInclude(s => s!.AcademicTrackings!)
+                        .ThenInclude(t => t.DocumentTask)
                 .Where(da => da.DocenteId == user.Id)
+                .ToListAsync();
+
+            // Identificar los departamentos a los que pertenecen sus asignaturas o su departamento base
+            var deptosDelDocente = misMaterias
+                .Where(da => da.Subject != null)
+                .Select(da => da.Subject!.DepartamentoId)
+                .Distinct()
+                .ToList();
+
+            if (user.DepartamentoId.HasValue && !deptosDelDocente.Contains(user.DepartamentoId.Value))
+            {
+                deptosDelDocente.Add(user.DepartamentoId.Value);
+            }
+
+            // 2. Tareas activas únicamente de los departamentos donde el docente tiene materias o adscripción
+            var tareas = await _context.DocumentTasks
+                .Include(t => t.AcademicPeriod)
+                .Include(t => t.Departamento)
+                .Where(t => t.IsActive && deptosDelDocente.Contains(t.DepartamentoId))
+                .OrderByDescending(t => t.DueDate)
+                .ThenBy(t => t.Departamento != null ? t.Departamento.Name : "")
                 .ToListAsync();
 
             ViewBag.MisMaterias = misMaterias;
@@ -54,7 +72,7 @@ namespace SIARAWEB.Controllers
         }
 
         // =========================================================================
-        // ACCIONES DE GESTI?N Y REVISI?N (Jefes y Administrador)
+        // ACCIONES DE GESTIÓN Y REVISIÓN (Jefes y Administrador)
         // =========================================================================
 
         // GET: DocumentTasks
@@ -92,8 +110,9 @@ namespace SIARAWEB.Controllers
 
         // GET: DocumentTasks/Create
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            ViewBag.AcademicPeriods = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
             return View();
         }
 
@@ -101,35 +120,57 @@ namespace SIARAWEB.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public async Task<IActionResult> Create(string title, string semestre, int anio, string phaseType, DateTime dueDate, string? description)
+        public async Task<IActionResult> Create(string title, int? academicPeriodId, string? semestre, int? anio, string phaseType, DateTime dueDate, string? description)
         {
-            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(semestre) || anio < 2020)
+            if (string.IsNullOrWhiteSpace(title))
             {
-                ModelState.AddModelError("", "Todos los campos obligatorios deben ser completados.");
+                ModelState.AddModelError("", "El título de la entrega es obligatorio.");
+                ViewBag.AcademicPeriods = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
                 return View();
             }
 
             var user = await _userManager.GetUserAsync(User);
             var departamentoId = user?.DepartamentoId ?? 1;
 
-            string periodName = $"{semestre.Trim()} {anio}".Trim();
-            var period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.Name == periodName);
+            AcademicPeriod? period = null;
+            if (!string.IsNullOrWhiteSpace(semestre) && anio.HasValue)
+            {
+                string periodName = $"{semestre.Trim()} {anio.Value}".Trim();
+                period = await _context.AcademicPeriods
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == periodName.ToLower());
+
+                if (period == null)
+                {
+                    bool esEneroJunio = periodName.Contains("Enero", StringComparison.OrdinalIgnoreCase)
+                                     || periodName.Contains("Primer", StringComparison.OrdinalIgnoreCase);
+                    int y = anio.Value;
+                    period = new AcademicPeriod
+                    {
+                        Name = periodName,
+                        StartDate = esEneroJunio ? new DateTime(y, 1, 1) : new DateTime(y, 7, 1),
+                        EndDate = esEneroJunio ? new DateTime(y, 6, 30) : new DateTime(y, 12, 31),
+                        IsActive = true
+                    };
+                    _context.AcademicPeriods.Add(period);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if (academicPeriodId.HasValue && academicPeriodId.Value > 0)
+            {
+                period = await _context.AcademicPeriods.FindAsync(academicPeriodId.Value);
+            }
 
             if (period == null)
             {
-                period = new AcademicPeriod
-                {
-                    Name = periodName,
-                    StartDate = semestre.Contains("Julio", StringComparison.OrdinalIgnoreCase)
-                        ? new DateTime(anio, 7, 1)
-                        : new DateTime(anio, 1, 1),
-                    EndDate = semestre.Contains("Julio", StringComparison.OrdinalIgnoreCase)
-                        ? new DateTime(anio, 12, 31)
-                        : new DateTime(anio, 6, 30),
-                    IsActive = true
-                };
-                _context.AcademicPeriods.Add(period);
-                await _context.SaveChangesAsync();
+                period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
+                         ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
+            }
+
+            if (period == null)
+            {
+                ModelState.AddModelError("", "Debes seleccionar un Periodo Escolar válido.");
+                ViewBag.AcademicPeriods = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
+                return View();
             }
 
             var nuevaTarea = new DocumentTask
@@ -147,7 +188,7 @@ namespace SIARAWEB.Controllers
             _context.DocumentTasks.Add(nuevaTarea);
             await _context.SaveChangesAsync();
 
-            // NOTIFICACIONES
+            // NOTIFICACIONES (Importantes: Nueva entrega pendiente)
             var docentesAfectados = await _context.DocenteAsignaturas
                 .Include(da => da.Subject)
                 .Where(da => da.AcademicPeriodId == period.Id && da.Subject != null && da.Subject.DepartamentoId == departamentoId)
@@ -160,7 +201,7 @@ namespace SIARAWEB.Controllers
                 var notif = new Notification
                 {
                     UserId = docId,
-                    Message = "Nueva Tarea: " + nuevaTarea.Title + " - Vence: " + nuevaTarea.DueDate.ToString("dd/MMM/yyyy"),
+                    Message = "Nueva Tarea: " + nuevaTarea.Title + " - Vence: " + nuevaTarea.DueDate.ToString("dd/MMM/yyyy HH:mm"),
                     ActionUrl = "/DocumentTasks/DocenteTasks",
                     CreatedAt = DateTime.Now,
                     IsRead = false,
@@ -170,7 +211,7 @@ namespace SIARAWEB.Controllers
             }
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Tarea/Buz�n de entrega publicado exitosamente.";
+            TempData["Success"] = "Tarea/Buzón de entrega publicado exitosamente.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -184,6 +225,7 @@ namespace SIARAWEB.Controllers
 
             if (task == null) return NotFound();
 
+            ViewBag.AcademicPeriods = await _context.AcademicPeriods.OrderByDescending(p => p.Id).ToListAsync();
             return View(task);
         }
 
@@ -191,41 +233,52 @@ namespace SIARAWEB.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "JefeCarrera,Administrador")]
-        public async Task<IActionResult> Edit(int id, string title, string semestre, int anio, string phaseType, DateTime dueDate, string? description)
+        public async Task<IActionResult> Edit(int id, string title, int? academicPeriodId, string? semestre, int? anio, string phaseType, DateTime dueDate, string? description)
         {
             var task = await _context.DocumentTasks.FindAsync(id);
             if (task == null) return NotFound();
 
-            string periodName = $"{semestre.Trim()} {anio}".Trim();
-            var period = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.Name == periodName);
-
-            if (period == null)
+            AcademicPeriod? period = null;
+            if (!string.IsNullOrWhiteSpace(semestre) && anio.HasValue)
             {
-                period = new AcademicPeriod
+                string periodName = $"{semestre.Trim()} {anio.Value}".Trim();
+                period = await _context.AcademicPeriods
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == periodName.ToLower());
+
+                if (period == null)
                 {
-                    Name = periodName,
-                    StartDate = semestre.Contains("Julio", StringComparison.OrdinalIgnoreCase)
-                        ? new DateTime(anio, 7, 1)
-                        : new DateTime(anio, 1, 1),
-                    EndDate = semestre.Contains("Julio", StringComparison.OrdinalIgnoreCase)
-                        ? new DateTime(anio, 12, 31)
-                        : new DateTime(anio, 6, 30),
-                    IsActive = true
-                };
-                _context.AcademicPeriods.Add(period);
-                await _context.SaveChangesAsync();
+                    bool esEneroJunio = periodName.Contains("Enero", StringComparison.OrdinalIgnoreCase)
+                                     || periodName.Contains("Primer", StringComparison.OrdinalIgnoreCase);
+                    int y = anio.Value;
+                    period = new AcademicPeriod
+                    {
+                        Name = periodName,
+                        StartDate = esEneroJunio ? new DateTime(y, 1, 1) : new DateTime(y, 7, 1),
+                        EndDate = esEneroJunio ? new DateTime(y, 6, 30) : new DateTime(y, 12, 31),
+                        IsActive = true
+                    };
+                    _context.AcademicPeriods.Add(period);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if (academicPeriodId.HasValue && academicPeriodId.Value > 0)
+            {
+                period = await _context.AcademicPeriods.FindAsync(academicPeriodId.Value);
             }
 
             task.Title = title.Trim();
             task.Description = description;
             task.PhaseType = phaseType;
             task.DueDate = dueDate;
-            task.AcademicPeriodId = period.Id;
+            if (period != null)
+            {
+                task.AcademicPeriodId = period.Id;
+            }
 
             _context.DocumentTasks.Update(task);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Tarea/Buz?n actualizado correctamente.";
+            TempData["Success"] = "Fecha y configuración del buzón actualizadas correctamente (Prórroga/Edición aplicada).";
             return RedirectToAction(nameof(Index));
         }
 
@@ -301,7 +354,7 @@ namespace SIARAWEB.Controllers
                 
                 // NOTIFICACION AL DOCENTE
                 var docAsig = await _context.DocenteAsignaturas
-                    .FirstOrDefaultAsync(da => da.SubjectId == document.SubjectId && da.AcademicPeriodId == document.DocumentTask.AcademicPeriodId);
+                    .FirstOrDefaultAsync(da => da.SubjectId == document.SubjectId && document.DocumentTask != null && da.AcademicPeriodId == document.DocumentTask.AcademicPeriodId);
                     
                 if (docAsig != null)
                 {
@@ -342,7 +395,7 @@ namespace SIARAWEB.Controllers
             
             // NOTIFICACION AL DOCENTE
             var docAsig = await _context.DocenteAsignaturas
-                .FirstOrDefaultAsync(da => da.SubjectId == tracking.SubjectId && da.AcademicPeriodId == tracking.DocumentTask.AcademicPeriodId);
+                .FirstOrDefaultAsync(da => da.SubjectId == tracking.SubjectId && tracking.DocumentTask != null && da.AcademicPeriodId == tracking.DocumentTask.AcademicPeriodId);
                 
             if (docAsig != null)
             {
@@ -360,13 +413,18 @@ namespace SIARAWEB.Controllers
 
             await _context.SaveChangesAsync();
 
+            bool tieneAccionCorrectiva = tracking.FailurePercentage >= 40 && !string.IsNullOrWhiteSpace(tracking.Observations);
             if (status == "Aprobado")
             {
-                TempData["Success"] = "Seguimiento aprobado exitosamente.";
+                TempData["Success"] = tieneAccionCorrectiva
+                    ? $"Seguimiento y Estrategia Remedial (Reprobación {tracking.FailurePercentage:F1}%) validados y aprobados exitosamente."
+                    : "Seguimiento aprobado exitosamente.";
             }
             else
             {
-                TempData["Success"] = "Seguimiento rechazado exitosamente.";
+                TempData["Success"] = tieneAccionCorrectiva
+                    ? $"Seguimiento y Acción Correctiva rechazados. Se notificó al docente para reestructurar su estrategia remedial."
+                    : "Seguimiento rechazado exitosamente.";
             }
 
             return RedirectToAction(nameof(Review), new { id = taskId });
@@ -394,8 +452,8 @@ namespace SIARAWEB.Controllers
                 .Where(t => t.SubjectId == id && t.DocumentTaskId != null)
                 .ToListAsync();
                 
-            var taskIds = documents.Select(d => d.DocumentTaskId.Value)
-                .Union(trackings.Select(t => t.DocumentTaskId.Value))
+            var taskIds = documents.Select(d => d.DocumentTaskId!.Value)
+                .Union(trackings.Select(t => t.DocumentTaskId!.Value))
                 .Distinct()
                 .ToList();
                 

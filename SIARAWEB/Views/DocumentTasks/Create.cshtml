@@ -1,7 +1,7 @@
 @model SIARAWEB.Models.DocumentTask
-
 @{
     ViewData["Title"] = "Publicar Nueva Tarea";
+    var periodOptions = SIARAWEB.Models.PeriodConfig.Load().GetOpciones();
 }
 
 <div class="container py-4" style="max-width: 750px;">
@@ -20,10 +20,12 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold text-muted small">SEMESTRE</label>
+                        <label class="form-label fw-bold text-muted small">SEMESTRE / PERIODO</label>
                         <select name="semestre" id="selectSemestre" class="form-select" required>
-                            <option value="Enero - Junio">Enero - Junio</option>
-                            <option value="Julio - Diciembre">Julio - Diciembre</option>
+                            @foreach (var opt in periodOptions)
+                            {
+                                <option value="@opt" selected="@(opt.Contains("Julio") || opt.Contains("Agosto") || opt.Contains("Segundo"))">@opt</option>
+                            }
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -38,7 +40,7 @@
 
                 <div class="alert alert-light border d-flex align-items-center mb-3 py-2">
                     <i class="bi bi-info-circle-fill text-primary me-2"></i>
-                    <div>Periodo Escolar Resultante: <strong id="lblPeriodo" class="text-primary">Enero - Junio 2026</strong></div>
+                    <div>Periodo Escolar Resultante: <strong id="lblPeriodo" class="text-primary"></strong></div>
                 </div>
 
                 <div class="row g-3 mb-3">
@@ -52,7 +54,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold text-muted small">FECHA Y HORA LÍMITE (DUEDATE)</label>
+                        <label class="form-label fw-bold text-muted small">FECHA Y HORA LÍMITE (PRÓRROGA / DUE DATE)</label>
                         <input type="datetime-local" name="dueDate" class="form-control" required />
                     </div>
                 </div>
@@ -81,4 +83,5 @@
     }
     selSemestre.addEventListener('change', refrescarEtiqueta);
     selAnio.addEventListener('change', refrescarEtiqueta);
+    refrescarEtiqueta();
 </script>

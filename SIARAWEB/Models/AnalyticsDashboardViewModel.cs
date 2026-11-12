@@ -19,6 +19,7 @@ namespace SIARAWEB.Models
         public int DocentesEvaluados { get; set; }
         public decimal PromedioAprobacion { get; set; }
         public decimal PromedioReprobacion { get; set; }
+        public decimal PromedioDesercion { get; set; }
         public int AlertasRiesgo { get; set; }
 
         // Datos para Semáforo
@@ -53,6 +54,7 @@ namespace SIARAWEB.Models
         public int TotalTrackings { get; set; }
         public decimal AvgApprovalPercentage { get; set; }
         public decimal AvgFailurePercentage { get; set; }
+        public decimal AvgDropoutPercentage { get; set; }
         public int HighRiskCount { get; set; }
         public bool IsHighRisk => AvgFailurePercentage >= 40.0m || HighRiskCount > 0;
     }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -24,24 +24,6 @@ namespace SIARAWEB.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return RedirectToAction("Login", "Account");
-
-            var periodoActivo = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive);
-            if (periodoActivo == null) return View(new List<Subject>());
-
-            var misAsignaturas = await _context.DocenteAsignaturas
-                .Include(da => da.Subject)
-                    .ThenInclude(s => s!.AcademicTrackings)
-                .Where(da => da.DocenteId == currentUser.Id && da.AcademicPeriodId == periodoActivo.Id)
-                .Select(da => da.Subject!)
-                .ToListAsync();
-
-            return View(misAsignaturas);
-        }
-
         public async Task<IActionResult> Capture(int id, int taskId)
         {
             var subject = await _context.Subjects
@@ -55,19 +37,87 @@ namespace SIARAWEB.Controllers
             var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null) return NotFound("Tarea no encontrada.");
 
+            // 🔒 REGLA DE NEGOCIO: Entrega secuencial de seguimientos
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == id &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento1");
+
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar y entregar las calificaciones del 1er Seguimiento antes de registrar el 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == id &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento2");
+
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar y entregar las calificaciones del 2do Seguimiento antes de registrar el Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+
             bool esSoloLectura = task.DueDate < DateTime.Now || !task.IsActive;
 
             ViewBag.Subject = subject;
             ViewBag.Task = task;
             ViewBag.EsSoloLectura = esSoloLectura;
 
-            int nextUnit = 1; if (subject.AcademicTrackings != null && subject.AcademicTrackings.Any()) { nextUnit = subject.AcademicTrackings.Max(t => t.UnitNumber) + 1; } return View(new AcademicTracking { SubjectId = id, DocumentTaskId = task.Id, UnitNumber = nextUnit });
+            int nextUnit = 1;
+            if (subject.AcademicTrackings != null && subject.AcademicTrackings.Any(at => at.DocumentTaskId == taskId))
+            {
+                nextUnit = subject.AcademicTrackings.Where(at => at.DocumentTaskId == taskId).Max(t => t.UnitNumber) + 1;
+            }
+            return View(new AcademicTracking { SubjectId = id, DocumentTaskId = task.Id, UnitNumber = nextUnit });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Capture(AcademicTracking tracking)
         {
+            var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == tracking.DocumentTaskId);
+            if (task == null) return NotFound();
+
+            // 🔒 REGLA DE NEGOCIO: Entrega secuencial de seguimientos
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == tracking.SubjectId &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento1");
+
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar el 1er Seguimiento antes del 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == tracking.SubjectId &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento2");
+
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar el 2do Seguimiento antes del Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+
             tracking.Id = 0;
 
             if (tracking.TotalStudents > 0)
@@ -98,8 +148,6 @@ namespace SIARAWEB.Controllers
                 .Include(s => s.AcademicTrackings!)
                     .ThenInclude(at => at.DocumentTask)
                 .FirstOrDefaultAsync(s => s.Id == tracking.SubjectId);
-
-            var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == tracking.DocumentTaskId);
 
             ViewBag.Subject = subject;
             ViewBag.Task = task;

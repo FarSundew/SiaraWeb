@@ -1,173 +1,150 @@
-﻿@model IEnumerable<SIARAWEB.Models.Subject>
+@model IEnumerable<SIARAWEB.Models.Subject>
 
 @{
     ViewData["Title"] = "Catálogo de Asignaturas";
 }
 
-<style>
-    .modal-academic-container {
-        position: relative;
-        width: 100%;
-        max-width: 1000px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        border: 1px solid #dcdcdc;
-        overflow: visible;
-        margin: 20px auto; /* Centers it nicely in the layout */
-    }
-
-    .modal-academic-header {
-        background-color: #0c2340;
-        color: #ffffff;
-        text-align: center;
-        font-weight: 900;
-        padding: 14px 20px;
-        font-size: 1.15rem;
-        letter-spacing: 2px;
-        border-radius: 11px 11px 0 0;
-        text-transform: uppercase;
-    }
-
-    .academic-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 0;
-    }
-
-    .academic-table thead th {
-        background-color: #0c2340;
-        color: #ffffff;
-        font-size: 12px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        text-align: center;
-        vertical-align: middle;
-        padding: 12px 8px;
-        border: 1px solid #ffffff;
-    }
-
-    .academic-table tbody td {
-        border: 1px solid #000000;
-        padding: 12px 10px;
-        font-size: 13px;
-        font-weight: 800;
-        color: #000000;
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    .academic-table tbody tr:hover {
-        background-color: #f9fbfd;
-    }
-
-    .btn-pill-action {
-        background: linear-gradient(180deg, #5b7f95 0%, #3e5f73 100%);
-        color: #ffffff !important;
-        font-weight: 800;
-        font-size: 12px;
-        padding: 7px 28px;
-        border-radius: 18px;
-        text-transform: uppercase;
-        border: 1px solid #2d4555;
-        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.25);
-        letter-spacing: 1px;
-        text-decoration: none;
-        display: inline-block;
-        transition: transform 0.1s ease, filter 0.2s ease;
-    }
-
-    .btn-pill-action:hover {
-        filter: brightness(1.1);
-        transform: translateY(-1px);
-    }
-
-    .icon-action-btn {
-        color: #000000;
-        font-size: 18px;
-        text-decoration: none;
-        margin: 0 6px;
-        display: inline-block;
-        transition: color 0.15s ease;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-    }
-
-    .icon-action-btn:hover {
-        color: #0c2340;
-    }
-</style>
-
-<div class="modal-academic-container">
-    <div class="modal-academic-header">
-        ASIGNATURAS
+<div class="container-fluid mt-4">
+    <!-- Encabezado con estética institucional -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-book-fill me-2"></i> CATÁLOGO DE ASIGNATURAS
+            </h3>
+            <p class="text-muted fw-bold mb-0">
+                Consulta y administra el catálogo oficial de materias correspondientes a la carrera.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Create" class="btn text-white fw-bold px-4 py-2 shadow-sm" style="background-color: #112d60; border-radius: 8px;">
+                <i class="bi bi-plus-circle me-1" style="color: #f4a915;"></i> Nueva Asignatura
+            </a>
+        </div>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success m-3 mb-0 py-2 text-center fw-bold border-0 shadow-sm">
-            @TempData["Success"]
+        <div class="alert alert-success alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <div class="p-4 pb-2 table-responsive">
-        <table class="academic-table">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">CLAVE</th>
-                    <th style="width: 33%;">NOMBRE &#128269;</th>
-                    <th style="width: 15%;">HORAS</th>
-                    <th style="width: 11%;">TEMAS</th>
-                    <th style="width: 16%;">DEPARTAMENTO</th>
-                    <th style="width: 10%;">ACCIONES</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tarjeta con Tabla Limpia -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: #112d60; color: white;">
+            <div class="d-flex align-items-center gap-3">
+                <h5 class="mb-0 fw-bold" style="font-size: 15px; text-transform: uppercase;">
+                    <i class="bi bi-journal-text me-2"></i> Asignaturas Registradas
+                </h5>
+                <span class="badge bg-light text-dark fw-bold px-3 py-1">
+                    @Model.Count() Materia(s)
+                </span>
+            </div>
+
+            <!-- Selector de Ordenamiento -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-white-50 small fw-bold mb-0"><i class="bi bi-sort-down me-1"></i> Ordenar por:</label>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle fw-bold text-dark px-3" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 6px;">
+                        @{
+                            string currentSort = ViewBag.CurrentSort as string ?? "semestre_asc";
+                            string sortLabel = currentSort switch
+                            {
+                                "semestre_desc" => "Semestre (Descendente)",
+                                "name_asc"      => "Nombre (A - Z)",
+                                "name_desc"     => "Nombre (Z - A)",
+                                "code_asc"      => "Clave (A - Z)",
+                                "code_desc"     => "Clave (Z - A)",
+                                _               => "Semestre (1° al 9°)"
+                            };
+                        }
+                        @sortLabel
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item @(currentSort == "semestre_asc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="semestre_asc"><i class="bi bi-sort-numeric-down me-2"></i>Semestre (1° al 9°)</a></li>
+                        <li><a class="dropdown-item @(currentSort == "semestre_desc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="semestre_desc"><i class="bi bi-sort-numeric-up-alt me-2"></i>Semestre (Descendente)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item @(currentSort == "name_asc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="name_asc"><i class="bi bi-sort-alpha-down me-2"></i>Nombre (A - Z)</a></li>
+                        <li><a class="dropdown-item @(currentSort == "name_desc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="name_desc"><i class="bi bi-sort-alpha-up-alt me-2"></i>Nombre (Z - A)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item @(currentSort == "code_asc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="code_asc"><i class="bi bi-upc-scan me-2"></i>Clave (A - Z)</a></li>
+                        <li><a class="dropdown-item @(currentSort == "code_desc" ? "active fw-bold" : "")" asp-action="Index" asp-route-sortOrder="code_desc"><i class="bi bi-upc-scan me-2"></i>Clave (Z - A)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 14px;">
+                <thead class="bg-light text-muted fw-bold">
                     <tr>
-                        <td colspan="6" class="py-4 text-muted fw-bold">
-                            No hay asignaturas registradas.
-                        </td>
+                        <th class="ps-4" style="width: 12%;">SEMESTRE</th>
+                        <th style="width: 14%;">CLAVE</th>
+                        <th style="width: 44%;">NOMBRE DE LA ASIGNATURA</th>
+                        <th style="width: 18%;">DEPARTAMENTO / CARRERA</th>
+                        <th class="text-center" style="width: 12%;">ACCIONES</th>
                     </tr>
-                }
-                else
-                {
-                    @foreach (var item in Model)
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
                     {
                         <tr>
-                            <td>@item.Code</td>
-                            <td style="text-align: left; padding-left: 15px; text-transform: uppercase;">@item.Name</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td style="text-transform: uppercase;">@(item.Departamento?.Name ?? "-")</td>
-                            <td>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="icon-action-btn" title="Editar">&#9998;</a>
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta asignatura?');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="icon-action-btn text-danger" title="Eliminar">&#128465;</button>
-                                    </form>
-                                </div>
+                            <td colspan="5" class="py-5 text-center text-muted fw-bold">
+                                <i class="bi bi-folder-x fs-1 d-block mb-2 text-muted"></i>
+                                No hay asignaturas registradas en este departamento.
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center p-4 pt-2">
-        <a asp-controller="Home" asp-action="Index" class="btn-pill-action">
-            SALIR
-        </a>
-        <div class="d-flex gap-3">
-            <a asp-action="Create" class="btn-pill-action">
-                AGREGAR
-            </a>
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge fw-bold px-2 py-1" style="background-color: #eef2ff; color: #112d60; border: 1px solid #c7d2fe; border-radius: 6px;">
+                                        <i class="bi bi-mortarboard me-1"></i> @item.Semestre° Semestre
+                                    </span>
+                                </td>
+                                <td class="fw-bold">
+                                    <span class="badge bg-secondary bg-opacity-15 text-dark border px-2 py-1">
+                                        @item.Code
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">@item.Name</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1">
+                                        @(item.Departamento?.Name ?? "General")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary py-1 px-2 fw-bold" title="Editar Asignatura" style="border-radius: 6px;">
+                                            <i class="bi bi-pencil-square me-1"></i> Editar
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline m-0" onsubmit="return confirm('¿Estás seguro de eliminar esta asignatura? Se borrarán también las asignaciones asociadas.');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 fw-bold" title="Eliminar Asignatura" style="border-radius: 6px;">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

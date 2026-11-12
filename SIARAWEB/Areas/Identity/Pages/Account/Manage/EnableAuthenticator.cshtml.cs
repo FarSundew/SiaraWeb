@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using QRCoder;
 using SIARAWEB.Models;
-using System.Text.Encodings.Web;
 using Microsoft.Extensions.Logging;
 
 namespace SIARAWEB.Areas.Identity.Pages.Account.Manage

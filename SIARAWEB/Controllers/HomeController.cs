@@ -24,7 +24,7 @@ namespace SIARAWEB.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
 
-            // 1. Periodo Acad?mico Activo
+            // 1. Periodo Académico Activo
             var activePeriod = await _context.AcademicPeriods.FirstOrDefaultAsync(p => p.IsActive)
                                ?? await _context.AcademicPeriods.OrderByDescending(p => p.Id).FirstOrDefaultAsync();
 
@@ -32,7 +32,7 @@ namespace SIARAWEB.Controllers
             ViewBag.ActivePeriodName = activePeriod?.Name ?? "Sin Periodo Activo";
             ViewBag.UserFullName = string.IsNullOrEmpty(currentUser.FullName) ? currentUser.UserName : currentUser.FullName;
 
-            // 2. M?tricas para Docente (o Jefe de Carrera que imparte c?tedra)
+            // 2. Métricas para Docente (o Jefe de Carrera que imparte cátedra)
             if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
             {
                 var mySubjects = await _context.DocenteAsignaturas
@@ -58,7 +58,7 @@ namespace SIARAWEB.Controllers
                     : 0;
             }
 
-            // 3. Indicadores de Direcci?n Acad?mica (Jefe de Carrera vs. Jefe General)
+            // 3. Indicadores de Dirección Académica (Jefe de Carrera vs. Jefe General)
             if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
             {
                 bool esJefeCarrera = User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador");
@@ -90,7 +90,7 @@ namespace SIARAWEB.Controllers
                     // Carreras a su cargo
                     ViewBag.TotalDepartamentos = 1;
 
-                    // Acreditaci?n promedio de su carrera en el periodo activo
+                    // Acreditación promedio de su carrera en el periodo activo
                     var trackingsCarrera = await _context.AcademicTrackings
                         .Include(t => t.Subject)
                         .Where(t => t.Subject != null &&
@@ -101,10 +101,16 @@ namespace SIARAWEB.Controllers
                     ViewBag.GlobalApproval = trackingsCarrera.Any()
                         ? Math.Round(trackingsCarrera.Average(t => t.ApprovalPercentage), 1)
                         : 0;
+                    ViewBag.GlobalFailure = trackingsCarrera.Any()
+                        ? Math.Round(trackingsCarrera.Average(t => t.FailurePercentage), 1)
+                        : 0;
+                    ViewBag.GlobalDropout = trackingsCarrera.Any()
+                        ? Math.Round(trackingsCarrera.Average(t => t.DropoutPercentage), 1)
+                        : 0;
                 }
                 else
                 {
-                    // ?? CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
+                    // 🏢 CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
                     ViewBag.NombreCarrera = "Todas las Carreras";
                     ViewBag.TotalDocentes = (await _userManager.GetUsersInRoleAsync("Docente")).Count;
                     ViewBag.TotalAsignaturas = await _context.Subjects
@@ -120,10 +126,16 @@ namespace SIARAWEB.Controllers
                     ViewBag.GlobalApproval = totalTrackings.Any()
                         ? Math.Round(totalTrackings.Average(t => t.ApprovalPercentage), 1)
                         : 0;
+                    ViewBag.GlobalFailure = totalTrackings.Any()
+                        ? Math.Round(totalTrackings.Average(t => t.FailurePercentage), 1)
+                        : 0;
+                    ViewBag.GlobalDropout = totalTrackings.Any()
+                        ? Math.Round(totalTrackings.Average(t => t.DropoutPercentage), 1)
+                        : 0;
                 }
             }
 
-            // 4. M?tricas para Administrador (TI)
+            // 4. Métricas para Administrador (TI)
             if (User.IsInRole("Administrador"))
             {
                 ViewBag.TotalUsers = await _context.Users.CountAsync();

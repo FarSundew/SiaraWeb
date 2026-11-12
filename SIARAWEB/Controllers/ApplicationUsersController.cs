@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -76,6 +76,24 @@ namespace SIARAWEB.Controllers
                     if (!string.IsNullOrEmpty(role))
                     {
                         await _userManager.AddToRoleAsync(user, role);
+
+                        // Si se registra como Jefe de Carrera, también darle rol base Docente y vincularlo como titular del departamento
+                        if (role == "JefeCarrera")
+                        {
+                            if (!await _userManager.IsInRoleAsync(user, "Docente"))
+                            {
+                                await _userManager.AddToRoleAsync(user, "Docente");
+                            }
+                            if (user.DepartamentoId.HasValue)
+                            {
+                                var depto = await _context.Departamentos.FindAsync(user.DepartamentoId.Value);
+                                if (depto != null && string.IsNullOrEmpty(depto.HeadOfDepartmentId))
+                                {
+                                    depto.HeadOfDepartmentId = user.Id;
+                                    await _context.SaveChangesAsync();
+                                }
+                            }
+                        }
                     }
 
                     TempData["Success"] = $"Usuario {user.FullName} registrado con éxito.";
@@ -145,6 +163,23 @@ namespace SIARAWEB.Controllers
                     if (!string.IsNullOrEmpty(role))
                     {
                         await _userManager.AddToRoleAsync(user, role);
+
+                        if (role == "JefeCarrera")
+                        {
+                            if (!await _userManager.IsInRoleAsync(user, "Docente"))
+                            {
+                                await _userManager.AddToRoleAsync(user, "Docente");
+                            }
+                            if (user.DepartamentoId.HasValue)
+                            {
+                                var depto = await _context.Departamentos.FindAsync(user.DepartamentoId.Value);
+                                if (depto != null)
+                                {
+                                    depto.HeadOfDepartmentId = user.Id;
+                                    await _context.SaveChangesAsync();
+                                }
+                            }
+                        }
                     }
 
                     TempData["Success"] = $"Los datos de {user.FullName} han sido actualizados.";

@@ -1,11 +1,17 @@
-﻿<div class="sidebar-sticky" style="padding-top: 30px;">
-    <h6 class="text-center mb-4" style="color: #ffffff; font-weight: 900; letter-spacing: 1.5px;">MENÃš PRINCIPAL</h6>
+@{
+    string currentController = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+    string currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
+    string currentTab = Context.Request.Query["tab"].ToString().ToLower();
+}
+
+<div class="sidebar-sticky" style="padding-top: 30px;">
+    <h6 class="text-center mb-4" style="color: #ffffff; font-weight: 900; letter-spacing: 1.5px;">MENÚ PRINCIPAL</h6>
     <hr style="border-top: 2px solid #ffffff; margin: 0 20px 20px 20px; opacity: 0.3;" />
 
     <ul class="nav flex-column" style="gap: 8px; padding: 0 15px;">
 
         <li class="nav-item">
-            <a class="nav-link fw-bold siara-nav-link" asp-controller="Home" asp-action="Index">
+            <a class="nav-link fw-bold siara-nav-link @(currentController == "Home" ? "active-nav" : "")" asp-controller="Home" asp-action="Index">
                 <i class="bi bi-house-door-fill me-2"></i> INICIO
             </a>
         </li>
@@ -14,32 +20,32 @@
         @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="DocenteTasks">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "DocumentTasks" && currentAction == "DocenteTasks" ? "active-nav" : "")" asp-controller="DocumentTasks" asp-action="DocenteTasks">
                     <i class="bi bi-clipboard-check-fill me-2"></i> MIS TAREAS / ENTREGAS
                 </a>
             </li>
         }
 
-                <!-- JEFE DE CARRERA -->
+        <!-- JEFE DE CARRERA -->
         @if (User.IsInRole("JefeCarrera"))
         {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Subjects" asp-action="Index">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Subjects" ? "active-nav" : "")" asp-controller="Subjects" asp-action="Index">
                     <i class="bi bi-book-fill me-2"></i> ASIGNATURAS
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Docentes" asp-action="Index">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Docentes" ? "active-nav" : "")" asp-controller="Docentes" asp-action="Index">
                     <i class="bi bi-people-fill me-2"></i> PLANTILLA DOCENTE
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="Index">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Reports" ? "active-nav" : "")" asp-controller="Reports" asp-action="Index">
                     <i class="bi bi-bar-chart-fill me-2"></i> PANEL ANALÍTICO
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="DocumentTasks" asp-action="Index">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "DocumentTasks" && currentAction != "DocenteTasks" ? "active-nav" : "")" asp-controller="DocumentTasks" asp-action="Index">
                     <i class="bi bi-mailbox2 me-2"></i> BUZONES INSTITUCIONALES
                 </a>
             </li>
@@ -49,8 +55,21 @@
         @if (User.IsInRole("JefeGeneral") && !User.IsInRole("JefeCarrera") && !User.IsInRole("Administrador"))
         {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Reports" asp-action="Index">
-                    <i class="bi bi-bar-chart-fill me-2"></i> PANEL ANALÍTICO
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Reports" && (string.IsNullOrEmpty(currentTab) || currentTab == "kpi") ? "active-nav" : "")"
+                   href="@Url.Action("Index", "Reports", new { tab = "kpi" })">
+                    <i class="bi bi-speedometer2 me-2"></i> RESUMEN GLOBAL (KPIs)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Reports" && currentTab == "semaforo" ? "active-nav" : "")"
+                   href="@Url.Action("Index", "Reports", new { tab = "semaforo" })">
+                    <i class="bi bi-traffic-light me-2"></i> SEMÁFORO DOCENTE
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Reports" && currentTab == "sabana" ? "active-nav" : "")"
+                   href="@Url.Action("Index", "Reports", new { tab = "sabana" })">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i> SÁBANA ANALÍTICA
                 </a>
             </li>
         }
@@ -59,18 +78,23 @@
         @if (User.IsInRole("Administrador"))
         {
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="ApplicationUsers" asp-action="Index">
-                    <i class="bi bi-person-badge-fill me-2"></i> GESTIÃ“N DE USUARIOS
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "ApplicationUsers" ? "active-nav" : "")" asp-controller="ApplicationUsers" asp-action="Index">
+                    <i class="bi bi-person-badge-fill me-2"></i> GESTIÓN DE USUARIOS
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Departamentos" asp-action="Index">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Departamentos" ? "active-nav" : "")" asp-controller="Departamentos" asp-action="Index">
                     <i class="bi bi-building me-2"></i> DEPARTAMENTOS Y CARRERAS
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link fw-bold siara-nav-link" asp-controller="Backup" asp-action="Index">
-                    <i class="bi bi-database-fill-gear me-2"></i> RESPALDO BD
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "AcademicPeriods" ? "active-nav" : "")" asp-controller="AcademicPeriods" asp-action="Index">
+                    <i class="bi bi-calendar-range-fill me-2"></i> PERIODOS ESCOLARES
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold siara-nav-link @(currentController == "Reports" ? "active-nav" : "")" asp-controller="Reports" asp-action="Index">
+                    <i class="bi bi-bar-chart-fill me-2"></i> PANEL ANALÍTICO
                 </a>
             </li>
         }
@@ -84,13 +108,13 @@
         font-size: 14px;
         padding: 12px 20px;
         border-radius: 8px;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
     }
 
-        .siara-nav-link:hover {
-            background-color: #f4a915 !important;
-            color: #112d60 !important;
-        }
+    .siara-nav-link:hover,
+    .siara-nav-link.active-nav {
+        background-color: #f4a915 !important;
+        color: #112d60 !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
 </style>
-
-

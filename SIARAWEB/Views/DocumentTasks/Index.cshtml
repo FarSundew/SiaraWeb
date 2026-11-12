@@ -9,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
-                <i class="bi bi-clipboard-check me-2"></i> GESTI”N DE TAREAS Y BUZONES
+                <i class="bi bi-clipboard-check me-2"></i> GESTI√ìN DE TAREAS Y BUZONES
             </h3>
             <p class="text-muted fw-bold mb-0">
                 Supervisa y programa las entregas documentales y de calificaciones del semestre.
@@ -28,6 +28,13 @@
     {
         <div class="alert alert-success alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -60,11 +67,11 @@
                     <table class="table table-hover align-middle mb-0 text-center" style="font-size: 14px;">
                         <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
                             <tr>
-                                <th class="text-start ps-4" style="width: 28%;">TÕTULO Y DESCRIPCI”N</th>
+                                <th class="text-start ps-4" style="width: 32%;">T√çTULO Y DEPARTAMENTO</th>
                                 <th style="width: 16%;">PERIODO / CARRERA</th>
-                                <th style="width: 14%;">FASE ACAD…MICA</th>
-                                <th style="width: 18%;">FECHA LÕMITE (DUEDATE)</th>
-                                <th style="width: 12%;">ESTADO</th>
+                                <th style="width: 14%;">FASE ACAD√âMICA</th>
+                                <th style="width: 16%;">FECHA L√çMITE</th>
+                                <th style="width: 10%;">ESTADO</th>
                                 <th style="width: 12%;">ACCIONES</th>
                             </tr>
                         </thead>
@@ -72,6 +79,11 @@
                             @foreach (var item in Model)
                             {
                                 bool estaVencida = DateTime.Now > item.DueDate;
+                                string deptoNombre = item.Departamento?.Name ?? "Departamento General";
+                                string tituloConDepto = !string.IsNullOrWhiteSpace(item.Title) && item.Title.Contains(deptoNombre, StringComparison.OrdinalIgnoreCase)
+                                    ? item.Title
+                                    : $"{item.Title} - {deptoNombre}";
+
                                 string badgeFase = item.PhaseType switch
                                 {
                                     "Inicial" => "bg-primary",
@@ -91,14 +103,12 @@
                                 };
 
                                 <tr>
-                                    <!-- TÌtulo y DescripciÛn -->
+                                    <!-- T√≠tulo y Descripci√≥n -->
                                     <td class="text-start ps-4">
-                                        <div class="fw-bold text-dark" style="font-size: 15px;">
-                                            @item.Title
-                                        </div>
+                                        <div class="fw-bold" style="color: #112d60;">@tituloConDepto</div>
                                         @if (!string.IsNullOrWhiteSpace(item.Description))
                                         {
-                                            <small class="text-muted text-truncate d-block" style="max-width: 320px;" title="@item.Description">
+                                            <small class="text-muted d-block text-truncate" style="max-width: 360px;">
                                                 @item.Description
                                             </small>
                                         }
@@ -110,7 +120,7 @@
                                             @(item.AcademicPeriod?.Name ?? "General")
                                         </span>
                                         <small class="text-muted">
-                                            @(item.Departamento?.Code ?? item.Departamento?.Name ?? "Todos")
+                                            @deptoNombre
                                         </small>
                                     </td>
 
@@ -121,7 +131,7 @@
                                         </span>
                                     </td>
 
-                                    <!-- Fecha LÌmite -->
+                                    <!-- Fecha L√≠mite -->
                                     <td>
                                         <div class="fw-bold @(estaVencida ? "text-danger" : "text-dark")">
                                             <i class="bi bi-clock me-1"></i> @item.DueDate.ToString("dd/MMM/yyyy HH:mm") hrs
@@ -140,32 +150,28 @@
                                         else
                                         {
                                             <span class="badge bg-success bg-opacity-10 text-success border border-success py-1 px-2">
-                                                ?? En Curso
+                                                En Curso
                                             </span>
                                         }
                                     </td>
 
                                     <!-- Acciones -->
                                     <td>
-                                        <!-- Ver Detalles -->
                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
 
-                                        <!-- Revisar / Calificar Tarea -->
                                         <a asp-action="Review" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary fw-bold" title="Mesa de Dictamen">
                                             <i class="bi bi-ui-checks"></i> Revisar
                                         </a>
 
                                         @if (User.IsInRole("JefeCarrera") || User.IsInRole("Administrador"))
                                         {
-                                            <!-- Modificar -->
                                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 
-                                            <!-- Eliminar -->
-                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('øEst·s seguro de eliminar esta tarea? Solo se eliminar· si no tiene entregas registradas.');">
+                                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('¬øEst√°s seguro de eliminar esta tarea? Solo se eliminar√° si no tiene entregas registradas.');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
@@ -183,3 +189,4 @@
         </div>
     </div>
 </div>
+
