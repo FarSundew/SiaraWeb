@@ -1,4 +1,4 @@
-﻿@model SIARAWEB.Models.Subject
+@model SIARAWEB.Models.Subject
 
 @{
     ViewData["Title"] = "Registrar Asignatura";
@@ -15,10 +15,26 @@
                     <form asp-action="Create" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-                        <div class="form-floating mb-3">
-                            <input asp-for="Code" class="form-control" placeholder="Ej. AED-1285" style="text-transform: uppercase;" required />
-                            <label asp-for="Code">Clave de la Asignatura (Ej. AED-1285)</label>
-                            <span asp-validation-for="Code" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Code" class="form-control" placeholder="Ej. AED-1285" style="text-transform: uppercase;" required />
+                                    <label asp-for="Code">Clave (Ej. AED-1285)</label>
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="Semestre" class="form-select" required>
+                                        @for (int s = 1; s <= 12; s++)
+                                        {
+                                            <option value="@s">@s° Semestre</option>
+                                        }
+                                    </select>
+                                    <label asp-for="Semestre">Semestre</label>
+                                    <span asp-validation-for="Semestre" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-floating mb-3">
@@ -33,23 +49,6 @@
                             </select>
                             <label style="padding-left: 25px;">Departamento / Carrera</label>
                             <span asp-validation-for="DepartamentoId" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <select asp-for="AcademicPeriodId" class="form-select" asp-items="ViewBag.AcademicPeriods" required>
-                                <option value="">-- Selecciona el Periodo --</option>
-                            </select>
-                            <label asp-for="AcademicPeriodId">Periodo Escolar</label>
-                            <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold" style="color: #112d60;">Docentes que imparten la asignatura</label>
-                            <select name="selectedDocentes" class="form-select" asp-items="ViewBag.Docentes" multiple style="height: 130px; border-radius: 8px;">
-                            </select>
-                            <small class="text-muted d-block mt-1">
-                                <i class="bi bi-info-circle me-1"></i> Mantén presionada la tecla <strong>Ctrl</strong> para seleccionar a uno o varios docentes.
-                            </small>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4 pt-3 border-top">

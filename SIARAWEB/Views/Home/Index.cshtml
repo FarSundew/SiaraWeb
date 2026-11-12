@@ -1,176 +1,70 @@
-﻿@{
+@{
     ViewData["Title"] = "Inicio";
-    bool esJefeCarrera = User.IsInRole("JefeCarrera") && !User.IsInRole("JefeGeneral") && !User.IsInRole("Administrador");
+    bool isAdmin = User.IsInRole("Administrador");
+    bool isSubdirector = User.IsInRole("JefeGeneral") && !isAdmin;
+    bool esJefeCarrera = User.IsInRole("JefeCarrera") && !isSubdirector && !isAdmin;
+    bool isDocente = User.IsInRole("Docente") || User.IsInRole("JefeCarrera");
+    bool showDireccionKpis = User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral") || isAdmin;
 }
 
-<div class="container-fluid">
-    <!-- Banner de Bienvenida -->
-    <div class="card border-0 shadow-sm mb-4 p-4 text-white" style="background: linear-gradient(135deg, #112d60 0%, #1d428a 100%); border-radius: 15px;">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-                <h2 class="fw-bold mb-1">¡Bienvenido, @ViewBag.UserFullName! 👋</h2>
-                <p class="mb-0 opacity-75">Sistema Integral de Análisis y Reportes Académicos (SIARA)</p>
-            </div>
-            <div class="text-md-end">
-                <span class="badge px-3 py-2 fs-6" style="background-color: #f4a915; color: #112d60; font-weight: bold; border-radius: 20px;">
-                    <i class="bi bi-calendar-event me-1"></i> Periodo: @ViewBag.ActivePeriodName
-                </span>
+<div class="container-fluid mt-2">
+    <!-- HERO SECTION -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 p-md-5 text-white shadow-sm" style="background: linear-gradient(135deg, #112d60 0%, #1a458f 100%); border-radius: 16px; position: relative; overflow: hidden;">
+                <div style="position: relative; z-index: 2;">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        @if (isAdmin)
+                        {
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill"><i class="bi bi-shield-lock-fill me-1"></i> Administrador Técnico (TI)</span>
+                        }
+                        else if (isSubdirector)
+                        {
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill"><i class="bi bi-award-fill me-1"></i> Subdirección Académica / Jefe General</span>
+                        }
+                        else if (esJefeCarrera)
+                        {
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill"><i class="bi bi-building-fill-check me-1"></i> Jefatura de Carrera (@ViewBag.NombreCarrera)</span>
+                        }
+                        else if (isDocente)
+                        {
+                            <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill"><i class="bi bi-person-workspace me-1"></i> Personal Docente</span>
+                        }
+                    </div>
+                    <h2 class="fw-bold display-6 mb-2">¡Bienvenido, @ViewBag.UserFullName!</h2>
+                    <p class="lead mb-0 opacity-75">Sistema Integral de Análisis y Reportes Académicos (SIARA)</p>
+                    <div class="mt-4">
+                        <span class="badge bg-white text-dark py-2 px-3 fw-bold shadow-sm" style="font-size: 0.9rem; border-radius: 20px;">
+                            <i class="bi bi-calendar3 me-2 text-primary"></i> Periodo Actual: @ViewBag.ActivePeriodName
+                        </span>
+                    </div>
+                </div>
+                <i class="bi bi-grid-1x2-fill" style="position: absolute; right: -20px; bottom: -40px; font-size: 15rem; opacity: 0.05; transform: rotate(-15deg);"></i>
             </div>
         </div>
     </div>
 
-    <!-- 👨‍🏫 Resumen Operativo Cátedra (Para Docentes o Jefes que imparten asignaturas) -->
-    @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
-    {
-        <h5 class="fw-bold mb-3" style="color: #112d60;">
-            <i class="bi bi-person-workspace me-2"></i>Resumen Operativo Cátedra
-        </h5>
-        <div class="row mb-4">
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
-                            <i class="bi bi-journal-bookmark fs-3"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">Mis Asignaturas</h6>
-                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.MySubjectsCount</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #f4a915 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #f4a915;">
-                            <i class="bi bi-file-earmark-check fs-3" style="color: #112d60;"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">Archivos Subidos</h6>
-                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.MyDocsCount</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3 bg-success">
-                            <i class="bi bi-graph-up-arrow fs-3"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">Acreditación Promedio</h6>
-                            <h3 class="fw-bold m-0 text-success">@ViewBag.MyAvgApproval%</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- 📊 Indicadores de Dirección Académica (Segmentados por Carrera o Globales) -->
-    @if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
-    {
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h5 class="fw-bold mb-0" style="color: #112d60;">
-                <i class="bi bi-speedometer2 me-2"></i>Indicadores de Dirección Académica
+    <!-- ACCESOS RÁPIDOS PERSONALIZADOS POR ROL -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h5 class="fw-bold mb-3" style="color: #112d60; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i>Módulos y Accesos Rápidos
             </h5>
-            @if (esJefeCarrera)
-            {
-                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-3 py-2 border border-primary" style="border-radius: 20px;">
-                    <i class="bi bi-mortarboard-fill me-1"></i> Carrera: @ViewBag.NombreCarrera
-                </span>
-            }
-            else
-            {
-                <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-3 py-2 border border-secondary" style="border-radius: 20px;">
-                    <i class="bi bi-globe me-1"></i> Cobertura Institucional Global
-                </span>
-            }
         </div>
 
-        <div class="row mb-4">
-            <!-- 1. Docentes -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #112d60 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #112d60;">
-                            <i class="bi bi-people-fill fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">@(esJefeCarrera ? "Docentes del Área" : "Docentes Totales")</h6>
-                            <h3 class="fw-bold m-0" style="color: #112d60;">@ViewBag.TotalDocentes</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Asignaturas -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #17a2b8 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3 bg-info">
-                            <i class="bi bi-journal-text fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">@(esJefeCarrera ? "Materias del Semestre" : "Asignaturas Globales")</h6>
-                            <h3 class="fw-bold m-0 text-info">@ViewBag.TotalAsignaturas</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Carrera o Departamentos -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #6f42c1 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3" style="background-color: #6f42c1;">
-                            <i class="bi bi-building fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">@(esJefeCarrera ? "Programa Educativo" : "Carreras / Deptos")</h6>
-                            <h3 class="fw-bold m-0" style="color: #6f42c1;">
-                                @(esJefeCarrera? ViewBag.NombreCarrera: ViewBag.TotalDepartamentos)
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Acreditación Promedio -->
-            <div class="col-md-3 mb-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; border-left: 5px solid #28a745 !important;">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 text-white me-3 bg-success">
-                            <i class="bi bi-pie-chart-fill fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-0">@(esJefeCarrera ? "Acreditación Carrera" : "Acreditación Global")</h6>
-                            <h3 class="fw-bold m-0 text-success">@ViewBag.GlobalApproval%</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- ⚡ Accesos Rápidos -->
-    <h5 class="fw-bold mb-3" style="color: #112d60;">
-        <i class="bi bi-lightning-charge me-2"></i>Accesos Rápidos
-    </h5>
-    <div class="row">
-        @if (User.IsInRole("Docente") || User.IsInRole("JefeCarrera"))
+        @* 1. OPCIONES EXCLUSIVAS DE SUBDIRECTOR / JEFE GENERAL *@
+        @if (isSubdirector)
         {
             <div class="col-md-4 mb-3">
-                <a asp-controller="Documents" asp-action="Index" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                <a href="@Url.Action("Index", "Reports", new { tab = "kpi" })" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #112d60 !important; background-color: #fff;">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-file-earmark-pdf fs-2 text-danger me-3"></i>
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-speedometer2 fs-2" style="color: #112d60;"></i>
+                            </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0">Subir Instrumentación</h6>
-                                <small class="text-muted">Cargar evidencias en PDF</small>
+                                <h5 class="fw-bold text-dark mb-1">Resumen Global (KPIs)</h5>
+                                <p class="text-muted small mb-0">Indicadores institucionales y gráficas de todas las carreras.</p>
                             </div>
                         </div>
                     </div>
@@ -178,13 +72,31 @@
             </div>
 
             <div class="col-md-4 mb-3">
-                <a asp-controller="AcademicTrackings" asp-action="Index" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                <a href="@Url.Action("Index", "Reports", new { tab = "semaforo" })" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #198754 !important; background-color: #fff;">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-bar-chart-line fs-2 text-primary me-3"></i>
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-traffic-light-fill fs-2 text-success"></i>
+                            </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0">Capturar Calificaciones</h6>
-                                <small class="text-muted">Ingresar aprobados y reprobados</small>
+                                <h5 class="fw-bold text-dark mb-1">Semáforo de Docentes</h5>
+                                <p class="text-muted small mb-0">Supervisa entregas a tiempo, retrasos y visualiza evidencias PDF.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a href="@Url.Action("Index", "Reports", new { tab = "sabana" })" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #f4a915 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-grid-3x3-gap-fill fs-2 text-warning"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Sábana de Rendimiento</h5>
+                                <p class="text-muted small mb-0">Consulta índices de aprobación, reprobación y exporta reportes.</p>
                             </div>
                         </div>
                     </div>
@@ -192,27 +104,311 @@
             </div>
         }
 
-        @if (User.IsInRole("JefeCarrera") || User.IsInRole("JefeGeneral"))
+        @* 2. OPCIONES DE JEFE DE CARRERA *@
+        @if (esJefeCarrera)
         {
             <div class="col-md-4 mb-3">
-                <a asp-controller="Reports" asp-action="Index" class="text-decoration-none">
-                    <div class="card border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                <a asp-controller="DocumentTasks" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #f4a915 !important; background-color: #fff;">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-traffic-light fs-2 text-warning me-3"></i>
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-mailbox2 fs-2 text-warning"></i>
+                            </div>
                             <div>
-                                <h6 class="fw-bold text-dark mb-0">Semáforo de Cumplimiento</h6>
-                                <small class="text-muted">Ver entregas de la plantilla</small>
+                                <h5 class="fw-bold text-dark mb-1">Buzones y Mesa de Revisión</h5>
+                                <p class="text-muted small mb-0">Programa entregas, prórrogas y dictamina evidencias y planes remediales.</p>
                             </div>
                         </div>
                     </div>
                 </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Docentes" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #112d60 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-people-fill fs-2" style="color: #112d60;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Plantilla Docente</h5>
+                                <p class="text-muted small mb-0">Registra profesores, asigna carga académica y comisiona revisores.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Subjects" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #0dcaf0 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-book-fill fs-2 text-info"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Catálogo de Asignaturas</h5>
+                                <p class="text-muted small mb-0">Administra las materias, claves, créditos y semestres de tu carrera.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Reports" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #198754 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-bar-chart-fill fs-2 text-success"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Panel Analítico y Reportes</h5>
+                                <p class="text-muted small mb-0">Semáforo departamental, sábana de calificaciones y exportación PDF/Excel.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* 3. OPCIONES DE DOCENTE (Puro o Jefe de Carrera con carga) *@
+        @if (isDocente)
+        {
+            <div class="col-md-4 mb-3">
+                <a asp-controller="DocumentTasks" asp-action="DocenteTasks" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #dc3545 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-file-earmark-arrow-up-fill fs-2 text-danger"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Mis Tareas / Entregas</h5>
+                                <p class="text-muted small mb-0">Sube tu instrumentación, evidencias PDF y captura calificaciones por unidad.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Notifications" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #6f42c1 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-bell-fill fs-2" style="color: #6f42c1;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Mis Notificaciones</h5>
+                                <p class="text-muted small mb-0">Consulta avisos de fechas de corte y revisiones de tus entregas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* 4. OPCIONES DE ADMINISTRADOR TÉCNICO (TI) *@
+        @if (isAdmin)
+        {
+            <div class="col-md-3 mb-3">
+                <a asp-controller="ApplicationUsers" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #112d60 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-person-badge-fill fs-2" style="color: #112d60;"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Usuarios y Roles</h5>
+                                <p class="text-muted small mb-0">Gestiona cuentas, contraseñas y permisos institucionales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <a asp-controller="Departamentos" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #0d6efd !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-building-fill fs-2 text-primary"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Departamentos</h5>
+                                <p class="text-muted small mb-0">Administra carreras y asigna Jefes de Carrera titulares.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <a asp-controller="AcademicPeriods" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #f4a915 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-calendar-range-fill fs-2 text-warning"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Periodos Escolares</h5>
+                                <p class="text-muted small mb-0">Configura los nombres de ciclos escolares y el periodo activo.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <a asp-controller="Reports" asp-action="Index" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm hover-card h-100 p-4" style="border-radius: 14px; border-top: 5px solid #198754 !important; background-color: #fff;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                                <i class="bi bi-bar-chart-fill fs-2 text-success"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Panel Analítico</h5>
+                                <p class="text-muted small mb-0">Supervisa el tablero global de cumplimiento y reportes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- INDICADORES -->
+    <div class="row">
+        @if (isDocente)
+        {
+            <div class="col-12">
+                <h5 class="fw-bold mb-3" style="color: #112d60; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+                    <i class="bi bi-person-workspace me-2"></i>Mi Carga Académica (@ViewBag.ActivePeriodName)
+                </h5>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 text-primary me-3">
+                            <i class="bi bi-book-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.75rem;">Grupos Asignados</h6>
+                            <h2 class="fw-bold m-0 text-dark">@ViewBag.MySubjectsCount</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 text-info me-3">
+                            <i class="bi bi-file-earmark-check-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.75rem;">Documentos Subidos</h6>
+                            <h2 class="fw-bold m-0 text-dark">@ViewBag.MyDocsCount</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 text-success me-3">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.75rem;">Acreditación Promedio</h6>
+                            <h2 class="fw-bold m-0 text-success">@ViewBag.MyAvgApproval%</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (showDireccionKpis)
+        {
+            <div class="col-12 mt-2">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold mb-0" style="color: #112d60;">
+                        <i class="bi bi-speedometer2 me-2"></i>Indicadores de Dirección
+                    </h5>
+                    <span class="badge bg-light text-secondary border border-secondary rounded-pill px-3 py-1">
+                        <i class="bi bi-geo-alt-fill me-1"></i> @(esJefeCarrera ? $"Carrera: {ViewBag.NombreCarrera}" : "Cobertura Institucional")
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-people-fill fs-2 mb-2" style="color: #112d60;"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Docentes</h6>
+                        <h3 class="fw-bold m-0 text-dark">@ViewBag.TotalDocentes</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-journal-text fs-2 mb-2 text-info"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Materias</h6>
+                        <h3 class="fw-bold m-0 text-dark">@ViewBag.TotalAsignaturas</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-building-fill fs-2 mb-2 text-primary"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Carreras</h6>
+                        <h3 class="fw-bold m-0 text-dark">@ViewBag.TotalDepartamentos</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-success" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-pie-chart-fill fs-2 mb-2 text-success"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Acreditación</h6>
+                        <h3 class="fw-bold m-0 text-success">@ViewBag.GlobalApproval%</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-danger" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-2 mb-2 text-danger"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Reprobación</h6>
+                        <h3 class="fw-bold m-0 text-danger">@ViewBag.GlobalFailure%</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-4">
+                <div class="card border-0 shadow-sm p-3 h-100 border-start border-4 border-warning" style="border-radius: 12px;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <i class="bi bi-person-x-fill fs-2 mb-2 text-warning"></i>
+                        <h6 class="text-muted mb-1 text-uppercase fw-bold" style="font-size: 0.65rem;">Deserción</h6>
+                        <h3 class="fw-bold m-0 text-warning">@ViewBag.GlobalDropout%</h3>
+                    </div>
+                </div>
             </div>
         }
     </div>
 </div>
 
 <style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
     .hover-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
     }
 </style>

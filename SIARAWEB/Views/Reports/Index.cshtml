@@ -1,172 +1,442 @@
-﻿@model IEnumerable<SIARAWEB.Models.SemaforoViewModel>
+@model SIARAWEB.Models.AnalyticsDashboardViewModel
 
 @{
-    ViewData["Title"] = "Semáforo de Cumplimiento";
+    ViewData["Title"] = "Panel de Auditoría y Reportes";
+    string activeTab = (ViewBag.ActiveTab as string ?? "kpi").ToLower();
 }
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin: 0;">
                 <i class="bi bi-bar-chart-line-fill me-2"></i> PANEL DE AUDITORÍA Y REPORTES
             </h3>
-            <p class="text-muted fw-bold mt-1 mb-0">Monitoreo automático de entregas y rendimiento académico.</p>
+            <p class="text-muted fw-bold mt-1 mb-0">Tablero Analítico Unificado: Semáforo y Sábana de Rendimiento Académico.</p>
         </div>
-        <!-- Botones de Acción y Exportación -->
         <div class="d-flex gap-2">
-            <!-- 🟢 BOTÓN DE ACCESO A LA SÁBANA GENERAL DE RENDIMIENTO -->
-            <a asp-action="GeneralReport" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px;">
+            <!-- Botón PDF con Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-danger fw-bold shadow-sm rounded-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar PDF
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius: 12px; min-width: 300px;">
+                    <li><h6 class="dropdown-header fw-bold" style="border-bottom: 2px solid #112d60;">OPCIONES DE EXPORTACIÓN</h6></li>
+                    
+                    <!-- GENERAL - Todos pueden descargar -->
+                    <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="exportarPdf('general')">
+                        <i class="bi bi-file-earmark-bar-graph-fill me-2 text-danger"></i> <strong>Reporte Ejecutivo General</strong>
+                        <br><small class="text-muted">KPIs, Departamentos, Semáforo, Sábana y Alertas</small>
+                    </a></li>
+
+                    <!-- POR DEPARTAMENTO - Solo Admin/JefeGeneral -->
+                    @if (User.IsInRole("Administrador") || User.IsInRole("JefeGeneral"))
+                    {
+                        <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="abrirSelectDepartamento()">
+                            <i class="bi bi-building me-2 text-danger"></i> <strong>Por Departamento</strong>
+                            <br><small class="text-muted">Selecciona una carrera</small>
+                        </a></li>
+                    }
+
+                    <!-- POR DOCENTE - Todos pueden descargar -->
+                    <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="abrirSelectDocente()">
+                        <i class="bi bi-person-badge me-2 text-danger"></i> <strong>Por Docente</strong>
+                        <br><small class="text-muted">Reporte individual de docente</small>
+                    </a></li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- Otros reportes -->
+                    <li><a class="dropdown-item py-2" href="@Url.Action("ExportPdf", "Reports", new { periodoId = Model.ActivePeriodId, tipo = "semaforo" })">
+                        <i class="bi bi-traffic-light me-2 text-danger"></i> <strong>Semáforo de Entregas</strong>
+                    </a></li>
+                    
+                    <li><a class="dropdown-item py-2" href="@Url.Action("ExportPdf", "Reports", new { periodoId = Model.ActivePeriodId, tipo = "sabana" })">
+                        <i class="bi bi-grid-3x3-gap me-2 text-danger"></i> <strong>Solo Sábana</strong>
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Botón Excel -->
+            <div class="dropdown">
+                <button class="btn btn-success fw-bold shadow-sm rounded-3 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i> Descargar Excel
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius: 12px; min-width: 300px;">
+                    <li><h6 class="dropdown-header fw-bold" style="border-bottom: 2px solid #28a745;">OPCIONES DE EXPORTACIÓN</h6></li>
+                    <li><a class="dropdown-item py-2" href="@Url.Action("ExportExcel", "Reports", new { periodoId = Model.ActivePeriodId })">
+                        <i class="bi bi-file-earmark-spreadsheet me-2 text-success"></i> <strong>Reporte General</strong>
+                    </a></li>
+                    @if (User.IsInRole("Administrador") || User.IsInRole("JefeGeneral"))
+                    {
+                        <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="abrirSelectDepartamento()">
+                            <i class="bi bi-building me-2 text-success"></i> <strong>Por Departamento</strong>
+                        </a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros Global -->
+    <div class="card shadow-sm border-0 mb-4 bg-light rounded-4 p-3">
+        <form asp-action="Index" method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="tab" id="activeTabInput" value="@activeTab" />
+            <div class="col-md-3">
+                <label class="form-label fw-bold small text-muted">PERIODO ESCOLAR</label>
+                <select name="periodoId" class="form-select form-select-sm fw-bold">
+                    @foreach (var p in Model.AcademicPeriods)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == Model.ActivePeriodId)">@p.Name</option>
+                    }
+                </select>
+            </div>
+            @if (User.IsInRole("Administrador") || User.IsInRole("JefeGeneral"))
+            {
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small text-muted">DEPARTAMENTO</label>
+                    <select name="departamentoId" class="form-select form-select-sm fw-bold">
+                        <option value="">-- Todos los Departamentos --</option>
+                        @foreach (var d in Model.Departamentos)
+                        {
+                            <option value="@d.Id" selected="@(d.Id == Model.SelectedDepartamentoId)">@d.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="col-md-4">
+                <label class="form-label fw-bold small text-muted">BUSCAR MATERIA / DOCENTE</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control fw-bold" placeholder="Escribe el nombre o clave..." value="@Model.SearchQuery" />
+                </div>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary fw-bold w-100 shadow-sm"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" title="Limpiar filtros"><i class="bi bi-eraser-fill"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <ul class="nav nav-pills mb-4 fw-bold gap-2" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "kpi" ? "active" : "") rounded-pill px-4 shadow-sm" id="kpi-tab" data-bs-toggle="pill" data-bs-target="#kpi" data-tab-name="kpi" type="button" role="tab">
+                <i class="bi bi-speedometer2 me-1"></i> Resumen Global (KPIs)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "semaforo" ? "active" : "") rounded-pill px-4 shadow-sm" id="semaforo-tab" data-bs-toggle="pill" data-bs-target="#semaforo" data-tab-name="semaforo" type="button" role="tab">
+                <i class="bi bi-traffic-light me-1"></i> Semáforo (Docentes)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link @(activeTab == "sabana" ? "active" : "") rounded-pill px-4 shadow-sm" id="sabana-tab" data-bs-toggle="pill" data-bs-target="#sabana" data-tab-name="sabana" type="button" role="tab">
                 <i class="bi bi-grid-3x3-gap-fill me-1"></i> Sábana de Rendimiento
-            </a>
-
-            <!-- Botones para exportar (preparados para el RF12) -->
-            <button class="btn btn-danger fw-bold shadow-sm" style="border-radius: 8px;">
-                <i class="bi bi-file-earmark-pdf-fill"></i> Exportar PDF
             </button>
-            <button class="btn btn-success fw-bold shadow-sm" style="border-radius: 8px;">
-                <i class="bi bi-file-earmark-excel-fill"></i> Exportar Excel
-            </button>
-        </div>
-    </div>
+        </li>
+    </ul>
 
-    <!-- Contenedor de Gráficas Estadísticas -->
-    <div class="row mb-5">
-        <!-- Gráfica de Pastel (Índices Académicos) -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
-                <div class="card-header text-white fw-bold text-center p-3" style="background-color: #112d60;">
-                    <i class="bi bi-pie-chart-fill me-2"></i> RENDIMIENTO ACADÉMICO GLOBAL
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="reportTabsContent">
+        
+        <!-- TAB 1: RESUMEN GLOBAL (KPIs) -->
+        <div class="tab-pane fade @(activeTab == "kpi" ? "show active" : "")" id="kpi" role="tabpanel">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6 col-lg">
+                    <div class="card shadow-sm border-0 border-start border-4 border-primary h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">TOTAL ASIGNATURAS</div>
+                        <div class="fs-2 fw-bold text-dark mt-1">@Model.TotalAsignaturas</div>
+                    </div>
                 </div>
-                <div class="card-body d-flex justify-content-center align-items-center bg-light">
-                    <canvas id="pastelChart" style="max-height: 260px;"></canvas>
+                <div class="col-md-6 col-lg">
+                    <div class="card shadow-sm border-0 border-start border-4 border-success h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">PROMEDIO ACREDITACIÓN</div>
+                        <div class="fs-2 fw-bold text-success mt-1">@Model.PromedioAprobacion%</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg">
+                    <div class="card shadow-sm border-0 border-start border-4 border-danger h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">PROMEDIO REPROBACIÓN</div>
+                        <div class="fs-2 fw-bold text-danger mt-1">@Model.PromedioReprobacion%</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg">
+                    <div class="card shadow-sm border-0 border-start border-4 border-info h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">PROMEDIO DESERCIÓN</div>
+                        <div class="fs-2 fw-bold text-info mt-1">@Model.PromedioDesercion%</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg">
+                    <div class="card shadow-sm border-0 border-start border-4 border-warning h-100 p-3 rounded-4">
+                        <div class="text-muted fw-bold small">ALERTAS DE RIESGO (≥40%)</div>
+                        <div class="fs-2 fw-bold text-warning mt-1">@Model.AlertasRiesgo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficas Modernas -->
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-header bg-white fw-bold py-3">
+                            <i class="bi bi-bar-chart-fill text-primary me-2"></i> Cumplimiento de Entregas
+                        </div>
+                        <div class="card-body" style="height: 280px;">
+                            <canvas id="entregasChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4">
+                        <div class="card-header bg-white fw-bold py-3">
+                            <i class="bi bi-pie-chart-fill text-success me-2"></i> Rendimiento Académico
+                        </div>
+                        <div class="card-body d-flex justify-content-center" style="height: 280px;">
+                            <canvas id="rendimientoChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Gráfica de Barras (Cumplimiento Docente) -->
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px; overflow: hidden;">
-                <div class="card-header text-white fw-bold text-center p-3" style="background-color: #112d60;">
-                    <i class="bi bi-bar-chart-fill me-2"></i> ESTADO DE ENTREGAS DOCENTES
+        <!-- TAB 2: SEMÁFORO -->
+        <div class="tab-pane fade @(activeTab == "semaforo" ? "show active" : "")" id="semaforo" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-3">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-traffic-light me-2"></i> SEMÁFORO DE ENTREGAS POR DOCENTE
                 </div>
-                <div class="card-body bg-light">
-                    <canvas id="barrasChart" style="max-height: 260px;"></canvas>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center mb-0" style="font-size: 13px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-4" style="width: 28%;">ASIGNATURA</th>
+                                <th class="text-start" style="width: 22%;">DOCENTE</th>
+                                <th style="width: 12%;">INICIAL</th>
+                                <th style="width: 12%;">1ER SEGUIMIENTO</th>
+                                <th style="width: 12%;">2DO SEGUIMIENTO</th>
+                                <th style="width: 12%;">FINAL</th>
+                                <th style="width: 12%;">ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.SemaforoRows.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-muted fw-bold py-5 text-center">
+                                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                        No hay datos registrados para los filtros seleccionados.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var row in Model.SemaforoRows)
+                            {
+                                <tr>
+                                    <td class="text-start fw-bold ps-4">
+                                        <span class="badge bg-light text-dark border">@row.SubjectCode</span>
+                                        <span class="d-block text-dark mt-1">@row.SubjectName</span>
+                                    </td>
+                                    <td class="text-start text-muted fw-bold">@row.DocenteName</td>
+                                    <td>
+                                        <span class="badge @row.ColorInicial shadow-sm px-2 py-1">
+                                            @(row.ColorInicial == "bg-success" ? "A TIEMPO" : (row.ColorInicial == "bg-danger" ? "DESFASADO" : "PENDIENTE"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @row.ColorSeg1 shadow-sm px-2 py-1">
+                                            @(row.ColorSeg1 == "bg-success" ? "A TIEMPO" : (row.ColorSeg1 == "bg-danger" ? "DESFASADO" : "PENDIENTE"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @row.ColorSeg2 shadow-sm px-2 py-1">
+                                            @(row.ColorSeg2 == "bg-success" ? "A TIEMPO" : (row.ColorSeg2 == "bg-danger" ? "DESFASADO" : "PENDIENTE"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @row.ColorFinal shadow-sm px-2 py-1">
+                                            @(row.ColorFinal == "bg-success" ? "A TIEMPO" : (row.ColorFinal == "bg-danger" ? "DESFASADO" : "PENDIENTE"))
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Reports", new { id = row.SubjectId, tab = "semaforo", periodoId = Model.ActivePeriodId, departamentoId = Model.SelectedDepartamentoId, search = Model.SearchQuery })" class="btn btn-sm btn-outline-primary fw-bold shadow-sm rounded-pill px-3 py-1">
+                                            <i class="bi bi-eye-fill me-1"></i> Detalles
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="d-flex gap-4 justify-content-end fw-bold small pe-2 mt-3">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success rounded-circle p-2 me-2"></span>
+                    <span class="text-success fw-bold">A Tiempo</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-danger rounded-circle p-2 me-2"></span>
+                    <span class="text-danger fw-bold">Desfasado</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-secondary rounded-circle p-2 me-2"></span>
+                    <span class="text-dark fw-bold">Pendiente</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Tabla del Semáforo -->
-    <div class="card shadow-sm border-0 mb-3" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header text-white fw-bold p-3" style="background-color: #112d60; text-transform: uppercase;">
-            <i class="bi bi-traffic-light me-2"></i> SEMÁFORO DE CUMPLIMIENTO DOCENTE
+        <!-- TAB 3: SÁBANA -->
+        <div class="tab-pane fade @(activeTab == "sabana" ? "show active" : "")" id="sabana" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-3">
+                <div class="card-header text-white fw-bold p-3" style="background-color: #112d60;">
+                    <i class="bi bi-grid-3x3-gap-fill me-2"></i> SÁBANA CONSOLIDADA DE RENDIMIENTO
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle text-center mb-0" style="font-size: 13px;">
+                        <thead class="bg-light text-muted fw-bold">
+                            <tr>
+                                <th class="text-start ps-4" style="width: 25%;">MATERIA</th>
+                                <th class="text-start" style="width: 20%;">DOCENTE</th>
+                                <th style="width: 12%;">SEGUIMIENTOS</th>
+                                <th class="text-success" style="width: 11%;">PROM. APROB.</th>
+                                <th class="text-danger" style="width: 11%;">PROM. REPROB.</th>
+                                <th class="text-warning" style="width: 11%;">PROM. DESERC.</th>
+                                <th style="width: 10%;">ESTADO</th>
+                                <th style="width: 10%;">ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.SabanaRows.Any())
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-muted fw-bold py-5 text-center">
+                                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                        No hay datos de rendimiento registrados para los filtros seleccionados.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var row in Model.SabanaRows)
+                            {
+                                <tr class="@(row.IsHighRisk ? "table-danger bg-opacity-10" : "")">
+                                    <td class="text-start fw-bold ps-4">
+                                        <span class="badge bg-light text-dark border">@row.SubjectCode</span>
+                                        <span class="d-block text-dark mt-1">@row.SubjectName</span>
+                                    </td>
+                                    <td class="text-start text-muted fw-bold">@row.TeacherName</td>
+                                    <td class="fw-bold">@row.TotalTrackings tema(s)</td>
+                                    <td class="text-success fw-bold">@row.AvgApprovalPercentage.ToString("0.0")%</td>
+                                    <td class="text-danger fw-bold">@row.AvgFailurePercentage.ToString("0.0")%</td>
+                                    <td class="text-warning fw-bold">@row.AvgDropoutPercentage.ToString("0.0")%</td>
+                                    <td>
+                                        @if(row.IsHighRisk) { 
+                                            <span class="badge bg-danger shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i> @row.HighRiskCount ALERTA(S)</span>
+                                        } else {
+                                            <span class="badge bg-success shadow-sm">SIN RIESGO</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Reports", new { id = row.SubjectId, tab = "sabana", periodoId = Model.ActivePeriodId, departamentoId = Model.SelectedDepartamentoId, search = Model.SearchQuery })" class="btn btn-sm btn-outline-primary fw-bold shadow-sm rounded-pill px-3 py-1">
+                                            <i class="bi bi-eye-fill me-1"></i> Detalles
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900; font-size: 13px;">
-                    <tr>
-                        <th class="text-start p-3">ASIGNATURA</th>
-                        <th class="text-start">DOCENTE</th>
-                        <th>DOC. INICIALES</th>
-                        <th>1ER SEGUIMIENTO</th>
-                        <th>2DO SEGUIMIENTO</th>
-                        <th>REPORTE FINAL</th>
-                        <th>AUDITAR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td class="text-start fw-bold p-3">@item.SubjectCode - @item.SubjectName</td>
-                            <td class="text-start text-muted fw-bold">@item.DocenteName</td>
 
-                            <!-- Indicadores del Semáforo con display: inline-block para que se vean -->
-                            <td><span class="badge rounded-circle @item.ColorInicial shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorSeg1 shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorSeg2 shadow-sm" style="width: 22px; height: 22px; display: inline-block;"></span></td>
-                            <td><span class="badge rounded-circle @item.ColorFinal shadow-sm" style="width: 22px; height: 22px; display: inline-block;" title="Reporte Final"></span></td>
-
-                            <td>
-                                <!-- Botón Detalles (Lupa) -->
-                                <a asp-action="Details" asp-route-id="@item.SubjectId" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 6px;">
-                                    <i class="bi bi-search"></i> Detalles
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                    @if (!Model.Any())
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center p-4 text-muted fw-bold">
-                                <i class="bi bi-info-circle-fill me-2 fs-5"></i><br />No hay asignaturas registradas para auditar en este periodo.
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Leyenda de colores -->
-    <div class="mt-3 d-flex gap-4 fw-bold text-muted justify-content-end p-2" style="font-size: 13px;">
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-success me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Entregado a Tiempo</div>
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-danger me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Entrega Desfasada</div>
-        <div class="d-flex align-items-center"><span class="badge rounded-circle bg-secondary me-2 shadow-sm" style="width: 15px; height: 15px; display: inline-block;"></span> Pendiente / Sin entrega</div>
     </div>
 </div>
 
-@section Scripts {
-    <!-- Importar Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Contenedor para modals -->
+<div id="modalContainer"></div>
 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // 1. Dibujar Gráfica de Pastel (Aprobación / Reprobación)
-        const ctxPastel = document.getElementById('pastelChart').getContext('2d');
-        new Chart(ctxPastel, {
-            type: 'pie',
-            data: {
-                labels: ['Aprobación', 'Reprobación', 'Deserción'],
-                datasets: [{
-                    data: [@(ViewBag.Aprobacion ?? 0), @(ViewBag.Reprobacion ?? 0), @(ViewBag.Desercion ?? 0)],
-                    backgroundColor: ['#198754', '#dc3545', '#6c757d'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
+        // Guardar tab activo cuando cambia
+        document.querySelectorAll('#reportTabs button[data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function (event) {
+                const tabName = event.target.getAttribute('data-tab-name');
+                const hiddenInput = document.getElementById('activeTabInput');
+                if (hiddenInput && tabName) {
+                    hiddenInput.value = tabName;
                 }
-            }
+            });
         });
 
-        // 2. Dibujar Gráfica de Barras (Entregas Docentes)
-        const ctxBarras = document.getElementById('barrasChart').getContext('2d');
-        new Chart(ctxBarras, {
+        // Gráfica de Entregas
+        new Chart(document.getElementById('entregasChart'), {
             type: 'bar',
             data: {
-                labels: ['A Tiempo', 'Desfasado', 'Pendiente'],
+                labels: ['A Tiempo', 'Desfasadas', 'Pendientes'],
                 datasets: [{
                     label: 'Cantidad de Materias',
-                    data: [@(ViewBag.DocsATiempo ?? 0), @(ViewBag.DocsDesfasados ?? 0), @(ViewBag.DocsPendientes ?? 0)],
+                    data: [@Model.EntregasATiempo, @Model.EntregasDesfasadas, @Model.EntregasPendientes],
                     backgroundColor: ['#198754', '#dc3545', '#adb5bd'],
                     borderRadius: 6
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
+
+        // Gráfica de Rendimiento
+        new Chart(document.getElementById('rendimientoChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Aprobación', 'Reprobación'],
+                datasets: [{
+                    data: [@Model.PromedioAprobacion, @Model.PromedioReprobacion],
+                    backgroundColor: ['#198754', '#dc3545'],
+                    borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '65%' }
+        });
+
+        // Abrir modal de docentes
+        async function abrirSelectDocente() {
+            const url = '@Url.Action("SelectDocente", "Reports")?periodoId=@Model.ActivePeriodId&departamentoId=@(Model.SelectedDepartamentoId?.ToString() ?? "")';
+            const response = await fetch(url, { method: 'GET' });
+            const html = await response.text();
+            document.getElementById('modalContainer').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('selectDocenteModal')).show();
+        }
+
+        // Filtrar docentes dentro del modal
+        function filtrarDocentesModal(query) {
+            const clean = (query || '').trim().toLowerCase();
+            document.querySelectorAll('.docente-modal-item').forEach(item => {
+                const text = item.getAttribute('data-search') || '';
+                item.classList.toggle('d-none', clean.length > 0 && !text.includes(clean));
+            });
+        }
+
+        function cerrarModalDocente() {
+            const el = document.getElementById('selectDocenteModal');
+            if (el) bootstrap.Modal.getInstance(el)?.hide();
+        }
+
+        // Abrir modal de departamentos
+        async function abrirSelectDepartamento() {
+            const response = await fetch('@Url.Action("SelectDepartamento", "Reports")?periodoId=@Model.ActivePeriodId', {
+                method: 'GET'
+            });
+            const html = await response.text();
+            document.getElementById('modalContainer').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('selectDepartamentoModal')).show();
+        }
+
+        function cerrarModalDepartamento() {
+            const el = document.getElementById('selectDepartamentoModal');
+            if (el) bootstrap.Modal.getInstance(el)?.hide();
+        }
+
+        // Descargar PDF según tipo (general, semaforo, sabana)
+        function exportarPdf(tipo) {
+            const t = tipo || 'general';
+            window.location.href = '@Url.Action("ExportPdf", "Reports")?periodoId=@Model.ActivePeriodId&departamentoId=@(Model.SelectedDepartamentoId?.ToString() ?? "")&tipo=' + encodeURIComponent(t);
+        }
     </script>
 }

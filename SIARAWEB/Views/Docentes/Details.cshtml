@@ -1,4 +1,4 @@
-﻿@model IEnumerable<IGrouping<SIARAWEB.Models.AcademicPeriod, SIARAWEB.Models.DocenteAsignatura>>
+@model IEnumerable<IGrouping<SIARAWEB.Models.AcademicPeriod, SIARAWEB.Models.DocenteAsignatura>>
 
 @{
     ViewData["Title"] = "Expediente del Docente";
@@ -26,10 +26,96 @@
                     </div>
                 </div>
             </div>
-            <div>
+                        <div class="d-flex gap-2">
                 <a asp-action="Index" class="btn btn-outline-light fw-bold px-3 py-2" style="border-radius: 8px;">
                     <i class="bi bi-arrow-left me-1"></i> Regresar al Directorio
                 </a>
+                <button type="button" class="btn btn-warning fw-bold px-3 py-2" style="border-radius: 8px; color: #112d60;" data-bs-toggle="modal" data-bs-target="#assignTeacherModal">
+                    <i class="bi bi-plus-circle me-1"></i> Asignar Materia
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Asignacin -->
+    <div class="modal fade" id="assignTeacherModal" tabindex="-1" aria-labelledby="assignTeacherModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+                <div class="modal-header" style="background-color: #112d60; color: white;">
+                    <h5 class="modal-title fw-bold" id="assignTeacherModalLabel">Asignar Materia al Docente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Subjects" asp-action="AssignTeacher" method="post">
+                    <div class="modal-body p-4">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="docenteId" value="@ViewBag.DocenteId" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold" style="color: #112d60;">Materia a Asignar</label>
+                            <select class="form-select" name="subjectId" required>
+                                <option value="">-- Selecciona una Materia --</option>
+                                @if(ViewBag.Subjects != null)
+                                {
+                                    foreach(var sub in ViewBag.Subjects)
+                                    {
+                                        <option value="@sub.Id">@sub.Code - @sub.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold" style="color: #112d60;">Semestre / Periodo</label>
+                                <select class="form-select" name="semestre" required>
+                                    @{
+                                        var opcionesModal = SIARAWEB.Models.PeriodConfig.Load().GetOpciones();
+                                        bool defaultSegundo = DateTime.Now.Month > 6;
+                                    }
+                                    @for (int i = 0; i < opcionesModal.Count; i++)
+                                    {
+                                        string op = opcionesModal[i];
+                                        bool sel = (i == 0 && !defaultSegundo) || (i == 1 && defaultSegundo);
+                                        <option value="@op" selected="@sel">@op</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold" style="color: #112d60;">Año</label>
+                                <select class="form-select" name="anio" required>
+                                    @{
+                                        int anioActual = DateTime.Now.Year;
+                                        for (int y = anioActual; y <= anioActual + 2; y++)
+                                        {
+                                            <option value="@y" selected="@(y == anioActual)">@y</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Grupo</label>
+                                <input type="text" class="form-control" name="group" placeholder="Ej. Grupo A" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold" style="color: #112d60;">Turno</label>
+                                <select class="form-select" name="turno" required>
+                                    <option value="Matutino">Matutino</option>
+                                    <option value="Vespertino">Vespertino</option>
+                                    <option value="Mixto">Mixto</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold" style="background-color: #f4a915; color: #112d60; border: none;">
+                            Guardar Asignación
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -85,15 +171,26 @@
                     @foreach (var asignacion in grupo)
                     {
                         var materia = asignacion.Subject;
-                        <div class="col-12 col-md-6 col-lg-4">
+                        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
                             <div class="card h-100 border-0 shadow-sm p-3 hover-card" style="border-radius: 12px; background-color: #ffffff;">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
                                     <span class="badge bg-primary bg-opacity-10 text-primary fw-bold px-2 py-1" style="font-size: 11px;">
                                         @(string.IsNullOrEmpty(materia?.Code) ? "S/C" : materia.Code)
                                     </span>
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 11px;">
-                                        @(string.IsNullOrEmpty(asignacion.Group) ? "Grupo A" : asignacion.Group)
-                                    </span>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        @if (materia != null && materia.Semestre > 0)
+                                        {
+                                            <span class="badge bg-dark bg-opacity-10 text-dark fw-bold" style="font-size: 11px;">
+                                                @(materia.Semestre)° Sem
+                                            </span>
+                                        }
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 11px;">
+                                            @(string.IsNullOrEmpty(asignacion.Group) ? "Grupo A" : asignacion.Group)
+                                        </span>
+                                        <span class="badge bg-info bg-opacity-10 text-info fw-bold" style="font-size: 11px;">
+                                            @(string.IsNullOrEmpty(asignacion.Turno) ? "Matutino" : asignacion.Turno)
+                                        </span>
+                                    </div>
                                 </div>
                                 <h6 class="fw-bold text-dark mb-2" style="min-height: 40px;">
                                     @(materia?.Name ?? "Asignatura sin nombre")

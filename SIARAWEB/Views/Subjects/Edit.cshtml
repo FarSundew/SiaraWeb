@@ -1,49 +1,72 @@
-﻿@model SIARAWEB.Models.Subject
+@model SIARAWEB.Models.Subject
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Asignatura";
 }
 
-<h1>Edit</h1>
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-header text-white py-3 px-4" style="background-color: #112d60;">
+                    <h5 class="m-0 fw-bold"><i class="bi bi-pencil-square me-2" style="color: #f4a915;"></i> Editar Asignatura</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+                        <input type="hidden" asp-for="Id" />
 
-<h4>Subject</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Code" class="control-label"></label>
-                <input asp-for="Code" class="form-control" />
-                <span asp-validation-for="Code" class="text-danger"></span>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Code" class="form-control" placeholder="Ej. AED-1285" style="text-transform: uppercase;" required />
+                                    <label asp-for="Code">Clave de la Asignatura</label>
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="Semestre" class="form-select" required>
+                                        @for (int s = 1; s <= 12; s++)
+                                        {
+                                            <option value="@s">@s° Semestre</option>
+                                        }
+                                    </select>
+                                    <label asp-for="Semestre">Semestre</label>
+                                    <span asp-validation-for="Semestre" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Name" class="form-control" placeholder="Nombre completo" required />
+                            <label asp-for="Name">Nombre de la Asignatura</label>
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <select asp-for="DepartamentoId" class="form-select" asp-items="ViewBag.Departamentos" required>
+                                <option value="">-- Seleccione el Departamento --</option>
+                            </select>
+                            <label style="padding-left: 25px;">Departamento / Carrera</label>
+                            <span asp-validation-for="DepartamentoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
+                                <i class="bi bi-check-circle-fill me-2"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DepartamentoId" class="control-label"></label>
-                <select asp-for="DepartamentoId" class="form-control" asp-items="ViewBag.DepartamentoId"></select>
-                <span asp-validation-for="DepartamentoId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="AcademicPeriodId" class="control-label"></label>
-                <select asp-for="AcademicPeriodId" class="form-control" asp-items="ViewBag.AcademicPeriodId"></select>
-                <span asp-validation-for="AcademicPeriodId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }

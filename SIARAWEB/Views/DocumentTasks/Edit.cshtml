@@ -1,0 +1,92 @@
+@model SIARAWEB.Models.DocumentTask
+
+@{
+    ViewData["Title"] = "Modificar Tarea";
+    var opcionesPeriodo = SIARAWEB.Models.PeriodConfig.Load().GetOpciones();
+    string currentPeriodName = Model.AcademicPeriod?.Name ?? $"Julio - Diciembre {DateTime.Now.Year}";
+    int currentYear = DateTime.Now.Year;
+    string currentSemestre = opcionesPeriodo.LastOrDefault() ?? "Julio - Diciembre";
+
+    var parts = currentPeriodName.Trim().Split(' ');
+    if (parts.Length >= 2 && int.TryParse(parts[^1], out int parsedYear))
+    {
+        currentYear = parsedYear;
+        currentSemestre = string.Join(" ", parts.Take(parts.Length - 1));
+    }
+}
+
+<div class="container py-4" style="max-width: 750px;">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header text-white py-3 px-4" style="background-color: #112d60; border-radius: 12px 12px 0 0;">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i> Modificar Tarea / Otorgar Prórroga</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">TÍTULO DE LA ENTREGA</label>
+                    <input type="text" name="title" value="@Model.Title" class="form-control form-control-lg" required />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold text-muted small">SEMESTRE / PERIODO</label>
+                        <select name="semestre" class="form-select fw-bold" required>
+                            @foreach (var op in opcionesPeriodo)
+                            {
+                                <option value="@op" selected="@(string.Equals(op, currentSemestre, StringComparison.OrdinalIgnoreCase))">@op</option>
+                            }
+                            @if (!opcionesPeriodo.Any(op => string.Equals(op, currentSemestre, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                <option value="@currentSemestre" selected>@currentSemestre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-muted small">AÑO</label>
+                        <select name="anio" class="form-select fw-bold" required>
+                            @{
+                                int baseYear = DateTime.Now.Year;
+                                for (int y = baseYear; y <= baseYear + 2; y++)
+                                {
+                                    <option value="@y" selected="@(y == currentYear)">@y</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-muted small">FASE ACADÉMICA</label>
+                        <select name="phaseType" class="form-select" required>
+                            <option value="Inicial" selected="@(Model.PhaseType == "Inicial")">Documentos Iniciales</option>
+                            <option value="Seguimiento1" selected="@(Model.PhaseType == "Seguimiento1")">1er Seguimiento</option>
+                            <option value="Seguimiento2" selected="@(Model.PhaseType == "Seguimiento2")">2do Seguimiento</option>
+                            <option value="Final" selected="@(Model.PhaseType == "Final")">Reporte Final</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-danger small">
+                            <i class="bi bi-calendar-event me-1"></i> FECHA Y HORA LÍMITE (PRÓRROGA)
+                        </label>
+                        <input type="datetime-local" name="dueDate" value="@Model.DueDate.ToString("yyyy-MM-ddTHH:mm")" class="form-control border-danger fw-bold" required />
+                        <small class="text-muted d-block mt-1">Al extender esta fecha se otorgará prórroga a los docentes.</small>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small">INSTRUCCIONES / OBSERVACIONES</label>
+                    <textarea name="description" class="form-control" rows="3">@Model.Description</textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">Cancelar</a>
+                    <button type="submit" class="btn text-white px-4 fw-bold" style="background-color: #112d60;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

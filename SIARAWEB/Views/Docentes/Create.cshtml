@@ -1,0 +1,115 @@
+@model SIARAWEB.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Alta de Docente";
+    var departamentos = ViewBag.Departamentos as List<SIARAWEB.Models.Departamento> ?? new List<SIARAWEB.Models.Departamento>();
+    int? defaultDeptoId = ViewBag.DepartamentoPredeterminadoId as int?;
+    bool esJefeCarrera = User.IsInRole("JefeCarrera") && !User.IsInRole("Administrador") && !User.IsInRole("JefeGeneral");
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" style="border-radius: 12px;">
+                <div class="card-header text-white py-3 px-4 d-flex justify-content-between align-items-center"
+                     style="background-color: #112d60; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                    <div>
+                        <h4 class="m-0 fw-bold"><i class="bi bi-person-plus-fill me-2"></i> Alta Descentralizada de Docente</h4>
+                        <small class="opacity-75">Registro de nuevo profesor en el sistema sin intermediarios de TI</small>
+                    </div>
+                    <span class="badge bg-warning text-dark fw-bold px-3 py-2" style="border-radius: 20px;">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Rol: Docente
+                    </span>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 shadow-sm" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="FullName" class="form-control" placeholder="Nombre completo" required />
+                            <label asp-for="FullName">Nombre Completo del Profesor *</label>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" type="email" autocomplete="username" placeholder="profesor@tecnm.mx" required />
+                            <label asp-for="Email">Correo Institucional (Nombre de Usuario) *</label>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="RFC" class="form-control" placeholder="RFC" maxlength="13" style="text-transform: uppercase;" />
+                                <label asp-for="RFC" style="padding-left: 25px;">RFC (13 caracteres)</label>
+                                <span asp-validation-for="RFC" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 form-floating mb-3">
+                                <input asp-for="CURP" class="form-control" placeholder="CURP" maxlength="18" style="text-transform: uppercase;" />
+                                <label asp-for="CURP" style="padding-left: 25px;">CURP (18 caracteres)</label>
+                                <span asp-validation-for="CURP" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-floating mb-3">
+                                @if (esJefeCarrera)
+                                {
+                                    var deptoActual = departamentos.FirstOrDefault(d => d.Id == defaultDeptoId);
+                                    <input type="text" class="form-control bg-light" value="@(deptoActual?.Name ?? "Mi Carrera")" readonly />
+                                    <input type="hidden" asp-for="DepartamentoId" value="@defaultDeptoId" />
+                                    <label style="padding-left: 25px;">Departamento / Carrera de Adscripción Base</label>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-info-circle me-1"></i> Asignado automáticamente a su carrera adscrita.
+                                    </small>
+                                }
+                                else
+                                {
+                                    <select asp-for="DepartamentoId" class="form-select" required>
+                                        <option value="">-- Seleccionar Departamento --</option>
+                                        @foreach (var d in departamentos)
+                                        {
+                                            <option value="@d.Id" selected="@(d.Id == defaultDeptoId)">@d.Name (@d.Code)</option>
+                                        }
+                                    </select>
+                                    <label style="padding-left: 25px;">Departamento / Carrera de Adscripción Base *</label>
+                                }
+                                <span asp-validation-for="DepartamentoId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 form-floating mb-3">
+                                <input type="password" name="password" class="form-control" placeholder="Contraseña inicial" required />
+                                <label style="padding-left: 25px;">Contraseña Temporal de Acceso *</label>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="bi bi-key me-1"></i> El docente podrá cambiarla tras iniciar sesión.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                                <i class="bi bi-arrow-left me-2"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn text-white px-4 py-2 fw-bold" style="background-color: #112d60; border-radius: 8px;">
+                                <i class="bi bi-check-lg me-2"></i> Dar de Alta Docente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

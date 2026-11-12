@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +42,7 @@ namespace SIARAWEB.Controllers
                         .ThenInclude(s => s!.AcademicTrackings)
                     .Where(da => da.DocenteId == currentUser.Id &&
                                  da.Subject != null &&
-                                 da.Subject.AcademicPeriodId == activePeriodId)
+                                 da.AcademicPeriodId == activePeriodId)
                     .Select(da => da.Subject!)
                     .ToListAsync();
 
@@ -66,7 +66,7 @@ namespace SIARAWEB.Controllers
 
                 if (esJefeCarrera)
                 {
-                    // 🔒 CONSULTAS LIMITADAS A SU CARRERA
+                    // ?? CONSULTAS LIMITADAS A SU CARRERA
                     var depto = await _context.Departamentos.FindAsync(deptoId);
                     ViewBag.NombreCarrera = depto?.Code ?? depto?.Name ?? "Mi Carrera";
 
@@ -77,13 +77,13 @@ namespace SIARAWEB.Controllers
                                    (u.DepartamentoId == deptoId ||
                                     u.DocenteAsignaturas!.Any(da => da.Subject != null &&
                                                                    da.Subject.DepartamentoId == deptoId &&
-                                                                   da.Subject.AcademicPeriodId == activePeriodId)))
+                                                                   da.AcademicPeriodId == activePeriodId)))
                         .CountAsync();
                     ViewBag.TotalDocentes = totalDocentesCarrera;
 
                     // Asignaturas de su carrera en el periodo activo
                     var totalAsignaturasCarrera = await _context.Subjects
-                        .Where(s => s.DepartamentoId == deptoId && s.AcademicPeriodId == activePeriodId)
+                        .Where(s => s.DepartamentoId == deptoId && s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .CountAsync();
                     ViewBag.TotalAsignaturas = totalAsignaturasCarrera;
 
@@ -95,30 +95,42 @@ namespace SIARAWEB.Controllers
                         .Include(t => t.Subject)
                         .Where(t => t.Subject != null &&
                                     t.Subject.DepartamentoId == deptoId &&
-                                    t.Subject.AcademicPeriodId == activePeriodId)
+                                    t.Subject.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .ToListAsync();
 
                     ViewBag.GlobalApproval = trackingsCarrera.Any()
                         ? Math.Round(trackingsCarrera.Average(t => t.ApprovalPercentage), 1)
                         : 0;
+                    ViewBag.GlobalFailure = trackingsCarrera.Any()
+                        ? Math.Round(trackingsCarrera.Average(t => t.FailurePercentage), 1)
+                        : 0;
+                    ViewBag.GlobalDropout = trackingsCarrera.Any()
+                        ? Math.Round(trackingsCarrera.Average(t => t.DropoutPercentage), 1)
+                        : 0;
                 }
                 else
                 {
-                    // 🌐 CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
+                    // 🏢 CONSULTA INSTITUCIONAL GLOBAL (Jefe General / Subdirector)
                     ViewBag.NombreCarrera = "Todas las Carreras";
                     ViewBag.TotalDocentes = (await _userManager.GetUsersInRoleAsync("Docente")).Count;
                     ViewBag.TotalAsignaturas = await _context.Subjects
-                        .Where(s => s.AcademicPeriodId == activePeriodId)
+                        .Where(s => s.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .CountAsync();
                     ViewBag.TotalDepartamentos = await _context.Departamentos.CountAsync();
 
                     var totalTrackings = await _context.AcademicTrackings
                         .Include(t => t.Subject)
-                        .Where(t => t.Subject != null && t.Subject.AcademicPeriodId == activePeriodId)
+                        .Where(t => t.Subject != null && t.Subject.DocenteAsignaturas!.Any(da => da.AcademicPeriodId == activePeriodId))
                         .ToListAsync();
 
                     ViewBag.GlobalApproval = totalTrackings.Any()
                         ? Math.Round(totalTrackings.Average(t => t.ApprovalPercentage), 1)
+                        : 0;
+                    ViewBag.GlobalFailure = totalTrackings.Any()
+                        ? Math.Round(totalTrackings.Average(t => t.FailurePercentage), 1)
+                        : 0;
+                    ViewBag.GlobalDropout = totalTrackings.Any()
+                        ? Math.Round(totalTrackings.Average(t => t.DropoutPercentage), 1)
                         : 0;
                 }
             }
@@ -127,9 +139,24 @@ namespace SIARAWEB.Controllers
             if (User.IsInRole("Administrador"))
             {
                 ViewBag.TotalUsers = await _context.Users.CountAsync();
-            }
+            }            return View();
+        }
 
-            return View();
+        [Authorize]
+        public async Task<IActionResult> MarkNotificationRead(int id, string returnUrl)
+        {
+            var notif = await _context.Notifications.FindAsync(id);
+            if (notif != null && notif.UserId == _userManager.GetUserId(User))
+            {
+                notif.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index");
         }
     }
 }
+

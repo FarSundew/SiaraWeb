@@ -1,119 +1,113 @@
-﻿@model IEnumerable<SIARAWEB.Models.AcademicPeriod>
+@model SIARAWEB.Models.PeriodConfig
 
 @{
-    ViewData["Title"] = "Periodos Escolares";
-    bool esAdmin = User.IsInRole("Administrador");
+    ViewData["Title"] = "Configuración de Nombres de Periodos";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold" style="color: #112d60;">Gestión de Periodos Escolares</h2>
-            <p class="text-muted m-0">Administración de semestres activos, fechas de inicio/cierre e historial académico.</p>
-        </div>
-
-        @if (esAdmin)
-        {
-            <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-                <i class="bi bi-calendar-plus-fill me-2"></i> Aperturar Nuevo Periodo
-            </a>
-        }
+<div class="container py-4" style="max-width: 720px;">
+    <div class="mb-4">
+        <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 4px;">
+            <i class="bi bi-sliders me-2"></i> NOMBRES DEL SELECTOR DE PERIODOS
+        </h3>
+        <p class="text-muted fw-bold mb-0">
+            Configura cómo se llaman las opciones del selector de Semestre/Periodo cuando el Jefe de Carrera agrega una nueva tarea o asigna una materia.
+        </p>
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <div class="alert alert-success alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <div class="row">
-        @if (!Model.Any())
-        {
-            <div class="col-12 text-center py-5 text-muted">
-                <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
-                <p class="fs-5">No hay periodos escolares registrados aún.</p>
-            </div>
-        }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show fw-bold text-center shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-        @foreach (var item in Model)
-        {
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card shadow-sm h-100 border-0" style="border-radius: 12px; overflow: hidden; border-top: 5px solid @(item.IsActive ? "#28a745" : "#6c757d") !important;">
-                    <div class="card-body p-4 d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="fw-bold m-0" style="color: #112d60;">@item.Name</h5>
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
-                                        <i class="bi bi-play-circle-fill me-1"></i> En Curso
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-2">
-                                        <i class="bi bi-archive-fill me-1"></i> Concluido
-                                    </span>
-                                }
-                            </div>
+    <div class="card shadow-sm border-0" style="border-radius: 14px; overflow: hidden;">
+        <div class="card-header py-3 px-4 text-white d-flex justify-content-between align-items-center" style="background-color: #112d60;">
+            <h5 class="mb-0 fw-bold" style="font-size: 15px; text-transform: uppercase;">
+                <i class="bi bi-pencil-square me-2" style="color: #f4a915;"></i> Opciones del Selector de Semestre
+            </h5>
+            <span class="badge bg-warning text-dark fw-bold px-3 py-1">Cambio Global</span>
+        </div>
 
-                            <div class="p-3 mb-3 bg-light rounded-3" style="font-size: 14px;">
-                                <div class="d-flex align-items-center mb-2 text-muted">
-                                    <i class="bi bi-calendar-check text-primary me-2 fs-5"></i>
-                                    <span><strong>Inicio:</strong> @item.StartDate.ToString("dd 'de' MMMM 'de' yyyy")</span>
-                                </div>
-                                <div class="d-flex align-items-center text-muted">
-                                    <i class="bi bi-calendar-x text-danger me-2 fs-5"></i>
-                                    <span><strong>Cierre:</strong> @item.EndDate.ToString("dd 'de' MMMM 'de' yyyy")</span>
-                                </div>
-                            </div>
+        <div class="card-body p-4">
+            <form asp-action="UpdateNames" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-uppercase small" style="color: #112d60;">
+                            Opción 1 (Primer Semestre del Año):
+                        </label>
+                        <input type="text"
+                               id="inputPeriodo1"
+                               name="periodo1"
+                               value="@Model.Periodo1"
+                               class="form-control form-control-lg fw-bold"
+                               style="color: #112d60; border: 2px solid #cbd5e1; border-radius: 10px;"
+                               placeholder="Ej. Enero - Junio o Primer Periodo"
+                               required />
+                        <div class="mt-2 d-flex flex-wrap gap-1">
+                            <span class="badge bg-light text-primary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo1').value='Enero - Junio'">Enero - Junio</span>
+                            <span class="badge bg-light text-primary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo1').value='Febrero - Junio'">Febrero - Junio</span>
+                            <span class="badge bg-light text-secondary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo1').value='Primer Periodo'">Primer Periodo</span>
                         </div>
+                    </div>
 
-                        <!-- 🟢 ACCIONES CONDICIONADAS SEGÚN ROL -->
-                        <div class="pt-3 border-top">
-                            @if (esAdmin)
-                            {
-                                <div class="d-flex flex-column gap-2">
-                                    <!-- Botón para Concluir / Reabrir Semestre -->
-                                    <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="w-100 m-0">
-                                        @Html.AntiForgeryToken()
-                                        @if (item.IsActive)
-                                        {
-                                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Archivar este periodo? Al concluir el periodo, los docentes ya no podrán subir más entregas.');">
-                                                <i class="bi bi-archive me-2"></i> Concluir / Archivar Semestre
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button type="submit" class="btn btn-outline-success btn-sm w-100 py-2 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Reabrir este periodo escolar?');">
-                                                <i class="bi bi-arrow-counterclockwise me-2"></i> Reabrir Periodo Escolar
-                                            </button>
-                                        }
-                                    </form>
-
-                                    <!-- Botón de Borrado Definitivo -->
-                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="w-100 m-0">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1 fw-bold" style="border-radius: 8px;" onclick="return confirm('¿Deseas eliminar este periodo escolar de forma permanente? Se podrían ver afectadas materias y registros asociados.');">
-                                            <i class="bi bi-trash me-1"></i> Eliminar Periodo
-                                        </button>
-                                    </form>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="text-center">
-                                    <span class="badge bg-light text-muted border py-2 w-100">
-                                        <i class="bi bi-eye me-1"></i> Solo Lectura / Consulta Histórica
-                                    </span>
-                                </div>
-                            }
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-uppercase small" style="color: #112d60;">
+                            Opción 2 (Segundo Semestre del Año):
+                        </label>
+                        <input type="text"
+                               id="inputPeriodo2"
+                               name="periodo2"
+                               value="@Model.Periodo2"
+                               class="form-control form-control-lg fw-bold"
+                               style="color: #112d60; border: 2px solid #cbd5e1; border-radius: 10px;"
+                               placeholder="Ej. Agosto - Diciembre o Julio - Diciembre"
+                               required />
+                        <div class="mt-2 d-flex flex-wrap gap-1">
+                            <span class="badge bg-light text-primary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo2').value='Julio - Diciembre'">Julio - Diciembre</span>
+                            <span class="badge bg-light text-primary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo2').value='Agosto - Diciembre'">Agosto - Diciembre</span>
+                            <span class="badge bg-light text-secondary border" style="cursor:pointer;" onclick="document.getElementById('inputPeriodo2').value='Segundo Periodo'">Segundo Periodo</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-uppercase small text-muted">
+                        Opción Adicional / Especial (Opcional):
+                    </label>
+                    <input type="text"
+                           name="periodoExtra"
+                           value="@Model.PeriodoExtra"
+                           class="form-control"
+                           style="border-radius: 10px;"
+                           placeholder="Dejar en blanco o escribir ej. Curso de Verano, Tercer Periodo..." />
+                    <small class="text-muted">Si escribes algo aquí, también aparecerá como una tercera opción en el selector del Jefe de Carrera.</small>
+                </div>
+
+                <div class="alert alert-light border d-flex align-items-center gap-3 mb-4" style="border-radius: 10px;">
+                    <i class="bi bi-info-circle-fill fs-4 text-primary"></i>
+                    <div class="small text-muted">
+                        Cuando el Jefe de Carrera entre a <strong>Publicar Nueva Tarea</strong> o <strong>Asignar Materia</strong>, verá los dos selectores (<strong>Semestre</strong> con estos nombres + <strong>Año</strong>) y podrá crear o seleccionar el ciclo automáticamente.
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn px-5 py-2 fw-bold shadow-sm" style="background-color: #f4a915; color: #112d60; border-radius: 8px; font-size: 15px;">
+                        <i class="bi bi-check-circle-fill me-2"></i> Guardar Nombres del Selector
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

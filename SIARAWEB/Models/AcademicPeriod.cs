@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SIARAWEB.Models
 {
@@ -20,7 +20,6 @@ namespace SIARAWEB.Models
 
         public ICollection<CutoffDate>? CutoffDates { get; set; }
 
-        // 🟢 ESTA ES LA LÍNEA QUE DEBES TENER:
-        public ICollection<Subject>? Subjects { get; set; }
+        public ICollection<DocenteAsignatura>? DocenteAsignaturas { get; set; }
     }
 }

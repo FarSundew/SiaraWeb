@@ -1,0 +1,75 @@
+@model List<SIARAWEB.Models.ApplicationUser>
+
+<div class="modal fade" id="selectDocenteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #112d60 0%, #1d428a 100%);">
+                <h5 class="modal-title fw-bold mb-0">
+                    <i class="bi bi-person-badge-fill me-2 text-warning"></i>Descargar Reporte Individual por Docente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="alert alert-info rounded-3 mb-0 d-flex align-items-center" role="alert">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div>No hay docentes con asignaturas registradas en el periodo seleccionado.</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="input-group mb-3 shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text"
+                               class="form-control border-start-0 fw-semibold"
+                               placeholder="Filtrar docente por nombre, correo o departamento..."
+                               oninput="filtrarDocentesModal(this.value)" />
+                    </div>
+
+                    <div class="list-group rounded-3 shadow-sm" id="listaDocentesModal">
+                        @foreach (var docente in Model)
+                        {
+                            string inicial = !string.IsNullOrWhiteSpace(docente.FullName)
+                                ? docente.FullName.Trim().Substring(0, 1).ToUpper()
+                                : "D";
+                            string deptoName = docente.Departamento?.Name ?? "Departamento General";
+                            string downloadUrl = Url.Action("ExportPdf", "Reports", new
+                            {
+                                periodoId = ViewBag.PeriodoId,
+                                departamentoId = ViewBag.DepartamentoId,
+                                docenteId = docente.Id
+                            }) ?? "#";
+
+                            <a href="@downloadUrl"
+                               onclick="cerrarModalDocente()"
+                               data-search="@($"{docente.FullName} {docente.Email} {deptoName}".ToLower())"
+                               class="list-group-item list-group-item-action py-3 px-3 d-flex justify-content-between align-items-center docente-modal-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                         style="width: 44px; height: 44px; font-weight: 800; background-color: #112d60; flex-shrink: 0;">
+                                        @inicial
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">@docente.FullName</div>
+                                        <div class="small text-muted">
+                                            <i class="bi bi-envelope me-1"></i>@docente.Email
+                                            <span class="mx-1">·</span>
+                                            <span class="badge bg-light text-dark border">@deptoName</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="btn btn-sm btn-danger rounded-pill fw-bold px-3 shadow-sm">
+                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i> Descargar PDF
+                                </span>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer bg-light border-0 py-2 px-4">
+                <button type="button" class="btn btn-secondary btn-sm fw-bold rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

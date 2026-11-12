@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,7 +9,7 @@ using SIARAWEB.Models;
 namespace SIARAWEB.Controllers
 {
     // 🔒 SOLO EL JEFE GENERAL PUEDE GESTIONAR DEPARTAMENTOS
-    [Authorize(Roles = "Administrador,JefeGeneral")]
+    [Authorize(Roles = "Administrador")]
     public class DepartamentosController : Controller
     {
         private readonly ApplicationDbContext _context;

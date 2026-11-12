@@ -1,41 +1,49 @@
-﻿@model IEnumerable<SIARAWEB.Models.Departamento>
+@model IEnumerable<SIARAWEB.Models.Departamento>
 
 @{
     ViewData["Title"] = "Catálogo de Departamentos";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold" style="color: #112d60;">Catálogo de Departamentos y Carreras</h2>
-            <p class="text-muted m-0">Administración de programas educativos y asignación de Jefes de Carrera.</p>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-building me-2"></i> CATÁLOGO DE DEPARTAMENTOS Y CARRERAS
+            </h3>
+            <p class="text-muted fw-bold m-0">Administración de programas educativos y asignación de Jefes de Carrera.</p>
         </div>
         @if (User.IsInRole("Administrador"))
         {
-            <a asp-action="Create" class="btn text-white px-4 py-2" style="background-color: #f4a915; border-radius: 8px; color: #112d60 !important; font-weight: bold;">
-                <i class="bi bi-building-add me-2"></i> Nuevo Departamento
+            <a asp-action="Create" class="btn text-white fw-bold px-4 py-2 shadow-sm" style="background-color: #112d60; border-radius: 8px;">
+                <i class="bi bi-building-add me-2" style="color: #f4a915;"></i> Nuevo Departamento
             </a>
         }
     </div>
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <div class="alert alert-success alert-dismissible fade show fw-bold text-center border-0 shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header py-3 px-4 d-flex justify-content-between align-items-center" style="background-color: #112d60; color: white;">
+            <h5 class="mb-0 fw-bold" style="font-size: 15px; text-transform: uppercase;">
+                <i class="bi bi-diagram-3-fill me-2" style="color: #f4a915;"></i> Programas Educativos Registrados
+            </h5>
+            <span class="badge bg-light text-dark fw-bold px-3 py-1">@Model.Count() Carrera(s)</span>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead style="background-color: #112d60; color: #ffffff;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
                         <tr>
-                            <th class="py-3 px-4">Clave / Sigla</th>
-                            <th class="py-3 px-4">Nombre del Departamento</th>
-                            <th class="py-3 px-4">Jefe(a) de Carrera Asignado</th>
-                            <th class="py-3 px-4 text-end">Acciones</th>
+                            <th class="py-3 px-4">CLAVE / SIGLA</th>
+                            <th class="py-3 px-4">NOMBRE DEL DEPARTAMENTO</th>
+                            <th class="py-3 px-4">JEFE(A) DE CARRERA TITULAR</th>
+                            <th class="py-3 px-4 text-end">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,7 +58,7 @@
                         {
                             <tr>
                                 <td class="px-4 fw-bold">
-                                    <span class="badge bg-secondary px-3 py-2" style="font-size: 13px;">
+                                    <span class="badge px-3 py-2" style="background-color: #112d60; font-size: 13px;">
                                         @(string.IsNullOrEmpty(item.Code) ? "S/C" : item.Code)
                                     </span>
                                 </td>
@@ -73,7 +81,7 @@
                                     @if (User.IsInRole("Administrador"))
                                     {
                                         <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1" onclick="return confirm('¿Estás seguro de eliminar este departamento?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1" onclick="return confirm('¿Estás seguro de eliminar este departamento?');">
                                                 <i class="bi bi-trash"></i> Eliminar
                                             </button>
                                         </form>

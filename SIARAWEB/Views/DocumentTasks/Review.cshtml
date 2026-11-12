@@ -1,0 +1,355 @@
+@model IEnumerable<SIARAWEB.Models.DocenteAsignatura>
+
+@{
+    var task = ViewBag.Task as SIARAWEB.Models.DocumentTask;
+    ViewData["Title"] = "Mesa de Revisión - " + task?.Title;
+}
+
+<div class="container-fluid mt-4">
+    <!-- Encabezado de la Tarea -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h3 style="color: #112d60; font-weight: 900; text-transform: uppercase; margin-bottom: 0;">
+                <i class="bi bi-ui-checks-grid me-2"></i> REVISIÓN DE TAREA: @task?.Title - @(task?.Departamento?.Name ?? "General")
+            </h3>
+            <p class="text-muted fw-bold mt-1 mb-0">
+                Carrera: <span class="text-dark">@(task?.Departamento?.Name ?? "General")</span> |
+                Periodo: <span class="text-dark">@(task?.AcademicPeriod?.Name)</span> |
+                Fase: <span class="text-primary">@task?.PhaseType</span> |
+                Límite: <span class="text-dark">@task?.DueDate.ToString("dd/MMM/yyyy HH:mm") hrs</span>
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary fw-bold px-3">
+            <i class="bi bi-arrow-left me-1"></i> Regresar al Listado
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold text-center shadow-sm">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger fw-bold text-center shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        </div>
+    }
+
+    <!-- Tabla de Entregas por Materia / Docente -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header text-white fw-bold py-3" style="background-color: #112d60;">
+            <i class="bi bi-people-fill me-2"></i> ENTREGAS REGISTRADAS POR DOCENTE
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                    <thead style="background-color: #f2f3f5; color: #112d60; font-weight: 900;">
+                        <tr>
+                            <th style="width: 24%;" class="text-start ps-3">DOCENTE / ASIGNATURA</th>
+                            <th style="width: 34%;">ARCHIVOS PDF ENTREGADOS</th>
+                            <th style="width: 16%;">SEGUIMIENTO CALIFICACIONES</th>
+                            <th style="width: 13%;">PUNTUALIDAD</th>
+                            <th style="width: 13%;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="py-4 text-muted fw-bold">No hay asignaturas registradas en este periodo.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var da in Model)
+                            {
+                                var docenteName = da.Docente?.FullName ?? "Sin docente asignado";
+                                var subject = da.Subject;
+                                var docsSubidos = subject?.Documents?.ToList() ?? new List<SIARAWEB.Models.Document>();
+                                var trackings = subject?.AcademicTrackings?.ToList() ?? new List<SIARAWEB.Models.AcademicTracking>();
+
+                                <tr>
+                                    <td class="text-start ps-3">
+                                        <div class="fw-bold text-dark">@docenteName</div>
+                                        <small class="text-muted">@subject?.Name (@subject?.Code) - @da.Group</small>
+                                    </td>
+
+                                    <!-- Lista de PDFs entregados para esta tarea -->
+                                    <td class="text-start ps-3">
+                                        @if (!docsSubidos.Any())
+                                        {
+                                            <span class="text-muted fst-italic">Sin documentos entregados</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var doc in docsSubidos)
+                                            {
+                                                string pdfUrl = doc.FilePath != "N/A" ? Url.Content("~/" + doc.FilePath.TrimStart('/')) : "";
+                                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-light border">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="bi bi-file-earmark-pdf-fill text-danger fs-5"></i>
+                                                        <span class="fw-bold text-dark" style="font-size: 12px;">@doc.DocumentType</span>
+                                                    </div>
+                                                    <div class="d-flex gap-1 align-items-center">
+                                                        @if (doc.FilePath == "N/A")
+                                                        {
+                                                            <span class="badge bg-secondary">N/A</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-primary py-0 px-2 fw-bold"
+                                                                    onclick="openPdfModal('@pdfUrl', '@doc.DocumentType.Replace("'", "\\'") - @(subject?.Name?.Replace("'", "\\'"))')"
+                                                                    title="Vista previa interactiva">
+                                                                <i class="bi bi-eye-fill me-1"></i>Ver
+                                                            </button>
+                                                        }
+
+                                                        <!-- Dictamen Badge -->
+                                                        @if (doc.ApprovalStatus == "Aprobado")
+                                                        {
+                                                            <span class="badge bg-success">Aprobado</span>
+                                                        }
+                                                        else if (doc.ApprovalStatus == "Rechazado")
+                                                        {
+                                                            <span class="badge bg-danger" title="@doc.Feedback">Rechazado</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                                        }
+
+                                                        <!-- Botón Dictaminar -->
+                                                        <button type="button" class="btn btn-sm btn-light border py-0 px-2" data-bs-toggle="modal" data-bs-target="#modalReview_@doc.Id" title="Dictaminar este archivo">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+
+                                                        <!-- Modal de Dictamen -->
+                                                        <div class="modal fade" id="modalReview_@doc.Id" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content text-start">
+                                                                    <form asp-action="ReviewDocument" method="post">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="documentId" value="@doc.Id" />
+                                                                        <input type="hidden" name="taskId" value="@task?.Id" />
+
+                                                                        <div class="modal-header" style="background-color: #112d60; color: white;">
+                                                                            <h6 class="modal-title fw-bold">DICTAMINAR: @doc.DocumentType</h6>
+                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            <div class="mb-3">
+                                                                                <label class="fw-bold small text-muted">RESOLUCIÓN</label>
+                                                                                <select name="status" class="form-select fw-bold" required>
+                                                                                    <option value="Aprobado" selected="@(doc.ApprovalStatus == "Aprobado")">APROBAR DOCUMENTO</option>
+                                                                                    <option value="Rechazado" selected="@(doc.ApprovalStatus == "Rechazado")">RECHAZAR CON OBSERVACIONES</option>
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="mb-3">
+                                                                                <label class="fw-bold small text-muted">RETROALIMENTACIÓN</label>
+                                                                                <textarea name="feedback" class="form-control" rows="3" placeholder="Si rechazas, indica al docente qué corregir...">@doc.Feedback</textarea>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                            <button type="submit" class="btn btn-sm btn-success fw-bold">Guardar Resolución</button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+
+                                    <!-- Captura de Calificaciones de la fase -->
+                                    <td>
+                                        @if (task?.PhaseType == "Inicial")
+                                        {
+                                            <span class="text-muted">N/A (Fase Inicial)</span>
+                                        }
+                                        else if (!trackings.Any())
+                                        {
+                                            <span class="badge bg-secondary">Sin captura</span>
+                                        }
+                                        else
+                                        {
+                                            <ul class="list-unstyled mb-0 small">
+                                                @foreach (var tr in trackings)
+                                                {
+                                                    <li class="mb-2 border-bottom pb-1">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>T-@tr.UnitNumber:</strong> Aprob: @Math.Round(tr.ApprovalPercentage, 0)% | Reprob: @Math.Round(tr.FailurePercentage, 0)%
+                                                                @if (tr.FailurePercentage >= 40)
+                                                                {
+                                                                    <span class="badge bg-danger ms-1" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalAccion_@tr.Id" title="Ver Acción Correctiva"><i class="bi bi-tools"></i></span>
+                                                                }
+                                                            </div>
+                                                            <div>
+                                                                @if (tr.ApprovalStatus == "Aprobado")
+                                                                {
+                                                                    <span class="badge bg-success">Aprobado</span>
+                                                                }
+                                                                else if (tr.ApprovalStatus == "Rechazado")
+                                                                {
+                                                                    <span class="badge bg-danger" title="@tr.Feedback">Rechazado</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                                                }
+                                                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 ms-1" data-bs-toggle="modal" data-bs-target="#modalReviewTrack_@tr.Id" title="Dictaminar este seguimiento">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        @if (tr.FailurePercentage >= 40)
+                                                        {
+                                                            <div class="modal fade" id="modalAccion_@tr.Id" tabindex="-1" aria-hidden="true">
+                                                                <div class="modal-dialog modal-dialog-centered">
+                                                                    <div class="modal-content text-start">
+                                                                        <div class="modal-header bg-danger text-white">
+                                                                            <h6 class="modal-title fw-bold">Acción Correctiva - Tema @tr.UnitNumber</h6>
+                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            <p class="text-dark m-0" style="white-space: pre-wrap; font-weight: normal;">@tr.Observations</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+
+                                                        <div class="modal fade" id="modalReviewTrack_@tr.Id" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content text-start">
+                                                                    <form asp-action="ReviewTracking" method="post">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="trackingId" value="@tr.Id" />
+                                                                        <input type="hidden" name="taskId" value="@task?.Id" />
+
+                                                                        <div class="modal-header" style="background-color: #112d60; color: white;">
+                                                                            <h6 class="modal-title fw-bold">DICTAMINAR SEGUIMIENTO T-@tr.UnitNumber</h6>
+                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            @if (tr.FailurePercentage >= 40)
+                                                                            {
+                                                                                <div class="alert alert-danger p-3 mb-3 border-0 rounded-3 shadow-sm">
+                                                                                    <div class="fw-bold d-flex align-items-center mb-1">
+                                                                                        <i class="bi bi-shield-exclamation me-2 fs-5"></i>
+                                                                                        Índice de Reprobación Crítico: @tr.FailurePercentage.ToString("F1")%
+                                                                                    </div>
+                                                                                    <div class="small mb-2 fw-semibold text-dark">Estrategia Remedial Registrada por el Docente:</div>
+                                                                                    <div class="p-2 bg-white rounded border small text-dark fst-italic" style="white-space: pre-wrap;">@(string.IsNullOrWhiteSpace(tr.Observations) ? "Sin acción remedial registrada." : tr.Observations)</div>
+                                                                                </div>
+                                                                            }
+                                                                            <div class="mb-3">
+                                                                                <label class="fw-bold small text-muted">RESOLUCIÓN</label>
+                                                                                <select name="status" class="form-select fw-bold" required>
+                                                                                    <option value="Aprobado" selected="@(tr.ApprovalStatus == "Aprobado")">APROBAR SEGUIMIENTO</option>
+                                                                                    <option value="Rechazado" selected="@(tr.ApprovalStatus == "Rechazado")">RECHAZAR CON OBSERVACIONES</option>
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="mb-3">
+                                                                                <label class="fw-bold small text-muted">RETROALIMENTACIÓN</label>
+                                                                                <textarea name="feedback" class="form-control" rows="3" placeholder="Si rechazas, indica al docente qué corregir...">@tr.Feedback</textarea>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                            <button type="submit" class="btn btn-sm btn-success fw-bold">Guardar Resolución</button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        }
+                                    </td>
+
+                                    <!-- Semáforo de Puntualidad -->
+                                    <td>
+                                        @if (!docsSubidos.Any() && !trackings.Any())
+                                        {
+                                            <span class="badge bg-danger">Pendiente</span>
+                                        }
+                                        else if (docsSubidos.All(d => d.FilePath == "N/A"))
+                                        {
+                                            <span class="badge bg-secondary">No aplica</span>
+                                        }
+                                        else if (docsSubidos.All(d => d.IsOnTime))
+                                        {
+                                            <span class="badge bg-success">A tiempo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Con retraso</span>
+                                        }
+                                    </td>
+
+                                    <!-- Acciones Globales -->
+                                    <td>
+                                        @if (subject != null)
+                                        {
+                                            <a asp-controller="Reports" asp-action="Details" asp-route-id="@subject.Id" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3">
+                                                <i class="bi bi-eye-fill me-1"></i> Ver Expediente
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visor Interactivo de PDF -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background-color: #112d60;">
+                <h6 class="modal-title fw-bold mb-0">
+                    <i class="bi bi-file-earmark-pdf-fill text-warning me-2"></i>
+                    <span id="pdfModalTitle">Vista Previa del Documento</span>
+                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <a id="pdfModalExternalBtn" href="#" target="_blank" class="btn btn-sm btn-light fw-bold rounded-pill px-3" style="color: #112d60;">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> Abrir en Pestaña
+                    </a>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0 bg-dark" style="height: 75vh;">
+                <iframe id="pdfModalIframe" src="" style="width: 100%; height: 100%; border: none; background-color: #fff;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openPdfModal(url, title) {
+            const iframe = document.getElementById('pdfModalIframe');
+            const titleEl = document.getElementById('pdfModalTitle');
+            const extBtn = document.getElementById('pdfModalExternalBtn');
+            if (iframe) iframe.src = url;
+            if (titleEl) titleEl.textContent = title || 'Vista Previa del Documento';
+            if (extBtn) extBtn.href = url;
+            const modal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            modal.show();
+        }
+    </script>
+}
+

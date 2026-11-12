@@ -1,14 +1,18 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
 using SIARAWEB.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "Docente,JefeCarrera")]
+    [Authorize(Roles = "Docente,JefeCarrera,Administrador")]
     public class AcademicTrackingsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,86 +24,102 @@ namespace SIARAWEB.Controllers
             _userManager = userManager;
         }
 
-        // GET: AcademicTrackings (Lista de materias del docente)
-        // GET: AcademicTrackings
-        public async Task<IActionResult> Index()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return RedirectToAction("Login", "Account");
-
-            var periodoActivo = await _context.AcademicPeriods
-                .FirstOrDefaultAsync(p => p.IsActive);
-
-            if (periodoActivo == null)
-            {
-                return View(new List<Subject>());
-            }
-
-            var misAsignaturas = await _context.DocenteAsignaturas
-                .Include(da => da.Subject)
-                    .ThenInclude(s => s!.AcademicPeriod)
-                .Include(da => da.Subject)
-                    .ThenInclude(s => s!.AcademicTrackings)
-                .Where(da => da.DocenteId == currentUser.Id &&
-                             da.Subject!.AcademicPeriodId == periodoActivo.Id) // 🟢 FILTRO PERIODO ACTIVO
-                .Select(da => da.Subject!)
-                .ToListAsync();
-
-            return View(misAsignaturas);
-        }
-
-        // GET: AcademicTrackings/Capture/5
-        public async Task<IActionResult> Capture(int id, string? faseSeleccionada)
+        public async Task<IActionResult> Capture(int id, int taskId)
         {
             var subject = await _context.Subjects
-                .Include(s => s.AcademicPeriod)
                 .Include(s => s.Departamento)
                 .Include(s => s.AcademicTrackings!)
-                    .ThenInclude(at => at.CutoffDate)
+                    .ThenInclude(at => at.DocumentTask)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (subject == null) return NotFound();
 
-            // 🟢 FASE 4: Buscar la fecha de corte activa priorizando la fecha de su propio Departamento
-            var faseActiva = await _context.CutoffDates
-                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId &&
-                           (c.DepartamentoId == subject.DepartamentoId || c.DepartamentoId == null) &&
-                            c.DueDate >= DateTime.Now)
-                .OrderByDescending(c => c.DepartamentoId) // Prioriza la del departamento sobre la general
-                .ThenBy(c => c.DueDate)
-                .FirstOrDefaultAsync();
+            var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == taskId);
+            if (task == null) return NotFound("Tarea no encontrada.");
 
-            // 2. Determinamos la fase visualizada (por defecto Seguimiento1 si no hay activa o seleccionada)
-            string faseActual = faseSeleccionada ?? faseActiva?.PhaseType ?? "Seguimiento1";
+            // 🔒 REGLA DE NEGOCIO: Entrega secuencial de seguimientos
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == id &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento1");
 
-            // 3. Modo de solo lectura si la fecha expiró o se visualiza un corte distinto
-            bool esSoloLectura = faseActiva == null || faseActiva.PhaseType != faseActual;
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar y entregar las calificaciones del 1er Seguimiento antes de registrar el 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == id &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento2");
 
-            // 🟢 FASE 4: Fechas de corte disponibles priorizando el departamento (excluyendo Inicial)
-            var cutoffDatesQuery = _context.CutoffDates
-                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId &&
-                           (c.DepartamentoId == subject.DepartamentoId || c.DepartamentoId == null) &&
-                            c.PhaseType != "Inicial")
-                .OrderBy(c => c.StartDate);
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar y entregar las calificaciones del 2do Seguimiento antes de registrar el Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
 
-            ViewBag.CutoffDates = new SelectList(cutoffDatesQuery, "Id", "Name");
+            bool esSoloLectura = task.DueDate < DateTime.Now || !task.IsActive;
+
             ViewBag.Subject = subject;
-            ViewBag.FaseActiva = faseActiva?.PhaseType;
-            ViewBag.FaseActual = faseActual;
+            ViewBag.Task = task;
             ViewBag.EsSoloLectura = esSoloLectura;
 
-            return View(new AcademicTracking { SubjectId = id });
+            int nextUnit = 1;
+            if (subject.AcademicTrackings != null && subject.AcademicTrackings.Any(at => at.DocumentTaskId == taskId))
+            {
+                nextUnit = subject.AcademicTrackings.Where(at => at.DocumentTaskId == taskId).Max(t => t.UnitNumber) + 1;
+            }
+            return View(new AcademicTracking { SubjectId = id, DocumentTaskId = task.Id, UnitNumber = nextUnit });
         }
 
-        // POST: AcademicTrackings/Capture
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Capture(AcademicTracking tracking)
         {
-            // Evita conflictos de inserción con la columna IDENTITY en SQL Server
+            var task = await _context.DocumentTasks.FirstOrDefaultAsync(t => t.Id == tracking.DocumentTaskId);
+            if (task == null) return NotFound();
+
+            // 🔒 REGLA DE NEGOCIO: Entrega secuencial de seguimientos
+            if (task.PhaseType == "Seguimiento2")
+            {
+                var tieneSeg1 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == tracking.SubjectId &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento1");
+
+                if (!tieneSeg1)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar el 1er Seguimiento antes del 2do Seguimiento.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+            else if (task.PhaseType == "Final")
+            {
+                var tieneSeg2 = await _context.AcademicTrackings.AnyAsync(at =>
+                    at.SubjectId == tracking.SubjectId &&
+                    at.DocumentTask != null &&
+                    at.DocumentTask.AcademicPeriodId == task.AcademicPeriodId &&
+                    at.DocumentTask.PhaseType == "Seguimiento2");
+
+                if (!tieneSeg2)
+                {
+                    TempData["Error"] = "Entrega secuencial bloqueada: Debes capturar el 2do Seguimiento antes del Reporte Final.";
+                    return RedirectToAction("DocenteTasks", "DocumentTasks");
+                }
+            }
+
             tracking.Id = 0;
 
-            // Cálculo de métricas porcentuales si hay alumnos registrados
             if (tracking.TotalStudents > 0)
             {
                 tracking.ApprovalPercentage = Math.Round(((decimal)tracking.ApprovedStudents / tracking.TotalStudents) * 100, 2);
@@ -107,7 +127,6 @@ namespace SIARAWEB.Controllers
                 tracking.DropoutPercentage = Math.Round(((decimal)tracking.DroppedStudents / tracking.TotalStudents) * 100, 2);
             }
 
-            // 🔒 Regla institucional: Si la reprobación es >= 40%, la acción correctiva (Observations) es obligatoria
             if (tracking.FailurePercentage >= 40 && string.IsNullOrWhiteSpace(tracking.Observations))
             {
                 ModelState.AddModelError(nameof(tracking.Observations), "La acción correctiva es obligatoria cuando el índice de reprobación es igual o superior al 40%.");
@@ -117,52 +136,32 @@ namespace SIARAWEB.Controllers
             {
                 tracking.CreatedAt = DateTime.Now;
                 tracking.ApprovalStatus = "Pendiente";
-
                 _context.AcademicTrackings.Add(tracking);
+                
                 await _context.SaveChangesAsync();
-
                 TempData["Success"] = $"Métricas del Tema {tracking.UnitNumber} registradas exitosamente.";
-                return RedirectToAction(nameof(Capture), new { id = tracking.SubjectId });
+                return RedirectToAction(nameof(Capture), new { id = tracking.SubjectId, taskId = tracking.DocumentTaskId });
             }
 
-            // Recarga de dependencias en caso de validación fallida
             var subject = await _context.Subjects
-                .Include(s => s.AcademicPeriod)
                 .Include(s => s.Departamento)
                 .Include(s => s.AcademicTrackings!)
-                    .ThenInclude(at => at.CutoffDate)
+                    .ThenInclude(at => at.DocumentTask)
                 .FirstOrDefaultAsync(s => s.Id == tracking.SubjectId);
 
-            if (subject == null) return NotFound();
-
-            // 🟢 FASE 4: Recalcular la fecha activa con filtro de Departamento
-            var faseActivaRecarga = await _context.CutoffDates
-                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId &&
-                           (c.DepartamentoId == subject.DepartamentoId || c.DepartamentoId == null) &&
-                            c.DueDate >= DateTime.Now)
-                .OrderByDescending(c => c.DepartamentoId)
-                .ThenBy(c => c.DueDate)
-                .FirstOrDefaultAsync();
-
-            var cutoffDatesQueryRecarga = _context.CutoffDates
-                .Where(c => c.AcademicPeriodId == subject.AcademicPeriodId &&
-                           (c.DepartamentoId == subject.DepartamentoId || c.DepartamentoId == null) &&
-                            c.PhaseType != "Inicial")
-                .OrderBy(c => c.StartDate);
-
-            ViewBag.CutoffDates = new SelectList(cutoffDatesQueryRecarga, "Id", "Name", tracking.CutoffDateId);
             ViewBag.Subject = subject;
-            ViewBag.FaseActiva = faseActivaRecarga?.PhaseType;
-            ViewBag.FaseActual = faseActivaRecarga?.PhaseType ?? "Seguimiento1";
-            ViewBag.EsSoloLectura = false;
+            ViewBag.Task = task;
+            ViewBag.EsSoloLectura = task == null || task.DueDate < DateTime.Now || !task.IsActive;
 
             return View(tracking);
         }
 
-        // POST: AcademicTrackings/Delete/5
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id, int subjectId)
+        public async Task<IActionResult> Delete(int id, int subjectId, int taskId)
         {
             var tracking = await _context.AcademicTrackings.FindAsync(id);
             if (tracking != null)
@@ -171,8 +170,8 @@ namespace SIARAWEB.Controllers
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Registro de tema eliminado.";
             }
-
-            return RedirectToAction(nameof(Capture), new { id = subjectId });
+            return RedirectToAction(nameof(Capture), new { id = subjectId, taskId = taskId });
         }
     }
 }
+

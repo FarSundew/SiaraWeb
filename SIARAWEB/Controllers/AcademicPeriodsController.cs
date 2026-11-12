@@ -1,17 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIARAWEB.Data;
 using SIARAWEB.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SIARAWEB.Controllers
 {
-    [Authorize(Roles = "Administrador,JefeGeneral")]
+    // 🔒 MÓDULO EXCLUSIVO DEL ADMINISTRADOR TÉCNICO (TI)
+    [Authorize(Roles = "Administrador")]
     public class AcademicPeriodsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,157 +18,51 @@ namespace SIARAWEB.Controllers
         }
 
         // GET: AcademicPeriods
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.AcademicPeriods.ToListAsync());
+            var config = PeriodConfig.Load();
+            return View(config);
         }
 
-        // GET: AcademicPeriods/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var academicPeriod = await _context.AcademicPeriods
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (academicPeriod == null)
-            {
-                return NotFound();
-            }
-
-            return View(academicPeriod);
-        }
-
-        // GET: AcademicPeriods/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: AcademicPeriods/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: AcademicPeriods/UpdateNames
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,StartDate,EndDate,IsActive")] AcademicPeriod academicPeriod)
+        public async Task<IActionResult> UpdateNames(string periodo1, string periodo2, string? periodoExtra)
         {
-            if (ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(periodo1) || string.IsNullOrWhiteSpace(periodo2))
             {
-                _context.Add(academicPeriod);
-                await _context.SaveChangesAsync();
+                TempData["Error"] = "Los nombres de los dos periodos principales son obligatorios.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(academicPeriod);
-        }
 
-        // GET: AcademicPeriods/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var oldConfig = PeriodConfig.Load();
+            string oldP1 = oldConfig.Periodo1.Trim();
+            string oldP2 = oldConfig.Periodo2.Trim();
 
-            var academicPeriod = await _context.AcademicPeriods.FindAsync(id);
-            if (academicPeriod == null)
+            var newConfig = new PeriodConfig
             {
-                return NotFound();
-            }
-            return View(academicPeriod);
-        }
+                Periodo1 = periodo1.Trim(),
+                Periodo2 = periodo2.Trim(),
+                PeriodoExtra = periodoExtra?.Trim() ?? ""
+            };
+            newConfig.Save();
 
-        // POST: AcademicPeriods/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,StartDate,EndDate,IsActive")] AcademicPeriod academicPeriod)
-        {
-            if (id != academicPeriod.Id)
+            // También actualizar los registros existentes en la BD si cambiaron de nombre (ej. de "Julio - Diciembre 2026" a "Agosto - Diciembre 2026")
+            var periodosEnBd = await _context.AcademicPeriods.ToListAsync();
+            foreach (var p in periodosEnBd)
             {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                if (!string.IsNullOrEmpty(oldP1) && oldP1 != newConfig.Periodo1 && p.Name.StartsWith(oldP1))
                 {
-                    _context.Update(academicPeriod);
-                    await _context.SaveChangesAsync();
+                    p.Name = newConfig.Periodo1 + p.Name.Substring(oldP1.Length);
                 }
-                catch (DbUpdateConcurrencyException)
+                else if (!string.IsNullOrEmpty(oldP2) && oldP2 != newConfig.Periodo2 && p.Name.StartsWith(oldP2))
                 {
-                    if (!AcademicPeriodExists(academicPeriod.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    p.Name = newConfig.Periodo2 + p.Name.Substring(oldP2.Length);
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(academicPeriod);
-        }
-
-        // GET: AcademicPeriods/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var academicPeriod = await _context.AcademicPeriods
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (academicPeriod == null)
-            {
-                return NotFound();
-            }
-
-            return View(academicPeriod);
-        }
-
-        // POST: AcademicPeriods/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var academicPeriod = await _context.AcademicPeriods.FindAsync(id);
-            if (academicPeriod != null)
-            {
-                _context.AcademicPeriods.Remove(academicPeriod);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool AcademicPeriodExists(int id)
-        {
-            return _context.AcademicPeriods.Any(e => e.Id == id);
-        }
-        // GET: AcademicPeriods/ToggleStatus/5
-        public async Task<IActionResult> ToggleStatus(int id)
-        {
-            var periodo = await _context.AcademicPeriods.FindAsync(id);
-
-            if (periodo == null)
-            {
-                return NotFound();
-            }
-
-            // Alternamos el estado activo/inactivo (ajusta 'IsActive' al nombre real de tu campo si es diferente)
-            periodo.IsActive = !periodo.IsActive;
-
-            _context.Update(periodo);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = periodo.IsActive ? "Periodo activado." : "Periodo concluido y archivado.";
-
+            TempData["Success"] = $"Los nombres del selector de periodos se actualizaron a '{newConfig.Periodo1}' y '{newConfig.Periodo2}' en todo el sistema.";
             return RedirectToAction(nameof(Index));
         }
     }
